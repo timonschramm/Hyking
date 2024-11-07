@@ -19,3 +19,5 @@ def download_public_data():
    with open("dataset_public_api.json", "w") as outfile:
      json.dump(dataset, outfile)
 
+download_public_data()
+
