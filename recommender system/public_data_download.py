@@ -12,7 +12,7 @@ def download_public_data():
    dataset = {} 
    for entry in ids:
      id = entry["id"]
-     url = base_url + id + "?display=snippet&lang=de&key=yourtest-outdoora-ctiveapi"
+     url = base_url + id + "?display=verbose&lang=de&key=yourtest-outdoora-ctiveapi"
      response = requests.get(url).json()
      if response["header"]["status"] == "ok":
         dataset[id] = response["answer"]["contents"]
