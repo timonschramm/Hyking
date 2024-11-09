@@ -9,7 +9,7 @@ def download_public_data():
    response = requests.get(ids_url).json()
    ids = response["answer"]["contents"]
    
-   dataset = {}
+   dataset = {} 
    for entry in ids:
      id = entry["id"]
      url = base_url + id + "?display=snippet&lang=de&key=yourtest-outdoora-ctiveapi"
