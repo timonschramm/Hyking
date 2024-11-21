@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend/pages/speak_screen.dart';
 import 'package:supabase_auth_ui/supabase_auth_ui.dart';
 import 'pages/SignInScreen.dart';
 import 'pages/ResetPasswordScreen.dart';
-import 'pages/HomeScreen.dart';
+import 'pages/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +36,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/signin': (context) => const SignInScreen(),
         '/reset-password': (context) => const ResetPasswordScreen(),
-        '/home': (context) => const HomeScreen(),
+        '/home': (context) => const SpeakScreen(),
       },
     );
   }
