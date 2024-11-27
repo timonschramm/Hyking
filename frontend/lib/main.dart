@@ -9,7 +9,7 @@ import 'pages/home_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  await dotenv.load(fileName: ".env.local");
+  await dotenv.load(fileName: ".env");
   
   await Supabase.initialize(
     url: dotenv.get('SUPABASE_URL'),
