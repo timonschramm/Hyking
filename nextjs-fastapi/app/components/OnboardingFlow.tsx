@@ -1,12 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OnboardingStep from './OnboardingStep';
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from 'next/navigation';
+import { Button } from "@/components/ui/button";
+
+interface Artist {
+  name: string;
+  images: { url: string }[];
+  genres: string[];
+}
 
 const OnboardingFlow = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [userData, setUserData] = useState({});
+  const [topArtists, setTopArtists] = useState<Artist[]>([]);
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
 
   const steps = [
     {
@@ -99,6 +108,43 @@ const OnboardingFlow = () => {
     }
   };
 
+  const connectToSpotify = () => {
+    const clientId = '9b26ec7cde50497a86c271959cf91e99';
+    const redirectUri = 'http://localhost:3000/callback';
+    const scope = 'user-top-read';
+    
+    const authUrl = new URL('https://accounts.spotify.com/authorize');
+    authUrl.searchParams.append('client_id', clientId);
+    authUrl.searchParams.append('response_type', 'code');
+    authUrl.searchParams.append('redirect_uri', redirectUri);
+    authUrl.searchParams.append('scope', scope);
+    
+    window.location.href = authUrl.toString();
+  };
+
+  useEffect(() => {
+    // Check if we have a token in localStorage
+    const token = localStorage.getItem('spotify_token');
+    if (token) {
+      setSpotifyConnected(true);
+      fetchTopArtists(token);
+    }
+  }, []);
+
+  const fetchTopArtists = async (token: string) => {
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=5', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      setTopArtists(data.items);
+    } catch (error) {
+      console.error('Error fetching top artists:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-base-100 rounded-2xl shadow-xl p-8">
@@ -107,6 +153,38 @@ const OnboardingFlow = () => {
           className="mb-8"
         />
         
+        <div className="mb-8">
+          {!spotifyConnected ? (
+            <Button
+              onClick={connectToSpotify}
+              className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white"
+            >
+              Connect to Spotify
+            </Button>
+          ) : (
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold">Your Top Artists</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {topArtists?.map((artist) => (
+                  <div key={artist.name} className="flex items-center space-x-3">
+                    <img 
+                      src={artist.images[0]?.url} 
+                      alt={artist.name}
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div>
+                      <p className="font-medium">{artist.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {artist.genres.slice(0, 2).join(', ')}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         <OnboardingStep
           key={currentStep}
           stepData={steps[currentStep]}

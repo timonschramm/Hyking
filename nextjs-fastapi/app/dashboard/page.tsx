@@ -27,6 +27,7 @@ export default function DashboardPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('spotify_token');
     router.push('/login');
   };
 
