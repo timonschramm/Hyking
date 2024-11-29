@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 
-export default function LoginForm() {
+export default function AuthForm() {
+  const [isLogin, setIsLogin] = useState(true); // State to toggle between login and signup
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,7 +13,8 @@ export default function LoginForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/py/login', {
+      const endpoint = isLogin ? '/api/py/login' : '/api/py/signup';
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,13 +25,16 @@ export default function LoginForm() {
       const data = await res.json();
       
       if (!res.ok) {
-        throw new Error(data.detail || 'Login failed');
+        throw new Error(data.detail || (isLogin ? 'Login failed' : 'Signup failed'));
       }
 
-      // Store token in localStorage
-      localStorage.setItem('token', data.access_token);
-      const isFirstLogin = true; // Replace with actual logic to determine first login
-      router.push(isFirstLogin ? '/onboarding' : '/dashboard');    } catch (err: any) {
+      if (isLogin) {
+        localStorage.setItem('token', data.access_token);
+        router.push('/dashboard'); // Redirect to dashboard
+      } else {
+        router.push('/login'); // Redirect to login page after signup
+      }
+    } catch (err: any) {
       setError(err.message);
     }
   };
@@ -38,7 +42,7 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center">{isLogin ? 'Login' : 'Sign Up'}</h2>
         {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
           <label className="block text-gray-700 mb-2" htmlFor="email">
@@ -68,13 +72,17 @@ export default function LoginForm() {
         </div>
         <button
           type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
+          className={`w-full ${isLogin ? 'bg-blue-500' : 'bg-green-500'} text-white p-2 rounded hover:${isLogin ? 'bg-blue-600' : 'bg-green-600'}`}
         >
-          Login
+          {isLogin ? 'Login' : 'Sign Up'}
         </button>
-        <p className="mt-4 text-center">
-          Don't have an account? <Link href="/signup" className="text-blue-500 hover:underline">Sign Up</Link>
-        </p>
+        <button
+          type="button"
+          onClick={() => setIsLogin(!isLogin)}
+          className="w-full mt-4 text-blue-500 hover:underline"
+        >
+          {isLogin ? 'Don\'t have an account? Sign Up' : 'Already have an account? Login'}
+        </button>
       </form>
     </div>
   );

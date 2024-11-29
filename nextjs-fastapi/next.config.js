@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    domains: ['images.unsplash.com'],
+  },
   rewrites: async () => {
     return [
       {
@@ -9,7 +12,7 @@ const nextConfig = {
             ? "http://127.0.0.1:8000/api/py/:path*"
             : "/api/",
       },
-      {
+    {
         source: "/docs",
         destination:
           process.env.NODE_ENV === "development"
