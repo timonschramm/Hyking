@@ -133,6 +133,45 @@ def insert_data(data):
     conn.close()
     print(f"Successfully inserted {len(data['answer']['contents'])} tours into the database.")
 
+def extract_images(tour):
+    primary_image_id = tour.get("primaryImage", {}).get("id", None)
+    image_ids = [image.get("id") for image in tour.get("images", []) if image.get("id") != primary_image_id]
+    return primary_image_id, image_ids
+
+def write_updated_json(data):
+    updated_data = {"tours": []}
+    for tour in data["answer"]["contents"]:
+        primary_image_id, image_ids = extract_images(tour)
+        tour_data = {
+            "id": tour["id"],
+            "title": tour.get("title", "N/A"),
+            "teaser_text": tour.get("teaserText", "N/A"),
+            "description_short": tour.get("texts", {}).get("short", "N/A"),
+            "description_long": tour.get("texts", {}).get("long", "N/A"),
+            "category_name": tour.get("category", {}).get("title", "N/A"),
+            "category_id": tour.get("category", {}).get("id", "N/A"),
+            "difficulty": tour.get("ratingInfo", {}).get("difficulty", None),
+            "landscape_rating": tour.get("ratingInfo", {}).get("landscape", None),
+            "experience_rating": tour.get("ratingInfo", {}).get("experience", None),
+            "length": tour.get("metrics", {}).get("length", None),
+            "ascent": tour.get("metrics", {}).get("elevation", {}).get("ascent", None),
+            "descent": tour.get("metrics", {}).get("elevation", {}).get("descent", None),
+            "duration_min": tour.get("metrics", {}).get("duration", {}).get("minimal", None),
+            "min_altitude": tour.get("metrics", {}).get("elevation", {}).get("minAltitude", None),
+            "max_altitude": tour.get("metrics", {}).get("elevation", {}).get("maxAltitude", None),
+            "point_lat": tour.get("point", [None, None])[1],
+            "point_lon": tour.get("point", [None, None])[0],
+            "is_winter": tour.get("isWinter", False),
+            "is_closed": tour.get("isClosedByClosure", False),
+            "primary_region": tour.get("primaryRegion", {}).get("title", "N/A"),
+            "primary_image_id": primary_image_id,
+            "image_ids": image_ids
+        }
+        updated_data["tours"].append(tour_data)
+
+    with open("updated.json", "w", encoding="utf-8") as file:
+        json.dump(updated_data, file, ensure_ascii=False, indent=4)
+
 # Main function to convert JSON to SQLite
 def main():
     print("Loading json")
@@ -140,12 +179,15 @@ def main():
         data = json.load(file)
 
 
-    create_or_update_tables()
+    # create_or_update_tables()
 
-    print("Inserting data into the database...")
-    insert_data(data)
+    # print("Inserting data into the database...")
+    # insert_data(data)
 
-    print("Data has been successfully inserted into the database.")
+    print("Writing updated JSON...")
+    write_updated_json(data)
+
+    print("Data has been successfully inserted into the database and updated JSON has been written.")
 
 if __name__ == "__main__":
     main()
