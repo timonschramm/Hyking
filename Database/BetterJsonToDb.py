@@ -179,13 +179,19 @@ def main():
         data = json.load(file)
 
 
-    # create_or_update_tables()
+    # Uncomment to create or update tables
+    
+    create_or_update_tables()
 
-    # print("Inserting data into the database...")
-    # insert_data(data)
+    print("Inserting data into the database...")
+    insert_data(data)
 
-    print("Writing updated JSON...")
-    write_updated_json(data)
+    # ------------------------------------------------------------
+    
+    # Uncomment to write updated JSON
+
+    # print("Writing updated JSON...")
+    # write_updated_json(data)
 
     print("Data has been successfully inserted into the database and updated JSON has been written.")
 
