@@ -50,7 +50,7 @@ const [exitX, setExitX] = useState(0);
           exit={{ x: exitX }}
         >
           <div className="scrollCards absolute m-auto h-[calc(100%-20px)] w-[calc(100%-20px)] overflow-y-scroll rounded-[20px] border-2 border-[#9F9F9F80]">
-            <div className="relative h-[269px] w-full overflow-hidden rounded-b-xl">
+            <div className="card-image-wrapper relative h-[269px] w-full overflow-hidden rounded-b-xl">
               <Image
                 src={data.src}
                 fill
@@ -78,8 +78,8 @@ const [exitX, setExitX] = useState(0);
             <div className="mt-3 mb-4 grid grid-cols-2 gap-4 px-4">
               {data.tracks.map((track, id) => {
                 return (
-                  <div key={id}>
-                    <Image
+                  <div  key={id}>
+                    <Image 
                       src={track.img}
                       width={100}
                       height={100}
