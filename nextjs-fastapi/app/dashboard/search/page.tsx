@@ -37,7 +37,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative flex h-screen w-full items-center justify-center overflow-clip bg-bgBlack text-textGrey">
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-bgBlack text-textGrey">
    
       <AnimatePresence>
         {cards.length ? (
