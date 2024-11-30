@@ -11,6 +11,11 @@ const OnboardingFlow = () => {
 
   const steps = [
     {
+      title: 'Connect to Spotify',
+      subtitle: 'Link your Spotify account to personalize your experience with your favorite artists',
+      options: [] // No options needed, handled directly in OnboardingStep
+    },
+    {
       title: 'Tell us about yourself',
       subtitle: 'This helps us personalize your experience',
       options: [
@@ -19,11 +24,7 @@ const OnboardingFlow = () => {
         { type: 'input' as const, label: 'Location', placeholder: 'Enter your city' }
       ]
     },
-    {
-      title: 'Connect to Spotify',
-      subtitle: 'Link your Spotify account to personalize your experience with your favorite artists',
-      options: [] // No options needed, handled directly in OnboardingStep
-    },
+   
     {
       title: 'Your hiking preferences',
       subtitle: 'Help us find the perfect hiking buddies for you',

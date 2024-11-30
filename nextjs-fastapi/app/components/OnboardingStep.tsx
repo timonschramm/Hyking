@@ -71,7 +71,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
 
   const connectToSpotify = () => {
     const clientId = '9b26ec7cde50497a86c271959cf91e99';
-    const redirectUri = 'http://localhost:3000/callback';
+    const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI || '';
     const scope = 'user-top-read';
 
     const authUrl = new URL('https://accounts.spotify.com/authorize');
