@@ -1,3 +1,6 @@
 .gitsecret/keys/random_seed
 !*.secret
 /recsys_venv/
+
+/Database/response.json
+/Database/updated.json
