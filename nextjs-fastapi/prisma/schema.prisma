@@ -29,9 +29,10 @@ model User {
     age              String?
     gender           String?
     location         String?
-    experienceLevel  String?
+    experienceLevel  String? // difficutly x experienceRating
     preferredPace    String?
-    //   preferredDistance String[]
+    //   preferredDistance String[] // metrics to come distance
+    // prefferedElevation ?
     //   hobbies           String[]
     dogFriendly      Boolean?
     transportation   String?
