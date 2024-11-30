@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const code = searchParams.get('code');
+    const url = new URL(request.url);
+    const code = url.searchParams.get('code');
 
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
