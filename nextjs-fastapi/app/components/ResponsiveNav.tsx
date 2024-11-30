@@ -18,9 +18,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
-  { name: "Home", href: "/", icon: Home },
-  { name: "Search", href: "/search", icon: Search },
-  { name: "Notifications", href: "/notifications", icon: Bell },
+  { name: "Home", href: "/dashboard/", icon: Home },
+  { name: "Search", href: "/dashboard/search", icon: Search },
+  { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
 ];
 
 export function ResponsiveNav() {
