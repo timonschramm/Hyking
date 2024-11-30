@@ -105,6 +105,19 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
     }
   };
 
+  const handleAddHobby = (value: string) => {
+    setFormData(prev => {
+      const currentHobbies = prev['Hobbies'] || [];
+      if (!currentHobbies.includes(value) && value.trim() !== '') {
+        return {
+          ...prev,
+          'Hobbies': [...currentHobbies, value]
+        };
+      }
+      return prev;
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -203,6 +216,28 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
                     checked={formData[option.label] || false}
                     onCheckedChange={(checked) => handleInputChange(option.label, checked)}
                   />
+                </div>
+              )}
+
+              {option.type === 'input' && option.label === 'Add Hobby' && (
+                <div>
+                  <Input
+                    placeholder={option.placeholder}
+                    value={formData['Add Hobby'] || ''}
+                    onChange={(e) => handleInputChange('Add Hobby', e.target.value)}
+                    onBlur={() => handleAddHobby(formData['Add Hobby'])}
+                  />
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData['Hobbies']?.map((hobby: string) => (
+                      <Button
+                        key={hobby}
+                        variant="default"
+                        className="rounded-full"
+                      >
+                        {hobby}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

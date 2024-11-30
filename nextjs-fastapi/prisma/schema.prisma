@@ -1,0 +1,49 @@
+model HikingTrail {
+    id               Int     @id @default(autoincrement())
+    title            String
+    teaserText       String  @map("teaser_text")
+    descriptionShort String  @map("description_short")
+    descriptionLong  String  @map("description_long")
+    categoryName     String  @map("category_name")
+    categoryId       Int     @map("category_id")
+    difficulty       Int
+    landscapeRating  Int     @map("landscape_rating")
+    experienceRating Int     @map("experience_rating")
+    length           Int
+    ascent           Int
+    descent          Int
+    durationMin      Float   @map("duration_min")
+    minAltitude      Int     @map("min_altitude")
+    maxAltitude      Int     @map("max_altitude")
+    pointLat         Float   @map("point_lat")
+    pointLon         Float   @map("point_lon")
+    isWinter         Boolean @map("is_winter")
+    isClosed         Boolean @map("is_closed")
+    primaryRegion    String  @map("primary_region")
+    primaryImageId   String? @map("primary_image_id")
+    imageIds         String  @map("image_ids") // TODO: JSON array of image IDs pay attention to the format 
+}
+
+model User {
+    id               Int      @id @default(autoincrement())
+    age              String?
+    gender           String?
+    location         String?
+    experienceLevel  String?
+    preferredPace    String?
+    //   preferredDistance String[]
+    //   hobbies           String[]
+    dogFriendly      Boolean?
+    transportation   String?
+    spotifyConnected Boolean  @default(false)
+    topArtists       Artist[]
+}
+
+model Artist {
+    id     Int    @id @default(autoincrement())
+    name   String
+    //   genres String[]
+    image  String
+    userId Int
+    user   User   @relation(fields: [userId], references: [id])
+}

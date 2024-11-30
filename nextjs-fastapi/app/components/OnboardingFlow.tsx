@@ -14,7 +14,7 @@ const OnboardingFlow = () => {
       title: 'Tell us about yourself',
       subtitle: 'This helps us personalize your experience',
       options: [
-        { type: 'select' as const, label: 'Age', choices: ['18-24', '25-34', '35-44', '45-54', '55+'] },
+        { type: 'input' as const, label: 'Age', placeholder: 'Enter your age' },
         { type: 'select' as const, label: 'Gender', choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'] },
         { type: 'input' as const, label: 'Location', placeholder: 'Enter your city' }
       ]
@@ -58,6 +58,7 @@ const OnboardingFlow = () => {
           choices: ['Photography', 'Bird Watching', 'Rock Climbing', 'Camping', 'Nature Study', 'Wildlife Spotting'],
           maxSelect: 4
         },
+     
         {
           type: 'toggle' as const,
           label: 'Dog Friendly',
