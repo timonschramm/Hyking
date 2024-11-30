@@ -126,7 +126,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
       </div>
 
       <div className="space-y-6">
-        {currentStep === 1 ? ( // Spotify step
+        {currentStep === 0 ? ( // Spotify step
           <div className="mt-4">
             {!spotifyConnected ? (
               <Button
