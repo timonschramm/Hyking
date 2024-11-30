@@ -44,18 +44,18 @@ def filter_data():
         )
     """)
 
-    # Lese Einträge aus der Eingabe-Datenbank
+    
     print("Lese Daten")
     cursor_in.execute("SELECT * FROM tours")
     rows = cursor_in.fetchall()
 
-    # Hole die Spaltennamen für das Einfügen in die Ausgabe-Datenbank
+
     cursor_in.execute("PRAGMA table_info(tours)")
     columns = [col[1] for col in cursor_in.fetchall()]
     columns_str = ", ".join(columns)
     placeholders = ", ".join("?" for _ in columns)
 
-    # Filtere die Daten nach den geografischen Grenzen von Bayern
+
     print("Filtere Daten")
     filtered_rows = [
         row for row in rows
