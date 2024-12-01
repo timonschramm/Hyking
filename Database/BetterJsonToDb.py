@@ -24,6 +24,7 @@ def create_or_update_tables():
             difficulty INTEGER,
             landscape_rating INTEGER,
             experience_rating INTEGER,
+            stamina_rating INTEGER,
             length INTEGER,
             ascent INTEGER,
             descent INTEGER,
@@ -34,7 +35,11 @@ def create_or_update_tables():
             point_lon REAL,
             is_winter BOOLEAN,
             is_closed BOOLEAN,
-            primary_region TEXT
+            primary_region TEXT,
+            season TEXT,
+            primary_image_id TEXT,
+            image_ids TEXT,
+            publicTransportFriendly BOOLEAN
         )
     """)
 
@@ -88,17 +93,24 @@ def insert_data(data):
         is_winter = tour.get("isWinter", False)
         is_closed = tour.get("isClosedByClosure", False)
         primary_region = tour.get("primaryRegion", {}).get("title", "N/A")
+        stamina_rating = tour.get("ratingInfo", {}).get("stamina", None)
+        season = json.dumps(tour.get("season", []))
+        primary_image_id = tour.get("primaryImage", {}).get("id", None)
+        image_ids = json.dumps([image.get("id") for image in tour.get("images", []) if image.get("id") != primary_image_id])
+        public_transport_friendly = "publicTransportFriendly" in tour.get("labels", [])
 
         cursor.execute("""
             INSERT OR IGNORE INTO tours (
                 id, title, teaser_text, description_short, description_long, category_name, category_id, 
-                difficulty, landscape_rating, experience_rating, length, ascent, descent, duration_min,
-                min_altitude, max_altitude, point_lat, point_lon, is_winter, is_closed, primary_region
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                difficulty, landscape_rating, experience_rating, stamina_rating, length, ascent, descent, 
+                duration_min, min_altitude, max_altitude, point_lat, point_lon, is_winter, is_closed, 
+                primary_region, season, primary_image_id, image_ids, publicTransportFriendly
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             tour_id, title, teaser_text, description_short, description_long, category_name, category_id,
-            difficulty, landscape_rating, experience_rating, length, ascent, descent, duration_min,
-            min_altitude, max_altitude, point_lat, point_lon, is_winter, is_closed, primary_region
+            difficulty, landscape_rating, experience_rating, stamina_rating, length, ascent, descent,
+            duration_min, min_altitude, max_altitude, point_lat, point_lon, is_winter, is_closed,
+            primary_region, season, primary_image_id, image_ids, public_transport_friendly
         ))
 
         for prop in tour.get("properties", []):
@@ -137,6 +149,8 @@ def write_updated_json(data, jsonl=False):
     updated_data = {"tours": []}
     for tour in data["answer"]["contents"]:
         primary_image_id, image_ids = extract_images(tour)
+        public_transport_friendly = "publicTransportFriendly" in tour.get("labels", [])
+
         tour_data = {
             "id": tour["id"],
             "title": tour.get("title", "N/A"),
@@ -148,6 +162,7 @@ def write_updated_json(data, jsonl=False):
             "difficulty": tour.get("ratingInfo", {}).get("difficulty", None),
             "landscape_rating": tour.get("ratingInfo", {}).get("landscape", None),
             "experience_rating": tour.get("ratingInfo", {}).get("experience", None),
+            "stamina_rating": tour.get("ratingInfo", {}).get("stamina", None),
             "length": tour.get("metrics", {}).get("length", None),
             "ascent": tour.get("metrics", {}).get("elevation", {}).get("ascent", None),
             "descent": tour.get("metrics", {}).get("elevation", {}).get("descent", None),
@@ -159,8 +174,10 @@ def write_updated_json(data, jsonl=False):
             "is_winter": tour.get("isWinter", False),
             "is_closed": tour.get("isClosedByClosure", False),
             "primary_region": tour.get("primaryRegion", {}).get("title", "N/A"),
+            "season": tour.get("season", []),
             "primary_image_id": primary_image_id,
-            "image_ids": image_ids
+            "image_ids": image_ids,
+            "publicTransportFriendly": public_transport_friendly
         }
         updated_data["tours"].append(tour_data)
 
@@ -202,17 +219,16 @@ def main():
 
     # Uncomment to create or update tables
     # create_or_update_tables()
-
     # print("Inserting data into the database...")
     # insert_data(data)
 
     # Uncomment to write updated JSON
-    # print("Writing updated JSON...")
-    # write_updated_json(data, jsonl=True)  # Set jsonl=True to write in JSONL format
+    print("Writing updated JSON...")
+    write_updated_json(data, jsonl=True)  # Set jsonl=True to write in JSONL format
 
-    # Filter and write Bavaria JSON
-    print("Filtering and writing Bavaria JSON...")
-    filter_and_write_bavaria_json(jsonl=True)  # Set jsonl=True to write in JSONL format
+    # Uncomment to Filter and write Bavaria JSON
+    # print("Filtering and writing Bavaria JSON...")
+    # filter_and_write_bavaria_json(jsonl=True)  # Set jsonl=True to write in JSONL format
 
     print("Data has been successfully inserted into the database and updated JSON has been written.")
 

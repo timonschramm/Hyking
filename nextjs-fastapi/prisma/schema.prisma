@@ -1,3 +1,13 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
 model HikingTrail {
     id               Int     @id @default(autoincrement())
     title            String
@@ -26,14 +36,15 @@ model HikingTrail {
 
 model User {
     id               Int      @id @default(autoincrement())
-    age              String?
+    age              Int
+    imageUrl         String?
     gender           String?
     location         String?
-    experienceLevel  String? // difficutly x experienceRating
+    experienceLevel  Int // difficutly x experienceRating
     preferredPace    String?
     //   preferredDistance String[] // metrics to come distance
     // prefferedElevation ?
-    //   hobbies           String[]
+    hobbies          String[]
     dogFriendly      Boolean?
     transportation   String?
     spotifyConnected Boolean  @default(false)
@@ -41,10 +52,16 @@ model User {
 }
 
 model Artist {
-    id     Int    @id @default(autoincrement())
+    id     Int     @id @default(autoincrement())
     name   String
-    //   genres String[]
     image  String
     userId Int
-    user   User   @relation(fields: [userId], references: [id])
+    user   User    @relation(fields: [userId], references: [id])
+    genres Genre[] @relation("ArtistGenres")
+}
+
+model Genre {
+    id      Int      @id @default(autoincrement())
+    name    String
+    artists Artist[] @relation("ArtistGenres")
 }

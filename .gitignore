@@ -4,5 +4,7 @@
 
 /Database/response.json
 /Database/updated.json
+/Database/updated.jsonl
 /Database/updatedBavaria.json
 /Database/updatedBavaria.jsonl
+.DS_Store
