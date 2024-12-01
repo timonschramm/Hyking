@@ -41,6 +41,8 @@ interface OnboardingStepProps {
   isLastStep: boolean;
   onBack: () => void;
   currentStep: number;
+  validation?: (value: any) => boolean;
+
 }
 
 const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isLastStep, onBack, currentStep, validation }) => {
