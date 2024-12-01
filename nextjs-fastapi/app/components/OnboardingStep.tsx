@@ -10,6 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { prisma } from '@/lib/prisma';
+import { useSession } from 'next-auth/react';
+import { toast } from 'sonner';
 
 interface StepOption {
   type: 'select' | 'input' | 'bubbles' | 'toggle';
@@ -18,6 +21,7 @@ interface StepOption {
   maxSelect?: number;
   placeholder?: string;
   description?: string;
+  validation?: (value: any) => boolean;
 }
 
 interface StepData {
@@ -40,10 +44,12 @@ interface OnboardingStepProps {
   currentStep: number;
 }
 
-const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isLastStep, onBack, currentStep }) => {
+const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isLastStep, onBack, currentStep, validation }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
+  const { data: session } = useSession();
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (label: string, value: any) => {
     setFormData(prev => ({ ...prev, [label]: value }));
@@ -103,6 +109,27 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
     } catch (error) {
       console.error('Error fetching top artists:', error);
     }
+  };
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    stepData.options.forEach(option => {
+      const value = formData[option.label];
+      
+      if (option.validation && !option.validation(value)) {
+        newErrors[option.label] = `Please select a valid ${option.label.toLowerCase()}`;
+      }
+      
+      if (option.label === 'Age') {
+        const age = parseInt(value);
+        if (isNaN(age) || age < 13 || age > 120) {
+          newErrors['Age'] = 'Please enter a valid age between 13 and 120';
+        }
+      }
+    });
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleAddHobby = (value: string) => {

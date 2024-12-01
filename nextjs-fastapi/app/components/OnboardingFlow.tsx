@@ -32,8 +32,16 @@ const OnboardingFlow = () => {
         {
           type: 'bubbles' as const,
           label: 'Experience Level',
-          choices: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
-          maxSelect: 1
+          choices: [
+            'Beginner (0-1)', 
+            'Intermediate (1-2)', 
+            'Advanced (2-3)', 
+            'Expert (3)'
+          ],
+          maxSelect: 1,
+          validation: (value: string) => {
+            return value !== undefined && value !== null;
+          }
         },
         {
           type: 'bubbles' as const,
