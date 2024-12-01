@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { prisma } from '@/lib/prisma';
-import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 
 interface StepOption {
@@ -48,7 +47,6 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
-  const { data: session } = useSession();
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (label: string, value: any) => {
