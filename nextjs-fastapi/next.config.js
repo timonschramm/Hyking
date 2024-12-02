@@ -2,7 +2,7 @@
 const nextConfig = {
 
   images: {
-    domains: ['images.unsplash.com', 'i.scdn.co'],
+    domains: ['images.unsplash.com', 'i.scdn.co', 'img.oastatic.com'],
   },
   rewrites: async () => {
     return [
