@@ -37,11 +37,21 @@ export default function DashboardPage() {
 
     checkUser();
     fetchHikes();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        router.push('/login');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [router, supabase.auth]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('spotify_token');
     router.push('/login');
   };
 

@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -18,12 +16,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from '@/utils/supabase/client';
 
 const navItems = [
   { name: "Home", href: "/dashboard/", icon: Home },
   { name: "Search", href: "/dashboard/search", icon: Search },
   { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
 ];
+
+// Helper function to truncate email
+const truncateEmail = (email: string, maxLength: number = 20) => {
+  if (!email) return '';
+  if (email.length <= maxLength) return email;
+  
+  const [username, domain] = email.split('@');
+  if (!domain) return email.slice(0, maxLength) + '...';
+  
+  const truncatedEmail = email.slice(0, maxLength - 3) + '...'; // -3 for '...'
+  return truncatedEmail;
+};
 
 export default function DashboardLayout({
   children,
@@ -32,28 +43,75 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [user, setUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
+    const checkUser = async () => {
+      const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
+      if (supabaseUser && !error) {
         setUser({
-          email: payload.sub,
-          name: payload.name || null,
-          image: payload.picture || null,
+          email: supabaseUser.email,
+          name: supabaseUser.user_metadata?.name,
+          image: supabaseUser.user_metadata?.avatar_url
         });
-      } catch (error) {
-        localStorage.removeItem("token");
       }
-    }
-  }, []);
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name,
+          image: session.user.user_metadata?.avatar_url
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  // Update the dropdown menu content to use truncated email
+  const dropdownContent = (
+    <DropdownMenuContent align="end" className="w-56">
+      <DropdownMenuLabel>
+        <div className="flex flex-col space-y-1">
+          <p className="text-sm font-medium leading-none">{user?.name || "Account"}</p>
+          <p className="text-xs leading-none text-muted-foreground">
+            {user?.email ? truncateEmail(user.email) : "user@example.com"}
+          </p>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem>
+        <User className="mr-2 h-4 w-4" />
+        <span>Profile</span>
+      </DropdownMenuItem>
+      <DropdownMenuItem>
+        <Settings className="mr-2 h-4 w-4" />
+        <span>Settings</span>
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem onClick={handleLogout}>
+        <LogOut className="mr-2 h-4 w-4" />
+        <span>Log out</span>
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  );
 
   return (
     <div className="flex flex-col md:flex-row h-screen">
       {/* Sidebar for larger screens */}
       <nav className="hidden md:flex flex-col w-64 bg-background border-r p-4">
-       
         <ul className="space-y-2 flex-grow">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -83,31 +141,12 @@ export default function DashboardLayout({
                   <AvatarImage src={user?.image || "/placeholder-avatar.jpg"} alt="User" />
                   <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
-                <span className="text-sm font-medium">{user?.name || user?.email || "Account"}</span>
+                <span className="text-sm font-medium truncate">
+                  {user?.name || truncateEmail(user?.email || '') || "Account"}
+                </span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{user?.name || "Account"}</p>
-                  <p className="text-xs leading-none text-muted-foreground">{user?.email || "user@example.com"}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            {dropdownContent}
           </DropdownMenu>
         </div>
       </nav>
@@ -148,28 +187,7 @@ export default function DashboardLayout({
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{user?.name || "Account"}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{user?.email || "user@example.com"}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+              {dropdownContent}
             </DropdownMenu>
           </li>
         </ul>

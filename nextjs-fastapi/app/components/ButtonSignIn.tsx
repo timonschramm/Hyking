@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { config } from '../config';
+import { createClient } from '@/utils/supabase/client';
 
 interface ButtonSigninProps {
   text?: string;
@@ -13,20 +14,41 @@ interface ButtonSigninProps {
 const ButtonSignin = ({ text = "Get started", extraStyle }: ButtonSigninProps) => {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
+  const [user, setUser] = useState<{ email?: string; name?: string; image?: string } | null>(null);
+  const supabase = createClient();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ email: payload.sub });
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        setUser({ 
+          email: user.email,
+          name: user.user_metadata?.name,
+          image: user.user_metadata?.avatar_url
+        });
         setIsAuthenticated(true);
-      } catch (error) {
-        localStorage.removeItem('token');
       }
-    }
-  }, []);
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session?.user) {
+        setUser({
+          email: session.user.email,
+          name: session.user.user_metadata?.name,
+          image: session.user.user_metadata?.avatar_url
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase.auth]);
 
   const handleClick = () => {
     if (isAuthenticated) {
