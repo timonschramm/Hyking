@@ -1,37 +1,76 @@
 generator client {
-  provider = "prisma-client-js"
+    provider = "prisma-client-js"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
-model HikingTrail {
-    id               Int     @id @default(autoincrement())
-    title            String
-    teaserText       String  @map("teaser_text")
-    descriptionShort String  @map("description_short")
-    descriptionLong  String  @map("description_long")
-    categoryName     String  @map("category_name")
-    categoryId       Int     @map("category_id")
-    difficulty       Int
-    landscapeRating  Int     @map("landscape_rating")
-    experienceRating Int     @map("experience_rating")
-    length           Int
-    ascent           Int
-    descent          Int
-    durationMin      Float   @map("duration_min")
-    minAltitude      Int     @map("min_altitude")
-    maxAltitude      Int     @map("max_altitude")
-    pointLat         Float   @map("point_lat")
-    pointLon         Float   @map("point_lon")
-    isWinter         Boolean @map("is_winter")
-    isClosed         Boolean @map("is_closed")
-    primaryRegion    String  @map("primary_region")
-    primaryImageId   String? @map("primary_image_id")
-    imageIds         String  @map("image_ids") // TODO: JSON array of image IDs pay attention to the format 
+model Activity {
+    id                      Int      @id @default(autoincrement())
+    title                   String
+    teaserText              String
+    descriptionShort        String
+    descriptionLong         String
+    categoryId              Int
+    difficulty              Int
+    landscapeRating         Int
+    experienceRating        Int
+    staminaRating           Int
+    length                  Float
+    ascent                  Float
+    descent                 Float
+    durationMin             Float
+    minAltitude             Float
+    maxAltitude             Float
+    pointLat                Float
+    pointLon                Float
+    isWinter                Boolean
+    isClosed                Boolean
+    primaryRegion           String
+    primaryImageId          String
+    publicTransportFriendly Boolean
+    category                Category @relation(fields: [categoryId], references: [id])
+    seasons                 Season[]
+    images                  Image[]
+}
+
+model Category {
+    id         Int        @id @default(autoincrement())
+    name       String
+    activities Activity[]
+}
+
+enum Month {
+    jan
+    feb
+    mar
+    apr
+    may
+    jun
+    jul
+    aug
+    sep
+    oct
+    nov
+    dec
+}
+
+model Season {
+    id         Int      @id @default(autoincrement())
+    activityId Int
+    month      String
+    isActive   Boolean
+    activity   Activity @relation(fields: [activityId], references: [id])
+}
+
+model Image {
+    id         Int      @id @default(autoincrement())
+    activityId Int
+    imageId    String
+    activity   Activity @relation(fields: [activityId], references: [id])
 }
 
 model User {
