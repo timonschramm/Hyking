@@ -36,7 +36,7 @@ const Card = ({ data, active, removeCard }: CardProps) => {
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          className="card absolute z-30 flex h-[438px] w-[289px] items-center justify-center self-center"
+          className="card absolute z-30 flex h-full w-full items-center justify-center self-center md:h-[438px] md:w-[289px]"
           onDragEnd={dragEnd}
           initial={{ scale: 0.95, opacity: 0.5 }}
           animate={{
@@ -48,8 +48,8 @@ const Card = ({ data, active, removeCard }: CardProps) => {
           whileDrag={{ cursor: 'grabbing' }}
           exit={{ x: exitX }}
         >
-          <div className="no-scrollbar scrollCards absolute m-auto h-[calc(100%-20px)] w-[calc(100%-20px)] overflow-y-scroll rounded-xl bg-white/10 backdrop-blur-lg">
-            <div className="card-image-wrapper relative h-[269px] w-full overflow-hidden">
+          <div className="no-scrollbar scrollCards absolute m-auto h-full w-full overflow-y-scroll rounded-none bg-white/10 backdrop-blur-lg md:h-[calc(100%-20px)] md:w-[calc(100%-20px)] md:rounded-xl">
+            <div className="card-image-wrapper relative h-[50vh] w-full overflow-hidden">
               <Image
                 src={data.src}
                 fill

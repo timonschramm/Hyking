@@ -117,7 +117,7 @@ export default function DashboardLayout({
       </div>
 
       {/* Bottom navigation for mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-background border-t">
+      <nav className="z-50 fixed bottom-0 left-0 right-0 md:hidden bg-background border-t">
         <ul className="flex justify-around items-center h-16">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
