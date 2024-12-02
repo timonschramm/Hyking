@@ -14,7 +14,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
-    console.log("redirectUri: ", redirectUri);
+    console.log("redirectUri from env: ", redirectUri);
     
     if (!clientId || !clientSecret || !redirectUri || redirectUri === '') {
       return NextResponse.json({ error: 'Missing environment variables' }, { status: 500 });

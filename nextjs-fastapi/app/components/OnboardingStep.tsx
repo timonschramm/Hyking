@@ -75,19 +75,14 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
     });
   };
 
-  const connectToSpotify = () => {
-    const clientId = '9b26ec7cde50497a86c271959cf91e99';
-    const redirectUri = process.env.SPOTIFY_REDIRECT_URI || '';
-    console.log("redirectUri: ", redirectUri);
-    const scope = 'user-top-read';
-
-    const authUrl = new URL('https://accounts.spotify.com/authorize');
-    authUrl.searchParams.append('client_id', clientId);
-    authUrl.searchParams.append('response_type', 'code');
-    authUrl.searchParams.append('redirect_uri', redirectUri);
-    authUrl.searchParams.append('scope', scope);
-
-    window.location.href = authUrl.toString();
+  const connectToSpotify = async () => {
+    try {
+      const response = await fetch('/api/connectToSpotify');
+      const data = await response.json();
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error connecting to Spotify:', error);
+    }
   };
 
   useEffect(() => {
@@ -100,13 +95,13 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
 
   const fetchTopArtists = async (token: string) => {
     try {
-      const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=5', {
+      const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       console.log(response);
-      console.log(response.json());
+      // console.log(response.json());
       const data = await response.json();
       console.log(data);
       setTopArtists(data.items);
