@@ -81,7 +81,7 @@ model User {
     location         String?
     experienceLevel  Int // difficutly x experienceRating
     preferredPace    String?
-    //   preferredDistance String[] // metrics to come distance
+      preferredDistance String[] // metrics to come distance
     // prefferedElevation ?
     hobbies          String[]
     dogFriendly      Boolean?

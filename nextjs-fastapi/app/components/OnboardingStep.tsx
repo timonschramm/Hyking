@@ -77,7 +77,8 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
 
   const connectToSpotify = () => {
     const clientId = '9b26ec7cde50497a86c271959cf91e99';
-    const redirectUri = process.env.NEXT_PUBLIC_SPOTIFY_REDIRECT_URI || '';
+    const redirectUri = process.env.SPOTIFY_REDIRECT_URI || '';
+    console.log("redirectUri: ", redirectUri);
     const scope = 'user-top-read';
 
     const authUrl = new URL('https://accounts.spotify.com/authorize');
@@ -104,7 +105,10 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
           'Authorization': `Bearer ${token}`
         }
       });
+      console.log(response);
+      console.log(response.json());
       const data = await response.json();
+      console.log(data);
       setTopArtists(data.items);
     } catch (error) {
       console.error('Error fetching top artists:', error);

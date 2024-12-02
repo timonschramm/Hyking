@@ -24,7 +24,7 @@ export default function LoginForm() {
       console.log("result:error ", result.error);
       toast.error(result.error);
     } else if (result) {
-      router.push('/dashboard');
+      router.push('/onboarding');
     } else {
       console.log("Unexpected result: ", result);
       toast.error("An unexpected error occurred.");
