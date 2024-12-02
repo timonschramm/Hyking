@@ -53,9 +53,7 @@ export default function DashboardLayout({
     <div className="flex flex-col md:flex-row h-screen">
       {/* Sidebar for larger screens */}
       <nav className="hidden md:flex flex-col w-64 bg-background border-r p-4">
-        <div className="mb-8">
-          <Instagram className="w-8 h-8" />
-        </div>
+       
         <ul className="space-y-2 flex-grow">
           {navItems.map((item) => {
             const isActive = pathname === item.href;

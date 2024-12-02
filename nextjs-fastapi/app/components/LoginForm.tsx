@@ -2,44 +2,39 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { login } from '../login/actions';
 import Link from 'next/link';
+import { toast, Toaster } from 'sonner';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/py/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
 
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.detail || 'Login failed');
-      }
+    const result = await login(formData);
+    console.log("result: ", result);
 
-      // Store token in localStorage
-      localStorage.setItem('token', data.access_token);
-      const isFirstLogin = true; // Replace with actual logic to determine first login
-      router.push(isFirstLogin ? '/onboarding' : '/dashboard');    } catch (err: any) {
-      setError(err.message);
+    if (result && result.error) {
+      console.log("result:error ", result.error);
+      toast.error(result.error);
+    } else if (result) {
+      router.push('/dashboard');
+    } else {
+      console.log("Unexpected result: ", result);
+      toast.error("An unexpected error occurred.");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-md w-96">
+      <form className="bg-white p-8 rounded-lg shadow-md w-96" onSubmit={handleSubmit}>
         <h2 className="text-2xl font-bold mb-6 text-center">Login</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
         <div className="mb-4">
           <label className="block text-gray-700 mb-2" htmlFor="email">
             Email
@@ -76,6 +71,7 @@ export default function LoginForm() {
           Don&apos;t have an account? <Link href="/signup" className="text-blue-500 hover:underline">Sign Up</Link>
         </p>
       </form>
+      <Toaster />
     </div>
   );
 } 
