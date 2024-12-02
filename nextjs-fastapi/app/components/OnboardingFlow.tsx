@@ -85,13 +85,13 @@ const OnboardingFlow = () => {
   const handleComplete = async () => {
     try {
       // Mock API call
-      await fetch('/api/py/update-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+        // await fetch('/api/py/update-profile', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        //   body: JSON.stringify(userData),
+        // });
 
       router.push('/dashboard');
     } catch (error) {

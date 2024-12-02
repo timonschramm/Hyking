@@ -3,45 +3,49 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Activity } from '@prisma/client';
+import { createClient } from '@/utils/supabase/client';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [email, setEmail] = useState<string | null>(null);
+  const [user, setUser] = useState<{ email: string } | null>(null);
   const [hikes, setHikes] = useState<Activity[]>([]);
+  const supabase = createClient();
 
   useEffect(() => {
-    // Check if user is authenticated
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.push('/login');
-      return;
-    }
+    // Check authentication status using Supabase
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        router.push('/login');
+        return;
+      }
 
-    // Decode the JWT token to get the email
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setEmail(payload.sub);
-    } catch (error) {
-      localStorage.removeItem('token');
-      router.push('/login');
-    }
+      setUser({ email: user.email || '' });
+    };
 
     // Fetch hikes
     const fetchHikes = async () => {
       try {
         const response = await fetch('/api/hikes');
         const data = await response.json();
-        // console.log("data:", JSON.stringify(data, null, 2));
         setHikes(data);
       } catch (error) {
         console.error('Failed to fetch hikes:', error);
       }
     };
 
+    checkUser();
     fetchHikes();
-  }, [router]);
+  }, [router, supabase.auth]);
 
-  if (!email) {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('spotify_token');
+    router.push('/login');
+  };
+
+  if (!user) {
     return <div>Loading...</div>;
   }
 
@@ -51,18 +55,14 @@ export default function DashboardPage() {
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <button
-            onClick={() => {
-              localStorage.removeItem('token');
-              localStorage.removeItem('spotify_token');
-              router.push('/login');
-            }}
+            onClick={handleLogout}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Logout
           </button>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-md mb-8">
-          <p className="text-gray-700">Welcome, {email}!</p>
+          <p className="text-gray-700">Welcome, {user.email}!</p>
         </div>
         
         {/* Hiking Trails Grid */}

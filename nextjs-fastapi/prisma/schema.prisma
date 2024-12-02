@@ -75,19 +75,19 @@ model Image {
 
 model User {
     id               Int      @id @default(autoincrement())
-    age              Int
+    age              Int?
     imageUrl         String?
     gender           String?
     location         String?
-    experienceLevel  Int // difficutly x experienceRating
+    experienceLevel  Int? // difficulty x experienceRating
     preferredPace    String?
-      preferredDistance String[] // metrics to come distance
-    // prefferedElevation ?
+    preferredDistance String[] // metrics to come distance
     hobbies          String[]
     dogFriendly      Boolean?
     transportation   String?
     spotifyConnected Boolean  @default(false)
     topArtists       Artist[]
+    onboardingStep   Int      @default(0)
 }
 
 model Artist {
