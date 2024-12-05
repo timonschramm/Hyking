@@ -64,7 +64,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               </div>
             </div>
             
-            <div className="space-y-4 p-4">
+            <div className="space-y-4 p-8 md:p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-white">{data.title}</h2>
                 <span className="rounded-full bg-white/20 px-3 py-1 text-sm text-white">
