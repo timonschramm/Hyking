@@ -223,12 +223,12 @@ def main():
     # insert_data(data)
 
     # Uncomment to write updated JSON
-    print("Writing updated JSON...")
-    write_updated_json(data, jsonl=True)  # Set jsonl=True to write in JSONL format
+    # print("Writing updated JSON...")
+    # write_updated_json(data, jsonl=False)  # Set jsonl=True to write in JSONL format
 
     # Uncomment to Filter and write Bavaria JSON
-    # print("Filtering and writing Bavaria JSON...")
-    # filter_and_write_bavaria_json(jsonl=True)  # Set jsonl=True to write in JSONL format
+    print("Filtering and writing Bavaria JSON...")
+    filter_and_write_bavaria_json(jsonl=False)  # Set jsonl=True to write in JSONL format
 
     print("Data has been successfully inserted into the database and updated JSON has been written.")
 

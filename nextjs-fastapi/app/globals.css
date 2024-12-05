@@ -165,12 +165,12 @@ body {
 }
 
 .card-image-wrapper {
-  touch-action: none;
+  touch-action: pan-y;
   -webkit-touch-callout: none;
 }
 
 .no-scrollbar {
-  touch-action: none;
+  touch-action: pan-y;
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
