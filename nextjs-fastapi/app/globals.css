@@ -164,6 +164,17 @@ body {
   -ms-user-select: none;
 }
 
+.card-image-wrapper {
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+
+.no-scrollbar {
+  touch-action: none;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;

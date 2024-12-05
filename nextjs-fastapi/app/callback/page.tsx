@@ -9,6 +9,9 @@ function CallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
+    // Early return if searchParams is null
+    if (!searchParams) return;
+    
     const code = searchParams.get('code');
     
     if (code) {

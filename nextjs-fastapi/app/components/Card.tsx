@@ -8,9 +8,11 @@ import {
 } from 'framer-motion';
 import Image from 'next/image';
 import { useState } from 'react';
+import { Check, X } from 'lucide-react';
 
 const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   const [exitX, setExitX] = useState(0);
+  const [direction, setDirection] = useState<'left' | 'right' | null>(null);
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -22,9 +24,11 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   ) => {
     if (info.offset.x > 100) {
       setExitX(200);
+      setDirection('right');
       removeCard(data.id, 'right');
     } else if (info.offset.x < -100) {
       setExitX(-200);
+      setDirection('left');
       removeCard(data.id, 'left');
     }
   };
@@ -95,6 +99,29 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               </div>
             </div>
           </div>
+          <>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{
+                opacity: x.get() > 100 ? 1 : 0,
+                scale: x.get() > 100 ? 1 : 0.5,
+              }}
+              className="absolute right-4 top-4 z-50 rounded-full bg-green-500/80 p-2"
+            >
+              <Check className="h-8 w-8 text-white" />
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{
+                opacity: x.get() < -100 ? 1 : 0,
+                scale: x.get() < -100 ? 1 : 0.5,
+              }}
+              className="absolute left-4 top-4 z-50 rounded-full bg-red-500/80 p-2"
+            >
+              <X className="h-8 w-8 text-white" />
+            </motion.div>
+          </>
         </motion.div>
       ) : null}
     </>
