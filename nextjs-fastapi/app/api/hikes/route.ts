@@ -11,7 +11,7 @@ console.log(Object.keys(prisma));export async function GET(req: NextRequest) {
         images: true,
       },
     });
-    console.log("hikes: " + JSON.stringify(hikes, null, 2));
+    // console.log("hikes: " + JSON.stringify(hikes, null, 2));
     return NextResponse.json(hikes);
   } catch (error) {
     console.log("error: " + error)
