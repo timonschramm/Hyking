@@ -39,7 +39,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
         <motion.div
           drag="x"
           dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-          className="card z-30 flex h-full w-full items-center justify-center self-center md:h-[438px] md:w-[289px]"
+          className="card absolute z-30 flex h-[90%] w-[90%] items-center justify-center self-center md:h-[438px] md:w-[289px]"
           onDragEnd={dragEnd}
           initial={{ scale: 0.95, opacity: 0.5 }}
           animate={{
@@ -64,7 +64,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               </div>
             </div>
             
-            <div className="space-y-4 p-8 md:p-4">
+            <div className="no-scrollbar overflow-y-auto space-y-4 p-8 md:p-4">
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-white">{data.title}</h2>
                 <span className="rounded-full bg-white/20 px-3 py-1 text-sm text-white">

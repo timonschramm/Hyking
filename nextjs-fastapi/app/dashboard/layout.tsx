@@ -122,7 +122,7 @@ export default function DashboardLayout({
         // Mobile view
         <>
           <div className="flex min-h-screen flex-col w-screen">
-            <div className="flex-1 overflow-auto pb-16">
+            <div className="flex-1 scrollbar-hide overflow-y-auto pb-20">
               {children}
 
             </div>
