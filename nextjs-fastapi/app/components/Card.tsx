@@ -51,7 +51,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
           whileDrag={{ cursor: 'grabbing' }}
           exit={{ x: exitX }}
         >
-          <div className="no-scrollbar rounded-3xl scrollCards absolute m-auto h-full w-full overflow-y-scroll bg-white/10 backdrop-blur-lg ">
+          <div className="no-scrollbar rounded-2xl scrollCards absolute m-auto h-full w-full overflow-y-scroll bg-white/90 backdrop-blur-lg ">
             <div className="card-image-wrapper relative h-[50vh] w-full overflow-hidden" >
               <div className="relative h-full w-full">
                 <Image
@@ -66,34 +66,34 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
             
             <div className="no-scrollbar overflow-y-auto space-y-4 p-8 md:p-4">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-white">{data.title}</h2>
-                <span className="rounded-full bg-white/20 px-3 py-1 text-sm text-white">
+                <h2 className="text-xl font-semibold text-gray-800">{data.title}</h2>
+                <span className="rounded-full bg-gray-200 px-3 py-1 text-sm text-gray-700">
                   {data.length}m
                 </span>
               </div>
 
-              <p className="text-sm text-white/80">{data.teaserText}</p>
+              <p className="text-sm text-gray-600">{data.teaserText}</p>
 
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-teal-900/60 px-3 py-1 text-xs text-teal-100">
+                <span className="rounded-full bg-teal-100 px-3 py-1 text-xs text-teal-800">
                   Difficulty: {data.difficulty}
                 </span>
-                <span className="rounded-full bg-teal-900/60 px-3 py-1 text-xs text-teal-100">
+                <span className="rounded-full bg-teal-100 px-3 py-1 text-xs text-teal-800">
                   ↑ {data.ascent}m
                 </span>
-                <span className="rounded-full bg-teal-900/60 px-3 py-1 text-xs text-teal-100">
+                <span className="rounded-full bg-teal-100 px-3 py-1 text-xs text-teal-800">
                   ↓ {data.descent}m
                 </span>
               </div>
 
               <div className="space-y-3">
-                <h3 className="text-lg font-medium text-white">Details</h3>
-                <div className="space-y-2 text-sm text-white/80">
+                <h3 className="text-lg font-medium text-gray-800">Details</h3>
+                <div className="space-y-2 text-sm text-gray-600">
                   <p>Duration: {Math.round(data.durationMin / 60)} hours</p>
                   <p>Max Altitude: {data.maxAltitude}m</p>
                   <p>Region: {data.primaryRegion}</p>
                   {data.publicTransportFriendly && (
-                    <p className="text-teal-100"> Public Transport Friendly</p>
+                    <p className="text-teal-700">Public Transport Friendly</p>
                   )}
                 </div>
               </div>
