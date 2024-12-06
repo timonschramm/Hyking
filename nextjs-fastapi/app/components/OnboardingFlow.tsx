@@ -3,11 +3,13 @@ import OnboardingStep from './OnboardingStep';
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
+import { toast } from 'sonner';
+import { UserProfileData } from '@/types/UserData';
 
 const OnboardingFlow = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [userData, setUserData] = useState({});
+  const [userData, setUserData] = useState<Partial<UserProfileData>>({});
 
   const steps = [
     {
@@ -84,18 +86,25 @@ const OnboardingFlow = () => {
 
   const handleComplete = async () => {
     try {
-      // Mock API call
-        // await fetch('/api/py/update-profile', {
-        //   method: 'POST',
-        //   headers: {
-        //     'Content-Type': 'application/json',
-        //   },
-        //   body: JSON.stringify(userData),
-        // });
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...userData,
+          spotifyConnected: currentStep >= 1 // Set based on whether user completed Spotify step
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
 
       router.push('/dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
+      toast.error('Failed to save profile');
     }
   };
 
