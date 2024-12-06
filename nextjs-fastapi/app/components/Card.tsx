@@ -51,7 +51,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
           whileDrag={{ cursor: 'grabbing' }}
           exit={{ x: exitX }}
         >
-          <div className="no-scrollbar rounded-lg scrollCards absolute m-auto h-full w-full overflow-y-scroll bg-white/10 backdrop-blur-lg md:h-[calc(100%-20px)] md:w-[calc(100%-20px)] md:rounded-xl">
+          <div className="no-scrollbar rounded-3xl scrollCards absolute m-auto h-full w-full overflow-y-scroll bg-white/10 backdrop-blur-lg ">
             <div className="card-image-wrapper relative h-[50vh] w-full overflow-hidden" >
               <div className="relative h-full w-full">
                 <Image
@@ -68,7 +68,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold text-white">{data.title}</h2>
                 <span className="rounded-full bg-white/20 px-3 py-1 text-sm text-white">
-                  {data.length}km
+                  {data.length}m
                 </span>
               </div>
 
