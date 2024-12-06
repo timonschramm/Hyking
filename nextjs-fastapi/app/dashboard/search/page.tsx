@@ -35,7 +35,7 @@ export default function Search() {
   };
 
   return (
-    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-bgBlack text-textGrey">
+    <div className="relative flex h-screen w-full items-center justify-center overflow-hidden bg-bgBlack text-textGrey p-8">
       <AnimatePresence>
         {activities.length ? (
           activities.map((activity) => (
