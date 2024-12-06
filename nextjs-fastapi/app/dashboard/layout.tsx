@@ -5,9 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Search, Bell, LogOut, User, Settings, Instagram } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from '@/utils/supabase/client';
+import Sidebar from "@/app/components/Sidebar";
+import NavigationBottomBar from "@/app/components/NavigationBottomBar";
 
 const navItems = [
   { name: "Home", href: "/dashboard/", icon: Home },
@@ -28,10 +27,10 @@ const navItems = [
 const truncateEmail = (email: string, maxLength: number = 20) => {
   if (!email) return '';
   if (email.length <= maxLength) return email;
-  
+
   const [username, domain] = email.split('@');
   if (!domain) return email.slice(0, maxLength) + '...';
-  
+
   const truncatedEmail = email.slice(0, maxLength - 3) + '...'; // -3 for '...'
   return truncatedEmail;
 };
@@ -43,6 +42,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [user, setUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -71,8 +71,16 @@ export default function DashboardLayout({
       }
     });
 
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768); // Assuming 768px is the breakpoint for mobile
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Initial check
+
     return () => {
       subscription.unsubscribe();
+      window.removeEventListener('resize', handleResize);
     };
   }, [supabase.auth]);
 
@@ -109,89 +117,30 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
-      {/* Sidebar for larger screens */}
-      <nav className="hidden md:flex flex-col w-64 bg-background border-r p-4">
-        <ul className="space-y-2 flex-grow">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex items-center p-2 rounded-md",
-                    isActive
-                      ? "bg-accent text-accent-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-                  )}
-                >
-                  <item.icon className="w-6 h-6 mr-4" />
-                  <span className="text-sm font-medium">{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-        <div className="mt-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start p-2">
-                <Avatar className="w-10 h-10 mr-4">
-                  <AvatarImage src={user?.image || "/placeholder-avatar.jpg"} alt="User" />
-                  <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium truncate">
-                  {user?.name || truncateEmail(user?.email || '') || "Account"}
-                </span>
-              </Button>
-            </DropdownMenuTrigger>
-            {dropdownContent}
-          </DropdownMenu>
-        </div>
-      </nav>
+    <div>
+      {isMobile ? (
+        // Mobile view
+        <>
+          <div className="flex min-h-screen flex-col w-screen">
+            <div className="flex-1 overflow-auto pb-16">
+              {children}
 
-      <div className="flex-grow overflow-auto">
-        {children}
-      </div>
+            </div>
+            <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
 
-      {/* Bottom navigation for mobile */}
-      <nav className="z-50 fixed bottom-0 left-0 right-0 md:hidden bg-background border-t">
-        <ul className="flex justify-around items-center h-16">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <li key={item.name}>
-                <Link
-                  href={item.href}
-                  className={cn(
-                    "flex flex-col items-center justify-center w-full h-full text-xs",
-                    isActive
-                      ? "text-primary"
-                      : "text-muted-foreground hover:text-primary"
-                  )}
-                >
-                  <item.icon className="w-6 h-6" />
-                  <span className="mt-1">{item.name}</span>
-                </Link>
-              </li>
-            );
-          })}
-          <li>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-16">
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={user?.image || "/placeholder-avatar.jpg"} alt="User" />
-                    <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              {dropdownContent}
-            </DropdownMenu>
-          </li>
-        </ul>
-      </nav>
+          </div>
+        </>
+      ) : (
+        // Desktop view
+        <>
+          <div className="flex flex-row h-screen">
+            <Sidebar user={user} dropdownContent={dropdownContent} />
+            <div className="flex-grow overflow-auto">
+              {children}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
