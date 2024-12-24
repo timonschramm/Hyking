@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
@@ -61,7 +61,7 @@ export default function ProfilePage() {
   const [editedData, setEditedData] = useState<ProfileData | null>(null);
   const supabase = createClient();
 
-  async function loadProfileData() {
+  const loadProfileData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -76,11 +76,11 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [supabase.auth]);
 
   useEffect(() => {
     loadProfileData();
-  }, []);
+  }, [loadProfileData]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -326,7 +326,7 @@ export default function ProfilePage() {
                       onChange={(e) => setEditedData({ ...editedData!, dogFriendly: e.target.checked })}
                       className="w-4 h-4 mr-2"
                     />
-                    <span>Yes, I'm dog friendly</span>
+                    <span>Yes, I&apos;m dog friendly</span>
                   </div>
                 ) : (
                   <p className="text-lg">{profileData.dogFriendly ? 'Yes' : 'No'}</p>
