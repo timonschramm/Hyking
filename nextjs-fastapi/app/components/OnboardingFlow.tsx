@@ -68,7 +68,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     {
       title: 'Connect to Spotify',
       subtitle: 'Link your Spotify account to personalize your experience with your favorite artists',
-      options: [] // No options needed, handled directly in OnboardingStep
+      options: []
     },
     {
       title: 'Tell us about yourself',
@@ -91,7 +91,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
         }
       ]
     },
-   
     {
       title: 'Your hiking preferences',
       subtitle: 'Help us find the perfect hiking buddies for you',
@@ -134,7 +133,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
           choices: ['Photography', 'Bird Watching', 'Rock Climbing', 'Camping', 'Nature Study', 'Wildlife Spotting'],
           maxSelect: 4
         },
-     
         {
           type: 'toggle' as const,
           label: 'Dog Friendly',

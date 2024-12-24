@@ -16,12 +16,12 @@ export default function OnboardingPage() {
         if (!user) return;
 
         const response = await fetch(`/api/profile/${user.id}`);
-        if (!response.ok) throw new Error('Failed to fetch profile data');
+        if (!response.ok) throw new Error("Failed to fetch profile data");
         
         const data = await response.json();
         setInitialData(data);
       } catch (error) {
-        console.error('Error loading profile data:', error);
+        console.error("Error loading profile data:", error);
       } finally {
         setIsLoading(false);
       }
