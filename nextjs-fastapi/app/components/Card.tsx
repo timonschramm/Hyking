@@ -18,6 +18,35 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -125, 0, 125, 200], [0, 1, 1, 1, 0]);
+  
+  const leftIndicatorOpacity = useTransform(
+    x,
+    [-150, -25, 0],
+    [1, 0.5, 0]
+  );
+  const rightIndicatorOpacity = useTransform(
+    x,
+    [0, 25, 150],
+    [0, 0.5, 1]
+  );
+  const indicatorScale = useTransform(
+    x,
+    [-150, -100, 0, 100, 150],
+    [1, 0.8, 0.5, 0.8, 1]
+  );
+
+  const leftIndicatorX = useTransform(
+    x,
+    [-200, -150, -100, -50, 0],
+    [100, 50, 0, -40, -20],
+    { ease: easeIn }
+  );
+  const rightIndicatorX = useTransform(
+    x,
+    [0, 50, 100, 150, 200],
+    [-20, -40, 0, 50, 100],
+    { ease: easeIn }
+  );
 
   const dragEnd = (event: any, info: PanInfo) => {
     setIsDragging(false);
@@ -69,6 +98,32 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
                 whileDrag={{ cursor: 'grabbing' }}
               >
                 <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
+                  <motion.div
+                    className="absolute inset-0 flex items-center justify-center z-50"
+                    style={{ 
+                      opacity: rightIndicatorOpacity, 
+                      scale: indicatorScale,
+                      x: rightIndicatorX 
+                    }}
+                  >
+                    <div className="rounded-full bg-green-500/90 p-4">
+                      <Check className="h-12 w-12 text-white" />
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    className="absolute inset-0 flex items-center justify-center z-50"
+                    style={{ 
+                      opacity: leftIndicatorOpacity, 
+                      scale: indicatorScale,
+                      x: leftIndicatorX 
+                    }}
+                  >
+                    <div className="rounded-full bg-red-500/90 p-4">
+                      <X className="h-12 w-12 text-white" />
+                    </div>
+                  </motion.div>
+
                   <div className="relative h-full w-full">
                     <Image
                       src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
@@ -89,28 +144,6 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
                       <span>{data.difficulty}</span>
                     </div>
                   </div>
-
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{
-                      opacity: x.get() > 100 ? 1 : 0,
-                      scale: x.get() > 100 ? 1 : 0.5,
-                    }}
-                    className="absolute right-4 top-4 z-50 rounded-full bg-green-500/80 p-2"
-                  >
-                    <Check className="h-8 w-8 text-white" />
-                  </motion.div>
-                  
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.5 }}
-                    animate={{
-                      opacity: x.get() < -100 ? 1 : 0,
-                      scale: x.get() < -100 ? 1 : 0.5,
-                    }}
-                    className="absolute left-4 top-4 z-50 rounded-full bg-red-500/80 p-2"
-                  >
-                    <X className="h-8 w-8 text-white" />
-                  </motion.div>
                 </div>
               </motion.div>
             </DialogTrigger>
