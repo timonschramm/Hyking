@@ -35,27 +35,29 @@ export default function Search() {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
-      <AnimatePresence mode="popLayout">
-        {activities.length ? (
-          activities.map((activity, index) => (
-            index === activeIndex && (
-              <Card
-                key={activity.id}
-                data={activity}
-                active={true}
-                removeCard={removeCard}
-              />
-            )
-          ))
-        ) : (
-          <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
-            No more activities available!
-            <br />
-            Come back later for more
-          </h2>
-        )}
-      </AnimatePresence>
+    <div className="relative flex h-full w-full items-center justify-center bg-background dark:bg-primary text-primary dark:text-primary-white">
+      <div className="absolute inset-0 flex items-center justify-center">
+        <AnimatePresence mode="popLayout">
+          {activities.length ? (
+            activities.map((activity, index) => (
+              index === activeIndex && (
+                <Card
+                  key={activity.id}
+                  data={activity}
+                  active={true}
+                  removeCard={removeCard}
+                />
+              )
+            ))
+          ) : (
+            <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+              No more activities available!
+              <br />
+              Come back later for more
+            </h2>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

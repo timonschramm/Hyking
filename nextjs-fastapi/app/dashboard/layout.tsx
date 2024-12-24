@@ -122,21 +122,19 @@ export default function DashboardLayout({
       {isMobile ? (
         // Mobile view
         <>
-          <div className="flex min-h-screen flex-col w-screen">
-            <div className="flex-1 scrollbar-hide overflow-y-auto pb-20">
+          <div className="fixed inset-0 flex flex-col w-screen overflow-hidden">
+            <div className="h-[calc(100vh-5rem)] overflow-hidden">
               {children}
-
             </div>
             <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
-
           </div>
         </>
       ) : (
         // Desktop view
         <>
-          <div className="flex flex-row h-screen">
+          <div className="flex h-screen">
             <Sidebar user={user} dropdownContent={dropdownContent} />
-            <div className="flex-grow overflow-auto">
+            <div className="flex-grow overflow-hidden">
               {children}
             </div>
           </div>
