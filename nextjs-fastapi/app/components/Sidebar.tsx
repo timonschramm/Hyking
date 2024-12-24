@@ -20,7 +20,7 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex flex-col w-64 bg-background border-r p-4">
+    <nav className="hidden md:flex flex-col w-64 text-foreground border-r border-border p-4 dark:bg-primary dark:text-primary-white">
       <ul className="space-y-2 flex-grow">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -29,10 +29,10 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
               <Link
                 href={item.href}
                 className={cn(
-                  "flex items-center p-2 rounded-md",
+                  "flex rounded-xl items-center p-2 transition-colors",
                   isActive
-                    ? "bg-accent text-accent-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary text-primary-white dark:bg-primary-white dark:text-primary"
+                    : "text-foreground hover:bg-primary hover:text-primary-white dark:text-primary-white dark:hover:bg-primary-white dark:hover:text-primary"
                 )}
               >
                 <item.icon className="w-6 h-6 mr-4" />
@@ -45,10 +45,15 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
       <div className="mt-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start p-2">
+            <Button variant="ghost" className="w-full justify-start p-2 hover:bg-primary hover:text-primary-white dark:hover:bg-primary-white dark:hover:text-primary">
               <Avatar className="w-10 h-10 mr-4">
-                <AvatarImage src={user?.image || "/placeholder-avatar.jpg"} alt="User" />
-                <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
+                {user?.image ? (
+                  <AvatarImage src={user.image} alt="User" />
+                ) : (
+                  <AvatarFallback className="bg-primary text-primary-white dark:bg-primary-white dark:text-primary">
+                    {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                  </AvatarFallback>
+                )}
               </Avatar>
               <span className="text-sm font-medium truncate">
                 {user?.name || truncateEmail(user?.email || '') || "Account"}

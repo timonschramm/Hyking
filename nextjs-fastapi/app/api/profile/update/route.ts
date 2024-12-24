@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
 
     // Convert form data to match your Prisma schema
     const profileData = {
+      email: user.email,
       age: userData['Age'] ? parseInt(userData['Age']) : undefined,
       gender: userData['Gender'] || undefined,
       location: userData['Location'] || undefined,
@@ -36,26 +37,18 @@ export async function POST(req: NextRequest) {
       Object.entries(profileData).filter(([_, value]) => value !== undefined)
     );
 
-    console.log('Cleaned Profile Data:', cleanedProfileData);
-
-    // Add error handling for missing profile
-    const existingProfile = await prisma.profile.findUnique({
+    // Upsert the profile
+    const updatedProfile = await prisma.profile.upsert({
       where: { id: user.id },
-    });
-
-    if (!existingProfile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
-    }
-
-    // Update or create user profile
-    const updatedUser = await prisma.profile.update({
-      where: { id: user.id },
-      data: {
+      create: {
+        id: user.id,
+        email: user.email!,
         ...cleanedProfileData,
-      }
+      },
+      update: cleanedProfileData,
     });
 
-    return NextResponse.json(updatedUser);
+    return NextResponse.json(updatedProfile);
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });

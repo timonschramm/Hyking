@@ -7,6 +7,7 @@ import Image from "next/image";
 import logo from "@/app/icon.png";
 import config from "@/app/config";
 import ButtonSignin from "./ButtonSignIn";
+import { colors } from '@/app/styles/colors';
 
 const links: { href: string; label: string }[] = [
   // {
@@ -23,7 +24,7 @@ const links: { href: string; label: string }[] = [
   // },
 ];
 
-const cta = <ButtonSignin extraStyle="btn-primary" />;
+const cta = <ButtonSignin extraStyle="text-white" />;
 
 // A header with a logo on the left, links in the center (like Pricing, etc...), and a CTA (like Get Started or Login) on the right.
 // The header is responsive, and on mobile, the links are hidden behind a burger button.
@@ -37,7 +38,7 @@ const Header = () => {
   }, [searchParams]);
 
   return (
-    <header className="bg-base-200">
+    <header style={{ backgroundColor: colors.background.white }}>
       <nav
         className="max-w-7xl container flex items-center justify-between px-8 py-4 mx-auto"
         aria-label="Global"
@@ -58,7 +59,12 @@ const Header = () => {
               width={256}
               height={256}
             />
-            <span className="font-extrabold text-lg">{config.appName}</span>
+            <span 
+              className="font-extrabold text-lg"
+              style={{ color: colors.text.primary }}
+            >
+              {config.appName}
+            </span>
           </Link>
         </div>
         {/* Burger button to open menu on mobile */}
@@ -67,6 +73,7 @@ const Header = () => {
             type="button"
             className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5"
             onClick={() => setIsOpen(true)}
+            style={{ color: colors.text.primary }}
           >
             <span className="sr-only">Open main menu</span>
             <svg
@@ -75,7 +82,7 @@ const Header = () => {
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="w-6 h-6 text-base-content"
+              className="w-6 h-6"
             >
               <path
                 strokeLinecap="round"
@@ -92,7 +99,8 @@ const Header = () => {
             <Link
               href={link.href}
               key={link.href}
-              className="link link-hover"
+              className="hover:underline transition-colors"
+              style={{ color: colors.text.primary }}
               title={link.label}
             >
               {link.label}
@@ -101,13 +109,21 @@ const Header = () => {
         </div>
 
         {/* CTA on large screens */}
-        <div className="hidden lg:flex lg:justify-end lg:flex-1">{cta}</div>
+        <div className="hidden lg:flex lg:justify-end lg:flex-1">
+          <div className="bg-primary-main hover:bg-primary-hover">
+            {cta}
+          </div>
+        </div>
       </nav>
 
       {/* Mobile menu, show/hide based on menu state. */}
       <div className={`relative z-50 ${isOpen ? "" : "hidden"}`}>
         <div
-          className={`fixed inset-y-0 right-0 z-10 w-full px-8 py-4 overflow-y-auto bg-base-200 sm:max-w-sm sm:ring-1 sm:ring-neutral/10 transform origin-right transition ease-in-out duration-300`}
+          className="fixed inset-y-0 right-0 z-10 w-full px-8 py-4 overflow-y-auto sm:max-w-sm sm:ring-1 transform origin-right transition ease-in-out duration-300"
+          style={{ 
+            backgroundColor: colors.background.white,
+ 
+          }}
         >
           {/* Your logo/name on small screens */}
           <div className="flex items-center justify-between">

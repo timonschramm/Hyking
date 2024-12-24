@@ -42,14 +42,21 @@ interface OnboardingStepProps {
   onBack: () => void;
   currentStep: number;
   validation?: (value: any) => boolean;
-
+  initialValues?: Record<string, any>;
 }
 
-const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isLastStep, onBack, currentStep, validation }) => {
+const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isLastStep, onBack, currentStep, validation, initialValues }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [topArtists, setTopArtists] = useState<Artist[]>([]);
   const [spotifyConnected, setSpotifyConnected] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (initialValues) {
+      console.log('Received initial values:', initialValues);
+      setFormData(initialValues);
+    }
+  }, [initialValues]);
 
   const handleInputChange = (label: string, value: any) => {
     setFormData(prev => ({ ...prev, [label]: value }));

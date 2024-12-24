@@ -18,7 +18,11 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
-  			background: 'hsl(var(--background))',
+  			background: {
+  				DEFAULT: 'hsl(var(--background))',
+  				light: '#F6F5E8',    // Light Cream
+  				white: '#FFFFFF'     // White
+  			},
   			foreground: 'hsl(var(--foreground))',
   			card: {
   				DEFAULT: 'hsl(var(--card))',
@@ -29,12 +33,16 @@ module.exports = {
   				foreground: 'hsl(var(--popover-foreground))'
   			},
   			primary: {
-  				DEFAULT: 'hsl(var(--primary))',
-  				foreground: 'hsl(var(--primary-foreground))'
+  				DEFAULT: '#142800',  // Dark Forest Green
+  				medium: '#2C5601',   // Forest Green
+  				light: '#5DE372',    // Light Green
+  				white: '#FFFFFF'     // White
   			},
   			secondary: {
-  				DEFAULT: 'hsl(var(--secondary))',
-  				foreground: 'hsl(var(--secondary-foreground))'
+  				gray: '#C1C1C1',     // Light Gray
+  				blue: '#ACC3FF',     // Light Blue
+  				sage: '#C2CC9D',     // Sage Green
+  				cream: '#F6F5E8'     // Cream
   			},
   			muted: {
   				DEFAULT: 'hsl(var(--muted))',
@@ -57,6 +65,11 @@ module.exports = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
+  			},
+  			text: {
+  				DEFAULT: '#142800',  // Dark Forest Green
+  				light: '#2C5601',    // Forest Green
+  				white: '#FFFFFF'     // White
   			}
   		}
   	}

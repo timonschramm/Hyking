@@ -88,6 +88,8 @@ model Profile {
     transportation    Int? // 0 = car, 1 = public transport, 2 = both
     spotifyConnected  Boolean  @default(false)
     topArtists        Artist[] 
+    onboardingCompleted Boolean @default(false)
+
 }
 
 model Artist {

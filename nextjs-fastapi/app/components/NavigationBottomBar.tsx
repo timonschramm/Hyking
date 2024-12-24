@@ -41,10 +41,15 @@ export default function NavigationBottomBar({ user, dropdownContent }: { user: a
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-16">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={user?.image || "/placeholder-avatar.jpg"} alt="User" />
-                  <AvatarFallback>{user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}</AvatarFallback>
-                </Avatar>
+              <Avatar className="w-8 h-8">
+                {user?.image ? (
+                  <AvatarImage src={user.image} alt="User" />
+                ) : (
+                  <AvatarFallback>
+                    {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
+                  </AvatarFallback>
+                )}
+              </Avatar>
               </Button>
             </DropdownMenuTrigger>
             {dropdownContent}

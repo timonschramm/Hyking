@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Home, Search, Bell, LogOut, User, Settings, Instagram } from "lucide-react";
 
 import {
@@ -41,6 +41,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const supabase = createClient();
@@ -90,17 +91,17 @@ export default function DashboardLayout({
 
   // Update the dropdown menu content to use truncated email
   const dropdownContent = (
-    <DropdownMenuContent align="end" className="w-56">
+    <DropdownMenuContent align="end" className="w-56 bg-background-white text-primary dark:text-primary-white">
       <DropdownMenuLabel>
         <div className="flex flex-col space-y-1">
           <p className="text-sm font-medium leading-none">{user?.name || "Account"}</p>
-          <p className="text-xs leading-none text-muted-foreground">
+          <p className="text-xs leading-none text-primary-medium dark:text-primary-white">
             {user?.email ? truncateEmail(user.email) : "user@example.com"}
           </p>
         </div>
       </DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem>
+      <DropdownMenuSeparator className="bg-secondary-sage dark:bg-primary-white" />
+      <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
         <User className="mr-2 h-4 w-4" />
         <span>Profile</span>
       </DropdownMenuItem>
@@ -117,7 +118,7 @@ export default function DashboardLayout({
   );
 
   return (
-    <div>
+    <div className="bg-background-white dark:bg-primary text-primary dark:text-primary-white">
       {isMobile ? (
         // Mobile view
         <>

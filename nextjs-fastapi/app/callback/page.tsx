@@ -9,13 +9,11 @@ function CallbackContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Early return if searchParams is null
     if (!searchParams) return;
     
     const code = searchParams.get('code');
     
     if (code) {
-      // Include the code in the URL
       fetch(`/api/auth/spotify/callback?code=${code}`, {
         method: 'GET',
       })
@@ -28,14 +26,13 @@ function CallbackContent() {
       .then(data => {
         if (data.access_token) {
           localStorage.setItem('spotify_token', data.access_token);
-          router.push('/onboarding');
+          router.push(data.redirectTo);
         } else {
           throw new Error('No access token received');
         }
       })
       .catch(error => {
         console.error('Error:', error);
-        // Redirect to onboarding with error parameter
         router.push('/onboarding?error=spotify_connection_failed');
       });
     } else {

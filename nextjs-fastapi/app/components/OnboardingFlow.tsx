@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import OnboardingStep from './OnboardingStep';
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from 'next/navigation';
@@ -6,10 +6,63 @@ import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { UserProfileData } from '@/types/UserData';
 
-const OnboardingFlow = () => {
+interface OnboardingFlowProps {
+  initialData?: any;
+}
+
+interface FormData {
+  'Age'?: string;
+  'Gender'?: string;
+  'Location'?: string;
+  'Experience Level'?: string;
+  'Preferred Pace'?: string;
+  'Preferred Distance'?: string;
+  'Hobbies'?: string[];
+  'Dog Friendly'?: boolean;
+  'Transportation'?: string;
+}
+
+export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [userData, setUserData] = useState<Partial<UserProfileData>>({});
+  const [userData, setUserData] = useState<FormData>({});
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const response = await fetch('/api/profile/me');
+        console.log('response');
+        console.log(response.body);
+        if (response.ok) {
+          const profile = await response.json();
+          console.log('Setting user data:', profile);
+          setUserData({
+            'Age': profile.age?.toString(),
+            'Gender': profile.gender,
+            'Location': profile.location,
+            'Experience Level': profile.experienceLevel !== undefined ? convertExperienceLevelBack(profile.experienceLevel) : undefined,
+            'Preferred Pace': profile.preferredPace !== undefined ? convertPreferredPaceBack(profile.preferredPace) : undefined,
+            'Preferred Distance': profile.preferredDistance !== undefined ? convertPreferredDistanceBack(profile.preferredDistance) : undefined,
+            'Hobbies': profile.hobbies || [],
+            'Dog Friendly': profile.dogFriendly,
+            'Transportation': profile.transportation !== undefined ? convertTransportationBack(profile.transportation) : undefined,
+          });
+        } else if (response.status === 404) {
+          console.log('No existing profile found, starting fresh');
+        } else {
+          throw new Error(`Failed to load profile: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        toast.error('Failed to load profile data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const steps = [
     {
@@ -21,9 +74,21 @@ const OnboardingFlow = () => {
       title: 'Tell us about yourself',
       subtitle: 'This helps us personalize your experience',
       options: [
-        { type: 'input' as const, label: 'Age', placeholder: 'Enter your age' },
-        { type: 'select' as const, label: 'Gender', choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'] },
-        { type: 'input' as const, label: 'Location', placeholder: 'Enter your city' }
+        { 
+          type: 'input' as const, 
+          label: 'Age', 
+          placeholder: 'Enter your age' 
+        },
+        { 
+          type: 'select' as const, 
+          label: 'Gender', 
+          choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'] 
+        },
+        { 
+          type: 'input' as const, 
+          label: 'Location', 
+          placeholder: 'Enter your city' 
+        }
       ]
     },
    
@@ -84,37 +149,31 @@ const OnboardingFlow = () => {
     }
   ];
 
-  const handleComplete = async () => {
-    try {
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...userData,
-          spotifyConnected: currentStep >= 1 // Set based on whether user completed Spotify step
-        }),
-      });
+  const handleSelect = async (stepData: any) => {
+    const newUserData = { ...userData, ...stepData };
+    setUserData(newUserData);
 
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
+    try {
+      if (currentStep > 0) {
+        const response = await fetch('/api/profile/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newUserData),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to save progress');
+        }
       }
 
-      router.push('/dashboard');
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
-      console.error('Error saving profile:', error);
-      toast.error('Failed to save profile');
-    }
-  };
-
-  const handleSelect = (stepData: any) => {
-    setUserData((prev) => ({ ...prev, ...stepData }));
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      handleComplete();
+      console.error('Error saving progress:', error);
+      toast.error('Failed to save progress');
     }
   };
 
@@ -125,24 +184,70 @@ const OnboardingFlow = () => {
   };
 
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center p-4">
-      <div className="max-w-2xl w-full bg-base-100 rounded-2xl shadow-xl p-8">
-        <Progress
-          value={(currentStep / (steps.length - 1)) * 100}
-          className="mb-8"
-        />
+    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      {isLoading ? (
+        <div className="text-center">Loading...</div>
+      ) : (
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <Progress
+              value={(currentStep / (steps.length - 1)) * 100}
+              className="mb-8"
+            />
 
-        <OnboardingStep
-          key={currentStep}
-          stepData={steps[currentStep]}
-          onSelect={handleSelect}
-          onBack={handleBack}
-          isLastStep={currentStep === steps.length - 1}
-          currentStep={currentStep}
-        />
-      </div>
+            <OnboardingStep
+              key={currentStep}
+              stepData={steps[currentStep]}
+              onSelect={handleSelect}
+              onBack={handleBack}
+              isLastStep={currentStep === steps.length - 1}
+              currentStep={currentStep}
+              initialValues={userData}
+            />
+
+           
+          </div>
+        </div>
+      )}
     </div>
   );
-};
+}
 
-export default OnboardingFlow; 
+function convertExperienceLevelBack(level: number): string {
+  const mapping = {
+    0: 'Beginner (0-1)',
+    1: 'Intermediate (1-2)',
+    2: 'Advanced (2-3)',
+    3: 'Expert (3)'
+  };
+  return mapping[level as keyof typeof mapping];
+}
+
+function convertPreferredPaceBack(pace: number): string {
+  const mapping = {
+    0: 'Leisurely',
+    1: 'Moderate',
+    2: 'Fast',
+    3: 'Very Fast'
+  };
+  return mapping[pace as keyof typeof mapping];
+}
+
+function convertPreferredDistanceBack(distance: number): string {
+  const mapping = {
+    0: '1-5 km',
+    1: '5-10 km',
+    2: '10-20 km',
+    3: '20+ km'
+  };
+  return mapping[distance as keyof typeof mapping];
+}
+
+function convertTransportationBack(transportation: number): string {
+  const mapping = {
+    0: 'Car',
+    1: 'Public Transport',
+    2: 'Both'
+  };
+  return mapping[transportation as keyof typeof mapping];
+} 

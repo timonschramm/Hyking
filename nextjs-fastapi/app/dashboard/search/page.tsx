@@ -35,7 +35,7 @@ export default function Search() {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-bgBlack text-textGrey">
+    <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
       <AnimatePresence>
         {activities.length ? (
           activities.map((activity) => (
@@ -47,7 +47,7 @@ export default function Search() {
             />
           ))
         ) : (
-          <h2 className="absolute z-10 text-center text-2xl font-bold text-textGrey">
+          <h2 className="absolute z-10 text-center text-2xl font-bold text-primary dark:text-primary-white">
             No more activities available!
             <br />
             Come back later for more
