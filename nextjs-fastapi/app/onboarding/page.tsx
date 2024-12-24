@@ -28,7 +28,7 @@ export default function OnboardingPage() {
     }
 
     loadProfileData();
-  }, []);
+  }, [supabase.auth]);
 
   if (isLoading) return <div>Loading...</div>;
 
