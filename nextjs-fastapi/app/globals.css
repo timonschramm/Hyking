@@ -128,6 +128,8 @@ input:-webkit-autofill:focus {
 .card-image-wrapper {
   touch-action: pan-y;
   -webkit-touch-callout: none;
+  will-change: transform;
+  transform-origin: center center;
 }
 
 .no-scrollbar {
@@ -144,4 +146,9 @@ input:-webkit-autofill:focus {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+}
+
+.card-exit {
+  pointer-events: none;
+  transition: opacity 0.2s ease-out;
 }

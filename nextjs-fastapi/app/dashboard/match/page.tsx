@@ -35,21 +35,21 @@ export default function Search() {
   };
 
   return (
+
     <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
-      <AnimatePresence mode="popLayout">
+     <h1>Matching</h1>
+      <AnimatePresence>
         {activities.length ? (
-          activities.map((activity, index) => (
-            index === activeIndex && (
-              <Card
-                key={activity.id}
-                data={activity}
-                active={true}
-                removeCard={removeCard}
-              />
-            )
+          activities.map((activity) => (
+            <Card
+              key={activity.id}
+              data={activity}
+              active={activity.id === activities[activeIndex]?.id}
+              removeCard={removeCard}
+            />
           ))
         ) : (
-          <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+          <h2 className="absolute z-10 text-center text-2xl font-bold text-primary dark:text-primary-white">
             No more activities available!
             <br />
             Come back later for more

@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-console.log(Object.keys(prisma));export async function GET(req: NextRequest) {
+console.log(Object.keys(prisma));
+
+export async function GET(req: NextRequest) {
+
+
+  // fetch10idfrompyhthon localalhost8000 /api/py/hikes
+
   try {
     const hikes = await prisma.activity.findMany({
       take: 10,

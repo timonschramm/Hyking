@@ -9,7 +9,7 @@ import { Home, Search, Bell } from "lucide-react";
 const navItems = [
   { name: "Home", href: "/dashboard/", icon: Home },
   { name: "Search", href: "/dashboard/search", icon: Search },
-  { name: "Notifications", href: "/dashboard/notifications", icon: Bell },
+  { name: "Matching", href: "/dashboard/match", icon: Search },
 ];
 
 export default function NavigationBottomBar({ user, dropdownContent }: { user: any; dropdownContent: any }) {
