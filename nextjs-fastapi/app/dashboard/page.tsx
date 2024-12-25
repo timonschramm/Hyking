@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto bg-background-white">
-      <div className="flex justify-between items-center mb-8">
+      {/* <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold text-primary">
           Dashboard
         </h1>
@@ -71,11 +71,8 @@ export default function DashboardPage() {
         >
           Logout
         </button>
-      </div>
-      
-      <div className="bg-background-white p-6 rounded-lg shadow-md mb-8 border border-secondary-gray">
-        <p className="text-primary">Welcome, {user.email}!</p>          
-      </div>
+      </div> */}
+  
 
       {/* Hiking Trails Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

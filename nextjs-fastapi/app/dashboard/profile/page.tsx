@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 // import SpotifyConnect from '@/app/components/SpotifyConnect';
 import ArtistsList from '@/app/components/ArtistsList';
+import { v4 as uuidv4 } from 'uuid';
 
 interface ProfileData {
   age?: number;
@@ -24,6 +25,7 @@ interface ProfileData {
     imageUrl: string;
     genres: { name: string }[];
   }[];
+  imageUrl?: string;
 }
 
 // Helper functions to convert database values to display values
@@ -59,6 +61,8 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ProfileData | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
 
   const loadProfileData = useCallback(async () => {
@@ -71,6 +75,7 @@ export default function ProfilePage() {
       
       const data = await response.json();
       setProfileData(data);
+      setAvatarUrl(data.avatarUrl);
     } catch (error) {
       console.error('Error loading profile data:', error);
     } finally {
@@ -92,15 +97,25 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      const formData = new FormData();
+      
+      // Add profile data
+      formData.append('profileData', JSON.stringify(editedData));
+      
+      // Add image if there's a new one
+      if (newImageFile) { // You'll need to track the new image file in state
+        formData.append('image', newImageFile);
+      }
+
       const response = await fetch(`/api/profile/${user.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editedData),
+        body: formData,
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
       
-      setProfileData(editedData);
+      const updatedProfile = await response.json();
+      setProfileData(updatedProfile);
       setIsEditing(false);
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -136,6 +151,30 @@ export default function ProfilePage() {
     }
   };
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+
+    const file = event.target.files[0];
+    console.log('Selected file:', file.name);
+    
+    // Create temporary URL for immediate preview
+    const objectUrl = URL.createObjectURL(file);
+    setProfileData(prev => prev ? { ...prev, imageUrl: objectUrl } : null);
+    
+    setNewImageFile(file);
+  };
+
+  // Clean up object URL when component unmounts
+  useEffect(() => {
+    return () => {
+      if (profileData?.imageUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(profileData.imageUrl);
+      }
+    };
+  }, [profileData?.imageUrl]);
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -146,11 +185,22 @@ export default function ProfilePage() {
           <div className="absolute -bottom-16 left-6">
             <div className="relative w-32 h-32 rounded-full border-4 border-white overflow-hidden">
               <Image
-                src="/dummy-profile.jpg"
+                src={profileData?.imageUrl || '/dummy-profile.jpg'}
                 alt="Profile"
                 fill
                 className="object-cover"
               />
+              {isEditing && (
+                <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <span className="text-white text-sm">Change Photo</span>
+                </label>
+              )}
             </div>
           </div>
           <div className="absolute top-4 right-4">

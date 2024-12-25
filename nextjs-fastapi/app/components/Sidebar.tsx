@@ -48,8 +48,8 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start p-2 hover:bg-primary hover:text-primary-white dark:hover:bg-primary-white dark:hover:text-primary">
               <Avatar className="w-10 h-10 mr-4">
-                {user?.image ? (
-                  <AvatarImage src={user.image} alt="User" />
+                {user?.imageUrl ? (
+                  <AvatarImage src={user.imageUrl} alt={user?.name || 'User'} />
                 ) : (
                   <AvatarFallback className="bg-primary text-primary-white dark:bg-primary-white dark:text-primary">
                     {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
