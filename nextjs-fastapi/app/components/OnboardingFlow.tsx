@@ -235,7 +235,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                 <SpotifyArtistsDisplay
                   artists={userData.artists}
                   isConnected={userData.spotifyConnected || false}
-                  onConnect={handleSpotifyConnect}
                   isEditable={true}
                   onArtistsChange={(artists) => {
                     setUserData(prev => ({

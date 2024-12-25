@@ -17,7 +17,6 @@ interface Artist {
 interface SpotifyArtistsDisplayProps {
   artists?: Artist[];
   isConnected: boolean;
-  onConnect: () => void;
   onDisconnect?: () => void;
   isEditable?: boolean;
   onArtistsChange?: (artists: Artist[]) => void;
@@ -26,7 +25,6 @@ interface SpotifyArtistsDisplayProps {
 export default function SpotifyArtistsDisplay({
   artists = [],
   isConnected,
-  onConnect,
   onDisconnect,
   isEditable = false,
   onArtistsChange,
@@ -167,6 +165,25 @@ export default function SpotifyArtistsDisplay({
     }
   };
 
+  const onConnect = async () => {
+    try {
+      const response = await fetch(`/api/spotify/authorize?isProfile=${isEditable}`);
+      if (!response.ok) {
+        throw new Error('Failed to get authorization URL');
+      }
+      
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No authorization URL received');
+      }
+    } catch (error) {
+      console.error('Error connecting to Spotify:', error);
+      toast.error('Failed to connect to Spotify');
+    }
+  };
+
   if (!isConnected) {
     return (
       <div className="text-center py-8">
@@ -194,7 +211,7 @@ export default function SpotifyArtistsDisplay({
             <ArrowPathIcon className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Artists
           </Button>
-          {onDisconnect && (
+          {/* {onDisconnect && (
             <Button 
               variant="outline" 
               size="sm"
@@ -202,7 +219,7 @@ export default function SpotifyArtistsDisplay({
             >
               Disconnect
             </Button>
-          )}
+          )} */}
         </div>
       </div>
 

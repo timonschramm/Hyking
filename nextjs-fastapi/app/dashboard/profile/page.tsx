@@ -554,8 +554,6 @@ export default function ProfilePage() {
               <SpotifyArtistsDisplay
                 artists={profileData?.topArtists}
                 isConnected={profileData?.spotifyConnected || false}
-                onConnect={handleSpotifyConnect}
-                onRefresh={handleSpotifyConnect}
                 onDisconnect={handleSpotifyDisconnect}
                 isEditable={isEditing}
                 onArtistsChange={(artists) => {
