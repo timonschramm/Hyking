@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeSlashIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Artist {
   spotifyId: string;
@@ -21,6 +22,29 @@ interface SpotifyArtistsDisplayProps {
   isEditable?: boolean;
   onArtistsChange?: (artists: Artist[]) => void;
 }
+
+export const SpotifyArtistsDisplaySkeleton = () => {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-6 w-32" />
+        <Skeleton className="h-9 w-32" />
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="space-y-2">
+            <div className="aspect-square relative">
+              <Skeleton className="absolute inset-0 rounded-lg" />
+            </div>
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function SpotifyArtistsDisplay({
   artists = [],

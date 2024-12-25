@@ -3,17 +3,22 @@
 import { useEffect, useState } from 'react';
 import OnboardingFlow from '../components/OnboardingFlow';
 import { createClient } from '@/utils/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export default function OnboardingPage() {
   const [initialData, setInitialData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadProfileData() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+          // If no user is found, redirect to login
+          router.push('/login');
+          return;
+        }
 
         const response = await fetch(`/api/profile/${user.id}`);
         if (!response.ok) throw new Error("Failed to fetch profile data");
@@ -22,15 +27,14 @@ export default function OnboardingPage() {
         setInitialData(data);
       } catch (error) {
         console.error("Error loading profile data:", error);
-      } finally {
-        setIsLoading(false);
       }
     }
 
     loadProfileData();
-  }, [supabase.auth]);
+  }, [supabase.auth, router]);
 
-  if (isLoading) return <div>Loading...</div>;
+  // Show nothing while checking authentication
+  if (!initialData) return null;
 
   return <OnboardingFlow initialData={initialData} />;
 } 

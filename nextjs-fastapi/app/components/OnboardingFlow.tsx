@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { UserProfileData } from '@/types/UserData';
 import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
+import { Skeleton } from "@/components/ui/skeleton";
+import { SpotifyArtistsDisplaySkeleton } from './SpotifyArtistsDisplay';
 
 interface OnboardingFlowProps {
   initialData?: any;
@@ -35,11 +37,59 @@ interface FormData extends SpotifyData {
   'Transportation'?: string;
 }
 
+// Add this new component for the loading state
+const OnboardingFlowSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      {/* Title and subtitle skeletons matching exact structure */}
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-64" /> {/* Title - matches text-2xl font-bold */}
+        <Skeleton className="h-5 w-full" /> {/* Subtitle - matches actual text size */}
+      </div>
+
+      {/* For Spotify step - matching SpotifyArtistsDisplay structure */}
+      <div className="space-y-4">
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex items-center space-x-3">
+              <Skeleton className="w-12 h-12 rounded-full" /> {/* Artist image */}
+              <div className="space-y-2">
+                <Skeleton className="h-5 w-24" /> {/* Artist name */}
+                <Skeleton className="h-4 w-32" /> {/* Genres */}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Button skeleton */}
+      <div className="mt-6 flex justify-end">
+        <Skeleton className="h-10 w-24" /> {/* Next button */}
+      </div>
+    </div>
+  );
+};
+
 export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const savedStep = localStorage.getItem('onboardingStep');
+      return savedStep ? parseInt(savedStep, 10) : 0;
+    }
+    return 0;
+  });
   const [userData, setUserData] = useState<FormData>({});
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    localStorage.setItem('onboardingStep', currentStep.toString());
+  }, [currentStep]);
+
+  const completeOnboarding = () => {
+    localStorage.removeItem('onboardingStep');
+    router.push('/dashboard');
+  };
 
   // Add handleSpotifyConnect function
   const handleSpotifyConnect = async () => {
@@ -83,8 +133,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
           });
         } else if (response.status === 404) {
           console.log('No existing profile found, starting fresh');
-        } else {
-          throw new Error(`Failed to load profile: ${response.statusText}`);
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -200,7 +248,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        router.push('/dashboard');
+        completeOnboarding();
       }
     } catch (error) {
       console.error('Error saving progress:', error);
@@ -214,24 +262,32 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
   };
 
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && !window.location.pathname.includes('onboarding')) {
+        localStorage.removeItem('onboardingStep');
+      }
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      {isLoading ? (
-        <div className="text-center">Loading...</div>
-      ) : (
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-            <Progress
-              value={(currentStep / (steps.length - 1)) * 100}
-              className="mb-8"
-            />
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <Progress
+            value={(currentStep / (steps.length - 1)) * 100}
+            className="mb-8"
+          />
 
-            {currentStep === 0 ? (
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Connect to Spotify</h2>
-                <p className="text-gray-600 mb-6">
-                  Link your Spotify account to personalize your experience with your favorite artists
-                </p>
+          {currentStep === 0 ? (
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Connect to Spotify</h2>
+              <p className="text-gray-600 mb-6">
+                Link your Spotify account to personalize your experience with your favorite artists
+              </p>
+              {isLoading ? (
+                <SpotifyArtistsDisplaySkeleton />
+              ) : (
                 <SpotifyArtistsDisplay
                   artists={userData.artists}
                   isConnected={userData.spotifyConnected || false}
@@ -248,23 +304,24 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                     }));
                   }}
                 />
-                <div className="mt-6 flex justify-end">
-                  <Button onClick={() => setCurrentStep(1)}>Next</Button>
-                </div>
+              )}
+              <div className="mt-6 flex justify-end">
+                <Button onClick={() => setCurrentStep(1)}>Next</Button>
               </div>
-            ) : (
-              <OnboardingStep
-                stepData={steps[currentStep]}
-                onSelect={handleSelect}
-                onBack={handleBack}
-                isLastStep={currentStep === steps.length - 1}
-                currentStep={currentStep}
-                initialValues={userData}
-              />
-            )}
-          </div>
+            </div>
+          ) : (
+            <OnboardingStep
+              stepData={steps[currentStep]}
+              onSelect={handleSelect}
+              onBack={handleBack}
+              isLastStep={currentStep === steps.length - 1}
+              currentStep={currentStep}
+              initialValues={userData}
+              loading={isLoading}
+            />
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
