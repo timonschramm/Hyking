@@ -40,14 +40,24 @@ export default function SpotifyArtistsDisplay({
 
   const refreshSpotifyToken = async () => {
     try {
+      // First try to refresh the token
       const response = await fetch('/api/spotify/refresh-token', {
         method: 'POST',
       });
+
+      if (response.status === 400) {
+        // If no refresh token, initiate new connection
+        await onConnect();
+        return null;
+      }
+
       if (!response.ok) throw new Error('Failed to refresh token');
+      
       const data = await response.json();
       return data.access_token;
     } catch (error) {
       console.error('Error refreshing token:', error);
+      toast.error('Failed to refresh Spotify connection');
       throw error;
     }
   };
@@ -58,7 +68,19 @@ export default function SpotifyArtistsDisplay({
         'Authorization': `Bearer ${token}`
       }
     });
-    if (!response.ok) throw new Error('Failed to fetch artists');
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        // Token expired during request, try to refresh and retry
+        const newToken = await refreshSpotifyToken();
+        if (!newToken) return null; // User needs to reconnect
+        
+        // Retry with new token
+        return fetchSpotifyArtists(newToken);
+      }
+      throw new Error('Failed to fetch artists');
+    }
+    
     const data = await response.json();
     return data.items.map((artist: any) => ({
       spotifyId: artist.id,
@@ -73,8 +95,14 @@ export default function SpotifyArtistsDisplay({
     setIsRefreshing(true);
     try {
       const token = await refreshSpotifyToken();
+      if (!token) {
+        // User needs to reconnect, onConnect will handle the redirect
+        return;
+      }
+
       const newArtists = await fetchSpotifyArtists(token);
-      
+      if (!newArtists) return; // Handle case where fetch failed
+
       // Upload to database
       const response = await fetch('/api/profile/artists', {
         method: 'POST',
