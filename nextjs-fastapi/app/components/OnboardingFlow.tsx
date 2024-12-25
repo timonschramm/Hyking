@@ -5,12 +5,25 @@ import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import { UserProfileData } from '@/types/UserData';
+import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
 
 interface OnboardingFlowProps {
   initialData?: any;
 }
 
-interface FormData {
+// Add Spotify-related types
+interface SpotifyData {
+  artists?: Array<{
+    spotifyId: string;
+    name: string;
+    imageUrl: string;
+    genres: { name: string }[];
+    hidden: boolean;
+  }>;
+  spotifyConnected?: boolean;
+}
+
+interface FormData extends SpotifyData {
   'Age'?: string;
   'Gender'?: string;
   'Location'?: string;
@@ -28,16 +41,36 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const [userData, setUserData] = useState<FormData>({});
   const [isLoading, setIsLoading] = useState(true);
 
+  // Add handleSpotifyConnect function
+  const handleSpotifyConnect = async () => {
+    try {
+      const response = await fetch('/api/connectToSpotify?from=onboarding');
+      const data = await response.json();
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error connecting to Spotify:', error);
+      toast.error('Failed to connect to Spotify');
+    }
+  };
+
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const response = await fetch('/api/profile/me');
-        console.log('response');
-        console.log(response.body);
         if (response.ok) {
           const profile = await response.json();
-          console.log('Setting user data:', profile);
+          
+          // Fetch artists separately
+          const artistsResponse = await fetch('/api/profile/artists');
+          if (artistsResponse.ok) {
+            const artists = await artistsResponse.json();
+            profile.artists = artists;
+            profile.spotifyConnected = artists.length > 0;
+          }
+
           setUserData({
+            artists: profile.artists,
+            spotifyConnected: profile.spotifyConnected,
             'Age': profile.age?.toString(),
             'Gender': profile.gender,
             'Location': profile.location,
@@ -193,17 +226,43 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
               className="mb-8"
             />
 
-            <OnboardingStep
-              key={currentStep}
-              stepData={steps[currentStep]}
-              onSelect={handleSelect}
-              onBack={handleBack}
-              isLastStep={currentStep === steps.length - 1}
-              currentStep={currentStep}
-              initialValues={userData}
-            />
-
-           
+            {currentStep === 0 ? (
+              <div>
+                <h2 className="text-2xl font-bold mb-4">Connect to Spotify</h2>
+                <p className="text-gray-600 mb-6">
+                  Link your Spotify account to personalize your experience with your favorite artists
+                </p>
+                <SpotifyArtistsDisplay
+                  artists={userData.artists}
+                  isConnected={userData.spotifyConnected || false}
+                  onConnect={handleSpotifyConnect}
+                  isEditable={true}
+                  onArtistsChange={(artists) => {
+                    setUserData(prev => ({
+                      ...prev,
+                      artists: artists.map(artist => ({
+                        ...artist,
+                        genres: artist.genres.map(genre => 
+                          typeof genre === 'string' ? { name: genre } : genre
+                        )
+                      }))
+                    }));
+                  }}
+                />
+                <div className="mt-6 flex justify-end">
+                  <Button onClick={() => setCurrentStep(1)}>Next</Button>
+                </div>
+              </div>
+            ) : (
+              <OnboardingStep
+                stepData={steps[currentStep]}
+                onSelect={handleSelect}
+                onBack={handleBack}
+                isLastStep={currentStep === steps.length - 1}
+                currentStep={currentStep}
+                initialValues={userData}
+              />
+            )}
           </div>
         </div>
       )}

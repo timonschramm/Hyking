@@ -80,26 +80,27 @@ model Profile {
     imageUrl          String?
     gender            String?
     location          String?
-    experienceLevel   Int? // 0 = beginner, 1 = intermediate, 2 = advanced
-    preferredPace     Int? // Updated to Int
-    preferredDistance Int? // 0 = 0-3km, 1 = 3-6km, 2 = 6-10km, 3 = 10-20km, 4 = more
+    experienceLevel   Int?
+    preferredPace     Int?
+    preferredDistance Int?
     hobbies           String[]
     dogFriendly       Boolean?
-    transportation    Int? // 0 = car, 1 = public transport, 2 = both
+    transportation    Int?
     spotifyConnected  Boolean  @default(false)
-    topArtists        Artist[] 
+    artists           Artist[] @relation("ProfileArtists")
     onboardingCompleted Boolean @default(false)
-
 }
 
 model Artist {
-    id     Int      @id @default(autoincrement())
-    name   String
-    imageUrl         String
-    artistId         String
-    profile             Profile    @relation(fields: [profileId], references: [id])
-    profileId           String
-    genres           Genre[] @relation("ArtistGenres")
+    id        Int      @id @default(autoincrement())
+    spotifyId String   @unique
+    name      String
+    imageUrl  String
+    genres    Genre[]  @relation("ArtistGenres")
+    hidden    Boolean  @default(false)
+    profiles  Profile[] @relation("ProfileArtists")
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
 model Genre {

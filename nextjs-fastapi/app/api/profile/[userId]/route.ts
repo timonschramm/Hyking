@@ -17,12 +17,20 @@ export async function GET(
 
     const profile = await prisma.profile.findUnique({
       where: { id: params.userId },
+      include: {
+        artists: {
+          include: {
+            genres: true
+          }
+        }
+      }
     });
 
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
     return NextResponse.json(profile);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -104,11 +112,63 @@ export async function PUT(
 
     // Handle topArtists if present
     if ('topArtists' in profileData) {
-      Object.assign(cleanedData, {
-        topArtists: {
-          set: [] // This properly clears the relation
+      // Handle hiding/showing artists
+      const artistUpdates = profileData.topArtists.map((artist: any) => ({
+        where: { spotifyId: artist.spotifyId },
+        create: {
+          spotifyId: artist.spotifyId,
+          name: artist.name,
+          imageUrl: artist.imageUrl,
+          hidden: artist.hidden || false,
+          genres: {
+            create: artist.genres.map((genre: string) => ({
+              name: genre
+            }))
+          }
+        },
+        update: {
+          hidden: artist.hidden
         }
-      });
+      }));
+
+      await Promise.all(
+        artistUpdates.map((update: any) =>
+          prisma.artist.upsert(update)
+        )
+      );
+    }
+
+    // Handle artists if present
+    if ('artists' in profileData) {
+      const artistUpdates = profileData.artists.map((artist: any) => ({
+        where: { 
+          artistId_profileId: {
+            artistId: artist.artistId,
+            profileId: params.userId
+          }
+        },
+        create: {
+          artistId: artist.artistId,
+          name: artist.name,
+          imageUrl: artist.imageUrl,
+          hidden: artist.hidden || false,
+          genres: {
+            connectOrCreate: artist.genres.map((genre: string) => ({
+              where: { name: genre },
+              create: { name: genre }
+            }))
+          }
+        },
+        update: {
+          hidden: artist.hidden
+        }
+      }));
+
+      await Promise.all(
+        artistUpdates.map((update: any) =>
+          prisma.artist.upsert(update)
+        )
+      );
     }
 
     // Update profile
@@ -116,7 +176,7 @@ export async function PUT(
       where: { id: params.userId },
       data: cleanedData,
       include: {
-        topArtists: true
+        artists: true
       }
     });
 

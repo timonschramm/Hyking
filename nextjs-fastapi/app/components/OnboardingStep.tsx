@@ -30,6 +30,7 @@ interface StepData {
 }
 
 interface Artist {
+  id: string;
   name: string;
   images: { url: string }[];
   genres: string[];
@@ -149,6 +150,47 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
       }
       return prev;
     });
+  };
+
+  const handleUploadArtists = async () => {
+    if (!topArtists || topArtists.length === 0) {
+      console.error('No artists to upload');
+      toast.error('No artists available to upload');
+      return;
+    }
+
+    try {
+      // Transform artists to match the expected format
+      const formattedArtists = topArtists.map(artist => ({
+        spotifyId: artist.id, // Make sure this exists in your Artist interface
+        name: artist.name,
+        imageUrl: artist.images[0]?.url || '',
+        genres: artist.genres || [],
+        hidden: false
+      }));
+
+      console.log('Uploading artists:', formattedArtists);
+      
+      const response = await fetch('/api/profile/artists', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ artists: formattedArtists }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to upload artists: ${errorText}`);
+      }
+
+      const result = await response.json();
+      console.log('Artists uploaded successfully:', result);
+      toast.success('Artists uploaded successfully!');
+    } catch (error) {
+      console.error('Error uploading artists:', error);
+      toast.error('Failed to upload artists');
+    }
   };
 
   return (
@@ -293,6 +335,13 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({ stepData, onSelect, isL
           {isLastStep ? 'Complete' : 'Next'}
         </Button>
       </div>
+
+      <button
+        onClick={handleUploadArtists}
+        className="px-4 py-2 bg-blue-500 text-white rounded-md mt-4"
+      >
+        Upload Top Artists
+      </button>
     </div>
   );
 };

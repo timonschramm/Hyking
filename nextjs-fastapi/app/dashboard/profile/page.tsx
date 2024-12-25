@@ -5,9 +5,11 @@ import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 // import SpotifyConnect from '@/app/components/SpotifyConnect';
-import ArtistsList from '@/app/components/ArtistsList';
+import SpotifyArtists from '@/app/components/SpotifyArtists';
 import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRouter } from 'next/navigation';
+import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
 
 interface ProfileData {
   age?: number;
@@ -20,11 +22,12 @@ interface ProfileData {
   dogFriendly?: boolean;
   transportation?: number;
   spotifyConnected?: boolean;
-  topArtists: {
-    id: number;
+  topArtists?: {
+    spotifyId: string;
     name: string;
     imageUrl: string;
     genres: { name: string }[];
+    hidden: boolean;
   }[];
   imageUrl?: string;
 }
@@ -164,27 +167,51 @@ const ProfileSkeleton = () => {
 };
 
 export default function ProfilePage() {
-  const [profileData, setProfileData] = useState<ProfileData | null>(null);
+  const [profileData, setProfileData] = useState<ProfileData | null>({
+    topArtists: [],
+    // ... other default values as needed
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ProfileData | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
+  const router = useRouter();
 
   const loadProfileData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Fetch profile data including artists
       const response = await fetch(`/api/profile/${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
       
-      const data = await response.json();
-      setProfileData(data);
-      setAvatarUrl(data.avatarUrl);
+      const profileData = await response.json();
+      console.log('[Profile] Initial profile data:', profileData);
+
+      // Fetch artists separately
+      const artistsResponse = await fetch('/api/profile/artists');
+      if (artistsResponse.ok) {
+        const artists = await artistsResponse.json();
+        console.log('[Profile] Artists from /api/profile/artists:', artists);
+        
+        profileData.topArtists = artists.map((artist: any) => ({
+          spotifyId: artist.spotifyId,
+          name: artist.name,
+          imageUrl: artist.imageUrl,
+          genres: artist.genres,
+          hidden: artist.hidden
+        }));
+        
+        console.log('[Profile] Final profile data with artists:', profileData);
+      }
+
+      setProfileData(profileData);
+      setAvatarUrl(profileData.avatarUrl);
     } catch (error) {
-      console.error('Error loading profile data:', error);
+      console.error('[Profile] Error loading profile data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -230,17 +257,12 @@ export default function ProfilePage() {
   };
 
   const handleSpotifyConnect = async () => {
-    // Redirect to Spotify auth
-    window.location.href = '/api/auth/spotify';
-  };
-
-  const handleSpotifyUpdate = async () => {
     try {
       const response = await fetch('/api/connectToSpotify?from=profile');
       const data = await response.json();
       window.location.href = data.url;
     } catch (error) {
-      console.error('Error updating Spotify connection:', error);
+      console.error('Error connecting to Spotify:', error);
     }
   };
 
@@ -529,15 +551,26 @@ export default function ProfilePage() {
               </div>
 
               {/* Spotify section */}
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Spotify Integration</h2>
-                  {/* Spotify connect component */}
-                </div>
-                {profileData?.spotifyConnected && (
-                  <ArtistsList artists={profileData.topArtists || []} />
-                )}
-              </div>
+              <SpotifyArtistsDisplay
+                artists={profileData?.topArtists}
+                isConnected={profileData?.spotifyConnected || false}
+                onConnect={handleSpotifyConnect}
+                onRefresh={handleSpotifyConnect}
+                onDisconnect={handleSpotifyDisconnect}
+                isEditable={isEditing}
+                onArtistsChange={(artists) => {
+                  console.log('Artists changed:', artists);
+                  setProfileData(prev => ({
+                    ...prev!,
+                    topArtists: artists.map(artist => ({
+                      ...artist,
+                      genres: artist.genres.map(genre => 
+                        typeof genre === 'string' ? { name: genre } : genre
+                      )
+                    }))
+                  }));
+                }}
+              />
             </div>
           ) : (
             <p>No profile data found.</p>
