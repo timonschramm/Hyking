@@ -10,6 +10,36 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const CardSkeleton = () => {
+  return (
+    <div className="absolute flex flex-col items-center justify-center">
+      <div className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px] dark:bg-primary dark:text-primary-white">
+        <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
+          <Skeleton className="absolute inset-0 bg-gray-200" />
+          
+          <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
+            <Skeleton className="h-7 w-3/4 bg-gray-200/80 mb-2" />
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-4 w-24 bg-gray-200/80" />
+              <div className="text-gray-200/80">•</div>
+              <Skeleton className="h-4 w-16 bg-gray-200/80" />
+              <div className="text-gray-200/80">•</div>
+              <Skeleton className="h-4 w-20 bg-gray-200/80" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="pt-6 z-40 flex gap-8">
+        <Skeleton className="h-12 w-12 rounded-full bg-gray-200" />
+        <Skeleton className="h-12 w-12 rounded-full bg-gray-200" />
+      </div>
+    </div>
+  );
+};
+
 const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
@@ -217,4 +247,4 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   );
 };
 
-export default Card;
+export { Card, CardSkeleton };

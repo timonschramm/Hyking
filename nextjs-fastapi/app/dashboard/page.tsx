@@ -4,15 +4,55 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Activity } from '@prisma/client';
 import { createClient } from '@/utils/supabase/client';
+import { Skeleton } from "@/components/ui/skeleton";
+
+const DashboardSkeleton = () => {
+  return (
+    <div className="p-8 max-w-4xl mx-auto bg-background-white">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {[1, 2, 3, 4].map((index) => (
+          <div key={index} className="bg-background-white rounded-lg shadow-md overflow-hidden border-secondary-gray">
+            {/* Image skeleton */}
+            <div className="h-48">
+              <Skeleton className="w-full h-full bg-gray-200" />
+            </div>
+            
+            {/* Content skeleton */}
+            <div className="p-6 space-y-4">
+              {/* Title */}
+              <Skeleton className="h-7 w-3/4 bg-gray-200" />
+              
+              {/* Stats */}
+              <div className="flex gap-4">
+                <Skeleton className="h-5 w-24 bg-gray-200" />
+                <Skeleton className="h-5 w-32 bg-gray-200" />
+              </div>
+              
+              {/* Elevation */}
+              <Skeleton className="h-5 w-40 bg-gray-200" />
+              
+              {/* Description */}
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full bg-gray-200" />
+                <Skeleton className="h-4 w-5/6 bg-gray-200" />
+                <Skeleton className="h-4 w-4/6 bg-gray-200" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [hikes, setHikes] = useState<Activity[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    // Check authentication status using Supabase
     const checkUser = async () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       
@@ -24,7 +64,6 @@ export default function DashboardPage() {
       setUser({ email: user.email || '' });
     };
 
-    // Fetch hikes
     const fetchHikes = async () => {
       try {
         const response = await fetch('/api/hikes');
@@ -32,13 +71,14 @@ export default function DashboardPage() {
         setHikes(data);
       } catch (error) {
         console.error('Failed to fetch hikes:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     checkUser();
     fetchHikes();
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         router.push('/login');
@@ -55,8 +95,8 @@ export default function DashboardPage() {
     router.push('/login');
   };
 
-  if (!user) {
-    return <div>Loading...</div>;
+  if (!user || isLoading) {
+    return <DashboardSkeleton />;
   }
 
   return (
@@ -73,6 +113,7 @@ export default function DashboardPage() {
         </button>
       </div> */}
   
+
 
       {/* Hiking Trails Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

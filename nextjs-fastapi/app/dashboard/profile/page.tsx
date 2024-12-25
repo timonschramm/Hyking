@@ -7,6 +7,7 @@ import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 // import SpotifyConnect from '@/app/components/SpotifyConnect';
 import ArtistsList from '@/app/components/ArtistsList';
 import { v4 as uuidv4 } from 'uuid';
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProfileData {
   age?: number;
@@ -54,6 +55,112 @@ const transportationMap = {
   0: 'Car',
   1: 'Public Transport',
   2: 'Both'
+};
+
+const ProfileSkeleton = () => {
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-lg shadow">
+        {/* Profile Header */}
+        <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-lg">
+          <div className="absolute -bottom-16 left-6">
+            <Skeleton className="w-32 h-32 rounded-full bg-gray-200" />
+          </div>
+          {/* Real edit button instead of skeleton */}
+          <div className="absolute top-4 right-4">
+            <button
+              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full"
+              disabled
+            >
+              <PencilIcon className="w-4 h-4" />
+              Edit Profile
+            </button>
+          </div>
+        </div>
+
+        {/* Profile Content */}
+        <div className="pt-20 px-6 pb-6">
+          <div className="grid grid-cols-1 gap-6">
+            {/* Age Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Age</label>
+              <Skeleton className="h-10 w-full max-w-[200px] bg-gray-200" />
+            </div>
+
+            {/* Gender Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Gender</label>
+              <Skeleton className="h-10 w-full max-w-[200px] bg-gray-200" />
+            </div>
+
+            {/* Location Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Location</label>
+              <Skeleton className="h-10 w-full max-w-[300px] bg-gray-200" />
+            </div>
+
+            {/* Experience Level Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Experience Level</label>
+              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
+            </div>
+
+            {/* Preferred Pace Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Preferred Pace</label>
+              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
+            </div>
+
+            {/* Preferred Distance Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Preferred Distance</label>
+              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
+            </div>
+
+            {/* Hobbies Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Hobbies</label>
+              <Skeleton className="h-10 w-full bg-gray-200" />
+            </div>
+
+            {/* Dog Friendly Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Dog Friendly</label>
+              <div className="flex items-center">
+                <Skeleton className="h-6 w-6 rounded-md bg-gray-200 mr-2" />
+                <Skeleton className="h-4 w-32 bg-gray-200" />
+              </div>
+            </div>
+
+            {/* Transportation Field - Static Label with Skeleton Value */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Transportation</label>
+              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
+            </div>
+
+            {/* Spotify Section - Static Title with Skeleton Content */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Spotify Integration</h2>
+                <Skeleton className="h-10 w-32 bg-gray-200 rounded-full" />
+              </div>
+              
+              {/* Artists Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="aspect-square w-full rounded-lg bg-gray-200" />
+                    <Skeleton className="h-4 w-3/4 bg-gray-200" />
+                    <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default function ProfilePage() {
@@ -175,7 +282,7 @@ export default function ProfilePage() {
     };
   }, [profileData?.imageUrl]);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <ProfileSkeleton />;
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -236,7 +343,7 @@ export default function ProfilePage() {
         {/* Profile Content */}
         <div className="pt-20 px-6 pb-6">
           {profileData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
               {/* Age Field */}
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Age</label>
@@ -421,22 +528,15 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              <div className="col-span-2">
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">Spotify Integration</h2>
-                    {/* <SpotifyConnect
-                      isConnected={profileData?.spotifyConnected || false}
-                      hasArtists={profileData?.topArtists?.length > 0}
-                      onConnect={handleSpotifyConnect}
-                      onUpdate={handleSpotifyUpdate}
-                      onDisconnect={handleSpotifyDisconnect}
-                    /> */}
-                  </div>
-                  {profileData?.spotifyConnected && (
-                    <ArtistsList artists={profileData.topArtists || []} />
-                  )}
+              {/* Spotify section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">Spotify Integration</h2>
+                  {/* Spotify connect component */}
                 </div>
+                {profileData?.spotifyConnected && (
+                  <ArtistsList artists={profileData.topArtists || []} />
+                )}
               </div>
             </div>
           ) : (
