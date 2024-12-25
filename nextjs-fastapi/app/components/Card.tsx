@@ -44,7 +44,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   const rightIndicatorX = useTransform(
     x,
     [0, 50, 100, 150, 200],
-    [-20, -40, 0, 50, 100],
+    [20, 40, 0, -50, -100],
     { ease: easeIn }
   );
 
@@ -148,35 +148,47 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               </motion.div>
             </DialogTrigger>
 
-            <DialogContent className="max-w-2xl">
-              <div className="space-y-4">
-                <h2 className="text-2xl font-semibold">{data.title}</h2>
-                
-                <p className="text-primary-medium dark:text-primary-white">
-                  {data.teaserText}
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full bg-secondary-sage dark:bg-primary-white px-3 py-1 text-xs text-primary dark:text-primary">
-                    Difficulty: {data.difficulty}
-                  </span>
-                  <span className="rounded-full bg-secondary-sage dark:bg-primary-white px-3 py-1 text-xs text-primary dark:text-primary">
-                    ↑ {data.ascent}m
-                  </span>
-                  <span className="rounded-full bg-secondary-sage dark:bg-primary-white px-3 py-1 text-xs text-primary dark:text-primary">
-                    ↓ {data.descent}m
-                  </span>
+            <DialogContent className="fixed p-0 border-none !rounded-2xl overflow-hidden md:left-[calc(50%+120px)] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[95vw] md:max-w-[400px]">
+              <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
+                <div className="relative h-[40vh] md:h-[50vh]">
+                  <Image
+                    src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
+                    fill
+                    alt={data.title}
+                    className="object-cover rounded-t-2xl"
+                    priority
+                  />
                 </div>
 
-                <div className="space-y-3">
-                  <h3 className="text-lg font-medium">Details</h3>
-                  <div className="space-y-2 text-sm">
-                    <p>Duration: {Math.round(data.durationMin / 60)} hours</p>
-                    <p>Max Altitude: {data.maxAltitude}m</p>
-                    <p>Region: {data.primaryRegion}</p>
-                    {data.publicTransportFriendly && (
-                      <p className="text-teal-700">Public Transport Friendly</p>
-                    )}
+                <div className="space-y-4 p-6 bg-background-white dark:bg-primary rounded-b-2xl">
+                  <h2 className="text-2xl font-semibold">{data.title}</h2>
+                  
+                  <p className="text-primary-medium dark:text-primary-white">
+                    {data.teaserText}
+                  </p>
+
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                      Difficulty: {data.difficulty}
+                    </span>
+                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                      ↑ {data.ascent}m
+                    </span>
+                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                      ↓ {data.descent}m
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-medium">Details</h3>
+                    <div className="space-y-2 text-sm">
+                      <p>Duration: {Math.round(data.durationMin / 60)} hours</p>
+                      <p>Max Altitude: {data.maxAltitude}m</p>
+                      <p>Region: {data.primaryRegion}</p>
+                      {data.publicTransportFriendly && (
+                        <p className="text-teal-700 dark:text-teal-400">Public Transport Friendly</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
