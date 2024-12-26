@@ -87,6 +87,7 @@ export default function DashboardLayout({
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    router.push('/');
   };
 
   // Update the dropdown menu content to use truncated email

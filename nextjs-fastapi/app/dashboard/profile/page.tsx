@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 
 interface ProfileData {
   age?: number;
@@ -30,6 +31,7 @@ interface ProfileData {
     hidden: boolean;
   }[];
   imageUrl?: string;
+  email?: string;
 }
 
 // Helper functions to convert database values to display values
@@ -174,7 +176,6 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ProfileData | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
   const router = useRouter();
@@ -209,7 +210,6 @@ export default function ProfilePage() {
       }
 
       setProfileData(profileData);
-      setAvatarUrl(profileData.avatarUrl);
     } catch (error) {
       console.error('[Profile] Error loading profile data:', error);
     } finally {
@@ -312,15 +312,18 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-lg">
           <div className="absolute -bottom-16 left-6">
-            <div className="relative w-32 h-32 rounded-full border-4 border-white overflow-hidden">
-              <Image
-                src={profileData?.imageUrl || '/dummy-profile.jpg'}
-                alt="Profile"
-                fill
-                className="object-cover"
-              />
+            <div className="relative w-32 h-32">
+              <Avatar className="w-32 h-32 border-4 border-white">
+                <AvatarImage 
+                  src={profileData?.imageUrl || ''} 
+                  alt="Profile picture" 
+                />
+                <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  {profileData?.email?.[0]?.toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
               {isEditing && (
-                <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer">
+                <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full">
                   <input
                     type="file"
                     accept="image/*"

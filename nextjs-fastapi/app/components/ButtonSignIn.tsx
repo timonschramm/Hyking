@@ -58,6 +58,11 @@ const ButtonSignin = ({ text = "Get started", extraStyle }: ButtonSigninProps) =
     }
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
+
   if (isAuthenticated && user) {
     return (
       <Link
