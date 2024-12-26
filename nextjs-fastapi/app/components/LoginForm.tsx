@@ -27,15 +27,28 @@ export default function LoginForm() {
   };
 
   const handleOAuthLogin = async (provider: 'google' | 'apple') => {
-    setLoading(true);
-    setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-    const formData = new FormData();
-    formData.append('provider', provider);
-    const { error: loginError } = await login(formData);
+      const formData = new FormData();
+      formData.append('provider', provider);
+      
+      console.log('Starting OAuth login for:', provider);
+      const result = await login(formData);
+      console.log('OAuth login result:', result);
 
-    if (loginError) {
-      setError(loginError);
+      if (result.error) {
+        console.error('OAuth login error:', result.error);
+        setError(result.error);
+        setLoading(false);
+      } else if (result.url) {
+        // Redirect in the client
+        window.location.href = result.url;
+      }
+    } catch (err) {
+      console.error('Caught OAuth error:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
       setLoading(false);
     }
   };

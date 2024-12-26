@@ -11,23 +11,32 @@ export async function login(formData: FormData) {
   const provider = formData.get('provider') as 'google' | 'apple' | null
   
   if (provider) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: provider,
-      options: {
-        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
-      },
-    })
+    console.log('Starting OAuth sign in with provider:', provider);
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider,
+        options: {
+          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        },
+      })
 
-    if (error) {
-      return { error: error.message }
-    }
+      console.log('OAuth response:', { data, error });
 
-    // Redirect to OAuth provider's login page
-    if (data?.url) {
-      redirect(data.url)
+      if (error) {
+        console.error('Supabase OAuth error:', error);
+        return { error: error.message }
+      }
+
+      // Instead of using Next.js redirect, return the URL
+      if (data?.url) {
+        return { url: data.url }
+      }
+      
+      return { error: 'Failed to get OAuth URL' }
+    } catch (err) {
+      console.error('Caught error in OAuth flow:', err);
+      return { error: err instanceof Error ? err.message : 'An unexpected error occurred' }
     }
-    
-    return { error: 'Failed to get OAuth URL' }
   }
 
   // Handle regular email/password login
