@@ -179,6 +179,8 @@ export default function ProfilePage() {
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
   const router = useRouter();
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const loadProfileData = useCallback(async () => {
     try {
@@ -303,6 +305,32 @@ export default function ProfilePage() {
       }
     };
   }, [profileData?.imageUrl]);
+
+  const handleDeleteAccount = async () => {
+    if (!window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      setDeleteError(null);
+
+      const supabase = createClient();
+      
+      // Delete user on the client side
+      const { error } = await supabase.rpc('delete_user');
+      if (error) throw error;
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      router.push('/');
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('Error deleting account:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   if (isLoading) return <ProfileSkeleton />;
 
@@ -578,6 +606,26 @@ export default function ProfilePage() {
           )}
         </div>
       </div>
+
+      {/* <div className="mt-8 border-t pt-6">
+        <h2 className="text-xl font-semibold text-red-600 mb-4">Danger Zone</h2>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-lg font-medium text-red-800 mb-2">Delete Account</h3>
+          <p className="text-red-600 mb-4">
+            Once you delete your account, there is no going back. Please be certain.
+          </p>
+          <button
+            onClick={handleDeleteAccount}
+            disabled={isDeleting}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
+          >
+            {isDeleting ? 'Deleting...' : 'Delete Account'}
+          </button>
+          {deleteError && (
+            <p className="mt-2 text-red-600">{deleteError}</p>
+          )}
+        </div>
+      </div> */}
     </div>
   );
 }

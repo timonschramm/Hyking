@@ -15,7 +15,6 @@ export default function OnboardingPage() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) {
-          // If no user is found, redirect to login
           router.push('/login');
           return;
         }
@@ -24,6 +23,13 @@ export default function OnboardingPage() {
         if (!response.ok) throw new Error("Failed to fetch profile data");
         
         const data = await response.json();
+        
+        // If onboarding is already completed, redirect to dashboard
+        if (data.onboardingCompleted) {
+          router.push('/dashboard');
+          return;
+        }
+
         setInitialData(data);
       } catch (error) {
         console.error("Error loading profile data:", error);
@@ -33,7 +39,6 @@ export default function OnboardingPage() {
     loadProfileData();
   }, [supabase.auth, router]);
 
-  // Show nothing while checking authentication
   if (!initialData) return null;
 
   return <OnboardingFlow initialData={initialData} />;

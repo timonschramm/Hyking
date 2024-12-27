@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
       hobbies: userData['Hobbies'] || [], // Ensure hobbies is always an array
       dogFriendly: userData['Dog Friendly'] || undefined,
       transportation: userData['Transportation'] ? convertTransportation(userData['Transportation']) : undefined,
-      spotifyConnected: userData.spotifyConnected || false
+      spotifyConnected: userData.spotifyConnected || false,
+      onboardingCompleted: userData.onboardingCompleted || false,
     };
 
     // Remove undefined values for the update operation

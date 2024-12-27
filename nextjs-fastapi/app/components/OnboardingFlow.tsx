@@ -86,9 +86,28 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     localStorage.setItem('onboardingStep', currentStep.toString());
   }, [currentStep]);
 
-  const completeOnboarding = () => {
-    localStorage.removeItem('onboardingStep');
-    router.push('/dashboard');
+  const completeOnboarding = async () => {
+    try {
+      // Update profile with onboardingCompleted
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...userData,
+          onboardingCompleted: true
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update profile');
+      }
+
+      localStorage.removeItem('onboardingStep');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      toast.error('Failed to complete onboarding');
+    }
   };
 
   // Add handleSpotifyConnect function
@@ -248,7 +267,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        completeOnboarding();
+        await completeOnboarding();
       }
     } catch (error) {
       console.error('Error saving progress:', error);
