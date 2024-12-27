@@ -22,7 +22,7 @@ function CallbackContent() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Spotify API error:', errorText);
+        console.error('Spotify API error 2:', errorText);
         throw new Error('Failed to fetch artists from Spotify');
       }
 

@@ -25,7 +25,17 @@ interface SpotifyData {
   spotifyConnected?: boolean;
 }
 
-interface FormData extends SpotifyData {
+interface Artist {
+  spotifyId: string;
+  name: string;
+  imageUrl: string;
+  genres: string[];
+  hidden: boolean;
+}
+
+interface FormData {
+  artists: Artist[];
+  spotifyConnected?: boolean;
   'Age'?: string;
   'Gender'?: string;
   'Location'?: string;
@@ -79,7 +89,19 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
     return 0;
   });
-  const [userData, setUserData] = useState<FormData>({});
+  const [userData, setUserData] = useState<FormData>({
+    artists: [],
+    spotifyConnected: false,
+    'Age': '',
+    'Gender': '',
+    'Location': '',
+    'Experience Level': '',
+    'Preferred Pace': '',
+    'Preferred Distance': '',
+    'Hobbies': [],
+    'Dog Friendly': false,
+    'Transportation': ''
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -162,6 +184,49 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     };
 
     loadProfile();
+  }, []);
+
+  useEffect(() => {
+    const checkAndFetchArtists = async () => {
+      try {
+        // Get the current profile
+        const profileResponse = await fetch('/api/profile/me');
+        const profile = await profileResponse.json();
+        
+        if (profile.spotifyConnected && profile.spotifyAccessToken) {
+          // Fetch artists from Spotify
+          const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
+            headers: {
+              'Authorization': `Bearer ${profile.spotifyAccessToken}`
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch artists from Spotify');
+          }
+
+          const data = await response.json();
+
+          // Transform artists to the correct format
+          const formattedArtists = data.items.map((artist: any) => ({
+            spotifyId: artist.id,
+            name: artist.name,
+            imageUrl: artist.images[0]?.url,
+            genres: artist.genres,
+            hidden: false
+          }));
+
+          setUserData(prev => ({
+            ...prev,
+            artists: formattedArtists
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching artists:', error);
+      }
+    };
+
+    checkAndFetchArtists();
   }, []);
 
   const steps = [
@@ -308,18 +373,14 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                 <SpotifyArtistsDisplaySkeleton />
               ) : (
                 <SpotifyArtistsDisplay
-                  artists={userData.artists}
-                  isConnected={userData.spotifyConnected || false}
-                  isEditable={true}
+                  artists={userData?.artists || []}
+                  isConnected={userData?.spotifyConnected || false}
+                  isEditable={false}
                   onArtistsChange={(artists) => {
+                    console.log('Artists changed in onboarding:', artists);
                     setUserData(prev => ({
-                      ...prev,
-                      artists: artists.map(artist => ({
-                        ...artist,
-                        genres: artist.genres.map(genre => 
-                          typeof genre === 'string' ? { name: genre } : genre
-                        )
-                      }))
+                      ...prev!,
+                      artists
                     }));
                   }}
                 />

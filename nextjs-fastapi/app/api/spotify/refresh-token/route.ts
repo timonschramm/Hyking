@@ -1,22 +1,28 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
   try {
-    const supabase = createClient();
-    const { data: { user } } = await (await supabase).auth.getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
-    const refreshToken = user.user_metadata.spotify_refresh_token;
+    // Get refresh token from database
+    const profile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      select: { spotifyRefreshToken: true }
+    });
 
-    if (!refreshToken) {
+    if (!profile?.spotifyRefreshToken) {
       return NextResponse.json({ error: 'No refresh token found' }, { status: 400 });
     }
+
+    const clientId = process.env.SPOTIFY_CLIENT_ID;
+    const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
       },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
-        refresh_token: refreshToken
+        refresh_token: profile.spotifyRefreshToken
       }).toString()
     });
 
@@ -35,6 +41,17 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
+
+    // Update tokens in database
+    await prisma.profile.update({
+      where: { id: user.id },
+      data: {
+        spotifyAccessToken: data.access_token,
+        spotifyTokenExpiry: new Date(Date.now() + data.expires_in * 1000),
+        ...(data.refresh_token && { spotifyRefreshToken: data.refresh_token })
+      }
+    });
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error refreshing token:', error);

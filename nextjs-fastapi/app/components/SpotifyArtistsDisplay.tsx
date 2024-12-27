@@ -3,17 +3,14 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import { EyeIcon, EyeSlashIcon, TrashIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon, TrashIcon, ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
+import { Artist as PrismaArtist, Genre } from '@prisma/client';
 
-interface Artist {
-  spotifyId: string;
-  name: string;
-  imageUrl: string;
-  genres: { name: string }[];
-  hidden: boolean;
-}
+type Artist = Omit<PrismaArtist, 'id' | 'createdAt' | 'updatedAt'> & {
+  genres: Genre[];
+};
 
 interface SpotifyArtistsDisplayProps {
   artists?: Artist[];
@@ -60,63 +57,89 @@ export default function SpotifyArtistsDisplay({
     setLocalArtists(artists);
   }, [artists]);
 
-  const refreshSpotifyToken = async () => {
+  useEffect(() => {
+    // If connected but no artists, fetch them automatically
+    if (isConnected && artists.length === 0 && !isRefreshing && !localArtists.length) {
+      refreshArtists();
+    }
+  }, [isConnected]);
+
+  const onConnect = async () => {
     try {
-      // First try to refresh the token
-      const response = await fetch('/api/spotify/refresh-token', {
-        method: 'POST',
+      const params = new URLSearchParams({
+        isProfile: isEditable ? '1' : '0'
       });
-
-      if (response.status === 400) {
-        // If no refresh token, initiate new connection
-        await onConnect();
-        return null;
+      
+      const response = await fetch(`/api/spotify/authorize?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to get authorization URL');
       }
-
-      if (!response.ok) throw new Error('Failed to refresh token');
       
       const data = await response.json();
-      return data.access_token;
+      
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error('No authorization URL received');
+      }
     } catch (error) {
-      console.error('Error refreshing token:', error);
-      toast.error('Failed to refresh Spotify connection');
-      throw error;
+      console.error('Error connecting to Spotify:', error);
+      toast.error('Failed to connect to Spotify');
     }
   };
 
   const fetchSpotifyArtists = async (token: string) => {
-    const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=10', {
-      headers: {
-        'Authorization': `Bearer ${token}`
+    try {
+      const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired, try to refresh
+          const refreshResponse = await fetch('/api/spotify/refresh-token', {
+            method: 'POST'
+          });
+
+          if (!refreshResponse.ok) {
+            if (refreshResponse.status === 400) {
+              // No refresh token, need to reconnect
+              await onConnect();
+              return null;
+            }
+            throw new Error('Failed to refresh token');
+          }
+
+          const { access_token } = await refreshResponse.json();
+          // Retry with new token
+          return fetchSpotifyArtists(access_token);
+        }
+        throw new Error('Failed to fetch artists');
       }
-    });
-    
-    if (!response.ok) {
-      if (response.status === 401) {
-        // Token expired during request, try to refresh and retry
-        const newToken = await refreshSpotifyToken();
-        if (!newToken) return null; // User needs to reconnect
-        
-        // Retry with new token
-        return fetchSpotifyArtists(newToken);
-      }
-      throw new Error('Failed to fetch artists');
+      
+      const data = await response.json();
+      
+      return data.items.map((artist: any) => ({
+        spotifyId: artist.id,
+        name: artist.name,
+        imageUrl: artist.images[0]?.url || '',
+        genres: artist.genres,
+        hidden: false
+      }));
+    } catch (error) {
+      console.error('Error fetching artists:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    return data.items.map((artist: any) => ({
-      spotifyId: artist.id,
-      name: artist.name,
-      imageUrl: artist.images[0]?.url || '',
-      genres: artist.genres.map((genre: string) => ({ name: genre })),
-      hidden: false
-    }));
   };
 
   const refreshArtists = async () => {
     setIsRefreshing(true);
+    console.log("refreshArtists called");
     try {
       const token = await refreshSpotifyToken();
+      console.log("token:", token);
       if (!token) {
         // User needs to reconnect, onConnect will handle the redirect
         return;
@@ -189,22 +212,27 @@ export default function SpotifyArtistsDisplay({
     }
   };
 
-  const onConnect = async () => {
+  const refreshSpotifyToken = async () => {
     try {
-      const response = await fetch(`/api/spotify/authorize?isProfile=${isEditable}`);
-      if (!response.ok) {
-        throw new Error('Failed to get authorization URL');
+      // First try to refresh the token
+      const response = await fetch('/api/spotify/refresh-token', {
+        method: 'POST',
+      });
+
+      if (response.status === 400) {
+        // If no refresh token, initiate new connection
+        await onConnect();
+        return null;
       }
+
+      if (!response.ok) throw new Error('Failed to refresh token');
       
       const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        throw new Error('No authorization URL received');
-      }
+      return data.access_token;
     } catch (error) {
-      console.error('Error connecting to Spotify:', error);
-      toast.error('Failed to connect to Spotify');
+      console.error('Error refreshing token:', error);
+      toast.error('Failed to refresh Spotify connection');
+      throw error;
     }
   };
 
@@ -215,7 +243,7 @@ export default function SpotifyArtistsDisplay({
           onClick={onConnect}
           className="bg-[#1DB954] hover:bg-[#1ed760] text-white"
         >
-          Connect to Spotify
+          Connect to Spotifyy
         </Button>
       </div>
     );
@@ -235,15 +263,6 @@ export default function SpotifyArtistsDisplay({
             <ArrowPathIcon className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Refresh Artists
           </Button>
-          {/* {onDisconnect && (
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={onDisconnect}
-            >
-              Disconnect
-            </Button>
-          )} */}
         </div>
       </div>
 
@@ -258,6 +277,7 @@ export default function SpotifyArtistsDisplay({
                 src={artist.imageUrl}
                 alt={artist.name}
                 fill
+                sizes="(max-width: 768px) 50vw, 33vw"
                 className="object-cover"
               />
               {isEditable && (
@@ -283,7 +303,7 @@ export default function SpotifyArtistsDisplay({
             </div>
             <h3 className="mt-2 font-semibold">{artist.name}</h3>
             <p className="text-sm text-gray-500">
-              {artist.genres.map(g => g.name).join(', ')}
+              {artist.genres.slice(0, 2).join(', ')}
             </p>
           </div>
         ))}

@@ -583,19 +583,20 @@ export default function ProfilePage() {
 
               {/* Spotify section */}
               <SpotifyArtistsDisplay
-                artists={profileData?.topArtists}
+                artists={profileData?.topArtists || []}
                 isConnected={profileData?.spotifyConnected || false}
                 onDisconnect={handleSpotifyDisconnect}
-                isEditable={isEditing}
+                isEditable={true}
                 onArtistsChange={(artists) => {
                   console.log('Artists changed:', artists);
                   setProfileData(prev => ({
                     ...prev!,
                     topArtists: artists.map(artist => ({
                       ...artist,
-                      genres: artist.genres.map(genre => 
-                        typeof genre === 'string' ? { name: genre } : genre
-                      )
+                      genres: artist.genres.map(genre => ({
+                        id: genre.id || '',
+                        name: genre.name
+                      }))
                     }))
                   }));
                 }}

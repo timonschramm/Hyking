@@ -3,17 +3,20 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const isProfile = searchParams.get('isProfile') === 'true';
+    const rawIsProfile = searchParams.get('isProfile');
+    console.log("Raw isProfile param:", rawIsProfile);
+    
+    const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
+    console.log("Parsed isProfile:", isProfile);
     
     const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const callbackUrl = isProfile 
+    const baseRedirectUri = process.env.SPOTIFY_REDIRECT_URI;
     
-      ? `${process.env.SPOTIFY_REDIRECT_URI}/onboarding`
-      : `${process.env.SPOTIFY_REDIRECT_URI}/profile`;
+    const path = isProfile ? '/profile' : '/onboarding';
+    const callbackUrl = `${baseRedirectUri}${path}`;
     
-    console.log('process.env.SPOTIFY_CALLBACK_URL', process.env.SPOTIFY_CALLBACK_URL);
+    console.log("Final callbackUrl:", callbackUrl);
 
-    console.log('callbackUrl', callbackUrl);
     if (!clientId) {
       console.error('Spotify client ID not configured');
       return NextResponse.json({ error: 'Configuration error' }, { status: 500 });

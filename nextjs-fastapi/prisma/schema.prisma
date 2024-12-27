@@ -74,7 +74,7 @@ model Image {
 }
 
 model Profile {
-    id                String   @id 
+    id                String   @id @default(cuid())
     email             String
     age               Int?
     imageUrl          String?
@@ -87,6 +87,9 @@ model Profile {
     dogFriendly       Boolean?
     transportation    Int?
     spotifyConnected  Boolean  @default(false)
+    spotifyAccessToken  String?
+    spotifyRefreshToken String?
+    spotifyTokenExpiry  DateTime?
     artists           Artist[] @relation("ProfileArtists")
     onboardingCompleted Boolean @default(false)
 }

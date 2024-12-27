@@ -21,7 +21,7 @@ function CallbackContent() {
         }
         console.log('Exchanging code for a token now...');
 
-        const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}`);
+        const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/onboarding`);
         console.log('Token exchange response status:', tokenResponse.status);
 
         if (!tokenResponse.ok) {
