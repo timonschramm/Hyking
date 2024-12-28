@@ -83,6 +83,7 @@ function CallbackContent() {
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}`);
         console.log('Token exchange response status:', tokenResponse.status);
 
+        console.log("Token exchange response status normal:", tokenResponse.status);
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }

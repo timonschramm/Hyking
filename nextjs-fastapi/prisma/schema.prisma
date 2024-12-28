@@ -90,24 +90,36 @@ model Profile {
     spotifyAccessToken  String?
     spotifyRefreshToken String?
     spotifyTokenExpiry  DateTime?
-    artists           Artist[] @relation("ProfileArtists")
     onboardingCompleted Boolean @default(false)
+    artists           UserArtist[]
 }
 
 model Artist {
-    id        Int      @id @default(autoincrement())
+    id        String   @id @default(cuid())
     spotifyId String   @unique
     name      String
-    imageUrl  String
-    genres    Genre[]  @relation("ArtistGenres")
-    hidden    Boolean  @default(false)
-    profiles  Profile[] @relation("ProfileArtists")
+    imageUrl  String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+    genres    Genre[] @relation("ArtistGenres")
+    profiles  UserArtist[]
 }
 
 model Genre {
     id      String   @id @default(uuid())
-    name    String
+    name    String   @unique
     artists Artist[] @relation("ArtistGenres")
+}
+
+model UserArtist {
+    id        String   @id @default(cuid())
+    profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+    profileId String
+    artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+    artistId  String
+    hidden    Boolean  @default(false)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([profileId, artistId])
 }

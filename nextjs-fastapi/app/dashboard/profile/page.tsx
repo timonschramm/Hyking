@@ -11,28 +11,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Prisma } from '@prisma/client';
 
-interface ProfileData {
-  age?: number;
-  gender?: string;
-  location?: string;
-  experienceLevel?: number;
-  preferredPace?: number;
-  preferredDistance?: number;
-  hobbies?: string[];
-  dogFriendly?: boolean;
-  transportation?: number;
-  spotifyConnected?: boolean;
-  topArtists?: {
-    spotifyId: string;
-    name: string;
-    imageUrl: string;
-    genres: { name: string }[];
-    hidden: boolean;
-  }[];
-  imageUrl?: string;
-  email?: string;
-}
+// Use Prisma's utility types for Artist with relations
+type ProfileWithArtists = Prisma.ProfileGetPayload<{
+    include: {
+      artists: {
+        include: {
+          artist: {
+            include: {
+              genres: true
+            }
+          }
+        }
+      }
+    }
+  }>;
+
+
 
 // Helper functions to convert database values to display values
 const experienceLevelMap = {
@@ -169,13 +165,10 @@ const ProfileSkeleton = () => {
 };
 
 export default function ProfilePage() {
-  const [profileData, setProfileData] = useState<ProfileData | null>({
-    topArtists: [],
-    // ... other default values as needed
-  });
+  const [profileData, setProfileData] = useState<ProfileWithArtists | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<ProfileData | null>(null);
+  const [editedData, setEditedData] = useState<ProfileWithArtists | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
   const router = useRouter();
@@ -187,30 +180,10 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch profile data including artists
       const response = await fetch(`/api/profile/${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
       
       const profileData = await response.json();
-      console.log('[Profile] Initial profile data:', profileData);
-
-      // Fetch artists separately
-      const artistsResponse = await fetch('/api/profile/artists');
-      if (artistsResponse.ok) {
-        const artists = await artistsResponse.json();
-        console.log('[Profile] Artists from /api/profile/artists:', artists);
-        
-        profileData.topArtists = artists.map((artist: any) => ({
-          spotifyId: artist.spotifyId,
-          name: artist.name,
-          imageUrl: artist.imageUrl,
-          genres: artist.genres,
-          hidden: artist.hidden
-        }));
-        
-        console.log('[Profile] Final profile data with artists:', profileData);
-      }
-
       setProfileData(profileData);
     } catch (error) {
       console.error('[Profile] Error loading profile data:', error);
@@ -451,7 +424,7 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Experience Level</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.experienceLevel}
+                    value={editedData?.experienceLevel?.toString() || ''}
                     onChange={(e) => setEditedData({ ...editedData!, experienceLevel: parseInt(e.target.value) })}
                     className="w-full p-2 border rounded-lg"
                   >
@@ -471,7 +444,7 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Preferred Pace</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.preferredPace}
+                    value={editedData?.preferredPace?.toString() || ''}
                     onChange={(e) => setEditedData({ ...editedData!, preferredPace: parseInt(e.target.value) })}
                     className="w-full p-2 border rounded-lg"
                   >
@@ -491,7 +464,7 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Preferred Distance</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.preferredDistance}
+                    value={editedData?.preferredDistance?.toString() || ''}
                     onChange={(e) => setEditedData({ ...editedData!, preferredDistance: parseInt(e.target.value) })}
                     className="w-full p-2 border rounded-lg"
                   >
@@ -548,7 +521,7 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Transportation</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.transportation}
+                    value={editedData?.transportation?.toString() || ''}
                     onChange={(e) => setEditedData({ ...editedData!, transportation: parseInt(e.target.value) })}
                     className="w-full p-2 border rounded-lg"
                   >
@@ -583,23 +556,11 @@ export default function ProfilePage() {
 
               {/* Spotify section */}
               <SpotifyArtistsDisplay
-                artists={profileData?.topArtists || []}
                 isConnected={profileData?.spotifyConnected || false}
                 onDisconnect={handleSpotifyDisconnect}
                 isEditable={true}
-                onArtistsChange={(artists) => {
-                  console.log('Artists changed:', artists);
-                  setProfileData(prev => ({
-                    ...prev!,
-                    topArtists: artists.map(artist => ({
-                      ...artist,
-                      genres: artist.genres.map(genre => ({
-                        id: genre.id || '',
-                        name: genre.name
-                      }))
-                    }))
-                  }));
-                }}
+                profile={profileData}
+                user={{ id: profileData?.id || '' }}
               />
             </div>
           ) : (

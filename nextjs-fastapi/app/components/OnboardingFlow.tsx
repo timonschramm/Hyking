@@ -8,6 +8,15 @@ import { UserProfileData } from '@/types/UserData';
 import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
 import { SpotifyArtistsDisplaySkeleton } from './SpotifyArtistsDisplay';
+import { Prisma } from '@prisma/client';
+
+// Use Prisma's utility types for Artist with relations
+type ArtistWithRelations = Prisma.ArtistGetPayload<{
+  include: {
+    genres: true;
+    profiles: true;
+  }
+}>;
 
 interface OnboardingFlowProps {
   initialData?: any;
@@ -25,26 +34,18 @@ interface SpotifyData {
   spotifyConnected?: boolean;
 }
 
-interface Artist {
-  spotifyId: string;
-  name: string;
-  imageUrl: string;
-  genres: string[];
-  hidden: boolean;
-}
-
 interface FormData {
-  artists: Artist[];
+  artists: ArtistWithRelations[];
   spotifyConnected?: boolean;
-  'Age'?: string;
-  'Gender'?: string;
-  'Location'?: string;
+  Age?: string;
+  Gender?: string;
+  Location?: string;
   'Experience Level'?: string;
   'Preferred Pace'?: string;
   'Preferred Distance'?: string;
-  'Hobbies'?: string[];
+  Hobbies?: string[];
   'Dog Friendly'?: boolean;
-  'Transportation'?: string;
+  Transportation?: string;
 }
 
 // Add this new component for the loading state
@@ -103,7 +104,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     'Transportation': ''
   });
   const [isLoading, setIsLoading] = useState(true);
-
+  console.log("userData:", userData);
   useEffect(() => {
     localStorage.setItem('onboardingStep', currentStep.toString());
   }, [currentStep]);
@@ -172,6 +173,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
             'Dog Friendly': profile.dogFriendly,
             'Transportation': profile.transportation !== undefined ? convertTransportationBack(profile.transportation) : undefined,
           });
+          console.log("userDataLoaded:", userData);
         } else if (response.status === 404) {
           console.log('No existing profile found, starting fresh');
         }
@@ -188,11 +190,12 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
   useEffect(() => {
     const checkAndFetchArtists = async () => {
+      console.log("Checking and fetching artists");
       try {
         // Get the current profile
         const profileResponse = await fetch('/api/profile/me');
         const profile = await profileResponse.json();
-        
+        // if request files get now token with refreshtoken TODO!
         if (profile.spotifyConnected && profile.spotifyAccessToken) {
           // Fetch artists from Spotify
           const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
@@ -200,6 +203,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
               'Authorization': `Bearer ${profile.spotifyAccessToken}`
             }
           });
+          console.log("Response:", response);
 
           if (!response.ok) {
             throw new Error('Failed to fetch artists from Spotify');
@@ -214,7 +218,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
             imageUrl: artist.images[0]?.url,
             genres: artist.genres,
             hidden: false
-          }));
+          }));  
 
           setUserData(prev => ({
             ...prev,
@@ -315,6 +319,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const handleSelect = async (stepData: any) => {
     const newUserData = { ...userData, ...stepData };
     setUserData(newUserData);
+    console.log("newUserData isConnected:", newUserData.spotifyConnected);
 
     try {
       if (currentStep > 0) {
@@ -354,6 +359,8 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     };
   }, []);
 
+  console.log("initialData:", initialData);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -365,7 +372,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
           {currentStep === 0 ? (
             <div>
-              <h2 className="text-2xl font-bold mb-4">Connect to Spotify</h2>
+              <h2 className="text-2xl font-bold mb-4">Connectttt to Spotify</h2>
               <p className="text-gray-600 mb-6">
                 Link your Spotify account to personalize your experience with your favorite artists
               </p>
@@ -373,16 +380,11 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                 <SpotifyArtistsDisplaySkeleton />
               ) : (
                 <SpotifyArtistsDisplay
-                  artists={userData?.artists || []}
-                  isConnected={userData?.spotifyConnected || false}
+                  isConnected={initialData?.spotifyConnected || false}
                   isEditable={false}
-                  onArtistsChange={(artists) => {
-                    console.log('Artists changed in onboarding:', artists);
-                    setUserData(prev => ({
-                      ...prev!,
-                      artists
-                    }));
-                  }}
+                  profile={initialData}
+                  user={initialData?.id || { id: '' }}
+                
                 />
               )}
               <div className="mt-6 flex justify-end">

@@ -20,7 +20,11 @@ export async function GET(
       include: {
         artists: {
           include: {
-            genres: true
+            artist: {
+              include: {
+                genres: true
+              }
+            }
           }
         }
       }
@@ -30,13 +34,25 @@ export async function GET(
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
+    // Transform the data to match the expected format
+    const transformedProfile = {
+      ...profile,
+      topArtists: profile.artists.map(userArtist => ({
+        ...userArtist.artist,
+        hidden: userArtist.hidden,
+        profiles: [{
+          profileId: params.userId,
+          hidden: userArtist.hidden
+        }]
+      }))
+    };
+
+    console.log('Raw profile data:', profile);
+    console.log('Transformed profile data:', transformedProfile);
     return NextResponse.json(profile);
   } catch (error) {
     console.error('Error fetching profile:', error);
     return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
@@ -52,14 +68,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get form data instead of JSON
     const formData = await request.formData();
     const imageFile = formData.get('image') as File | null;
     const profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
 
     let cleanedData = Object.fromEntries(
       Object.entries(profileData)
-        .filter(([key, value]) => value !== undefined && key !== 'topArtists')
+        .filter(([key, value]) => value !== undefined && key !== 'topArtists' && key !== 'artists')
     );
 
     // Handle image upload if present
@@ -110,81 +125,35 @@ export async function PUT(
       };
     }
 
-    // Handle topArtists if present
-    if ('topArtists' in profileData) {
-      // Handle hiding/showing artists
-      const artistUpdates = profileData.topArtists.map((artist: any) => ({
-        where: { spotifyId: artist.spotifyId },
-        create: {
-          spotifyId: artist.spotifyId,
-          name: artist.name,
-          imageUrl: artist.imageUrl,
-          hidden: artist.hidden || false,
-          genres: {
-            create: artist.genres.map((genre: string) => ({
-              name: genre
-            }))
-          }
-        },
-        update: {
-          hidden: artist.hidden
-        }
-      }));
-
-      await Promise.all(
-        artistUpdates.map((update: any) =>
-          prisma.artist.upsert(update)
-        )
-      );
-    }
-
-    // Handle artists if present
-    if ('artists' in profileData) {
-      const artistUpdates = profileData.artists.map((artist: any) => ({
-        where: { 
-          artistId_profileId: {
-            artistId: artist.artistId,
-            profileId: params.userId
-          }
-        },
-        create: {
-          artistId: artist.artistId,
-          name: artist.name,
-          imageUrl: artist.imageUrl,
-          hidden: artist.hidden || false,
-          genres: {
-            connectOrCreate: artist.genres.map((genre: string) => ({
-              where: { name: genre },
-              create: { name: genre }
-            }))
-          }
-        },
-        update: {
-          hidden: artist.hidden
-        }
-      }));
-
-      await Promise.all(
-        artistUpdates.map((update: any) =>
-          prisma.artist.upsert(update)
-        )
-      );
-    }
-
-    // Update profile
+    // Update profile with basic data first
     const updatedProfile = await prisma.profile.update({
       where: { id: params.userId },
       data: cleanedData,
       include: {
-        artists: true
+        artists: {
+          include: {
+            artist: {
+              include: {
+                genres: true
+              }
+            }
+          }
+        }
       }
     });
 
-    return NextResponse.json(updatedProfile);
+    // Transform the response to match expected format
+    const transformedProfile = {
+      ...updatedProfile,
+      topArtists: updatedProfile.artists.map(userArtist => ({
+        ...userArtist.artist,
+        hidden: userArtist.hidden
+      }))
+    };
+
+    return NextResponse.json(transformedProfile);
   } catch (error) {
     console.error('Error updating profile:', error);
     return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 } 

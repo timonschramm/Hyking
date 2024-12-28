@@ -19,11 +19,11 @@ function CallbackContent() {
         if (!code) {
           throw new Error('No code parameter in callback URL');
         }
-        console.log('Exchanging code for a token now...');
-
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/onboarding`);
         console.log('Token exchange response status:', tokenResponse.status);
 
+        console.log("Token exchange response status onbo:", tokenResponse);
+        console.log("Token exchange response status onbo:", tokenResponse.body);
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }
@@ -34,15 +34,6 @@ function CallbackContent() {
         if (!data.access_token) {
           throw new Error('No access token received');
         }
-
-        // Update profile as Spotify connected
-        await fetch('/api/profile/update', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ spotifyConnected: true }),
-        });
 
         // Redirect back to onboarding
         router.push('/onboarding');

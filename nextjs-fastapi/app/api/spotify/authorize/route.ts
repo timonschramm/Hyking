@@ -22,9 +22,17 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
     }
 
-    const spotifyAuthUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=user-top-read`;
+    const authParams = [
+      `client_id=${clientId}`,
+      'response_type=code',
+      `redirect_uri=${encodeURIComponent(callbackUrl)}`,
+      'scope=user-top-read'
+    ];
 
-    return NextResponse.json({ url: spotifyAuthUrl });
+    const spotifyAuthUrl = `https://accounts.spotify.com/authorize?${authParams.join('&')}`;
+    const response = NextResponse.json({ url: spotifyAuthUrl });
+    console.log("Response:", response);
+    return response;
   } catch (error) {
     console.error('Error generating auth URL:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

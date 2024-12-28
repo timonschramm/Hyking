@@ -6,18 +6,41 @@ import { Button } from "@/components/ui/button";
 import { EyeIcon, EyeSlashIcon, TrashIcon, ArrowPathIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
-import { Artist as PrismaArtist, Genre } from '@prisma/client';
+import { Artist as PrismaArtist, Genre, UserArtist, Prisma } from '@prisma/client';
 
-type Artist = Omit<PrismaArtist, 'id' | 'createdAt' | 'updatedAt'> & {
-  genres: Genre[];
-};
+// Define type for Artist with relations using Prisma's utility types
+type ArtistWithRelations = Prisma.ArtistGetPayload<{
+  include: {
+    genres: true;
+    profiles: {
+      include: {
+        profile: true;
+      }
+    }
+  }
+}>;
 
+type ProfileWithArtists = Prisma.ProfileGetPayload<{
+    include: {
+        artists: {
+          include: {
+            artist: {
+              include: {
+                genres: true
+              }
+            }
+          }
+        }
+      }
+}>;
+
+// Simplified props interface
 interface SpotifyArtistsDisplayProps {
-  artists?: Artist[];
-  isConnected: boolean;
-  onDisconnect?: () => void;
-  isEditable?: boolean;
-  onArtistsChange?: (artists: Artist[]) => void;
+    isConnected: boolean;
+    onDisconnect?: () => void;
+    isEditable?: boolean;
+    user: { id: string };
+    profile: ProfileWithArtists;
 }
 
 export const SpotifyArtistsDisplaySkeleton = () => {
@@ -44,22 +67,18 @@ export const SpotifyArtistsDisplaySkeleton = () => {
 };
 
 export default function SpotifyArtistsDisplay({
-  artists = [],
   isConnected,
   onDisconnect,
   isEditable = false,
-  onArtistsChange,
+  user,
+  profile,
 }: SpotifyArtistsDisplayProps) {
-  const [localArtists, setLocalArtists] = useState<Artist[]>(artists);
+  // Update state to use profile.artists directly
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    setLocalArtists(artists);
-  }, [artists]);
-
-  useEffect(() => {
     // If connected but no artists, fetch them automatically
-    if (isConnected && artists.length === 0 && !isRefreshing && !localArtists.length) {
+    if (isConnected && profile.artists.length === 0 && !isRefreshing) {
       refreshArtists();
     }
   }, [isConnected]);
@@ -71,12 +90,13 @@ export default function SpotifyArtistsDisplay({
       });
       
       const response = await fetch(`/api/spotify/authorize?${params}`);
+
       if (!response.ok) {
         throw new Error('Failed to get authorization URL');
       }
       
       const data = await response.json();
-      
+      alert(data.url);
       if (data.url) {
         window.location.href = data.url;
       } else {
@@ -88,7 +108,7 @@ export default function SpotifyArtistsDisplay({
     }
   };
 
-  const fetchSpotifyArtists = async (token: string) => {
+  const fetchSpotifyArtists = async (token: string): Promise<ArtistWithRelations[]> => {
     try {
       const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
         headers: {
@@ -107,7 +127,7 @@ export default function SpotifyArtistsDisplay({
             if (refreshResponse.status === 400) {
               // No refresh token, need to reconnect
               await onConnect();
-              return null;
+              return [];
             }
             throw new Error('Failed to refresh token');
           }
@@ -122,11 +142,17 @@ export default function SpotifyArtistsDisplay({
       const data = await response.json();
       
       return data.items.map((artist: any) => ({
+        id: '', // Will be assigned by database
         spotifyId: artist.id,
         name: artist.name,
         imageUrl: artist.images[0]?.url || '',
-        genres: artist.genres,
-        hidden: false
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        genres: artist.genres.map((genreName: string) => ({
+          id: '', // Will be assigned by database
+          name: genreName
+        })),
+        profiles: [] // This will be populated by the database
       }));
     } catch (error) {
       console.error('Error fetching artists:', error);
@@ -136,17 +162,12 @@ export default function SpotifyArtistsDisplay({
 
   const refreshArtists = async () => {
     setIsRefreshing(true);
-    console.log("refreshArtists called");
     try {
       const token = await refreshSpotifyToken();
-      console.log("token:", token);
-      if (!token) {
-        // User needs to reconnect, onConnect will handle the redirect
-        return;
-      }
+      if (!token) return;
 
       const newArtists = await fetchSpotifyArtists(token);
-      if (!newArtists) return; // Handle case where fetch failed
+      if (!newArtists) return;
 
       // Upload to database
       const response = await fetch('/api/profile/artists', {
@@ -156,9 +177,8 @@ export default function SpotifyArtistsDisplay({
       });
 
       if (!response.ok) throw new Error('Failed to update artists in database');
-
-      setLocalArtists(newArtists);
-      onArtistsChange?.(newArtists);
+      
+      // No need to manage local state - let the page refresh handle updates
       toast.success('Artists refreshed successfully');
     } catch (error) {
       console.error('Error refreshing artists:', error);
@@ -175,11 +195,12 @@ export default function SpotifyArtistsDisplay({
       });
 
       if (!response.ok) throw new Error('Failed to delete artist');
-
-      const updatedArtists = localArtists.filter(artist => artist.spotifyId !== spotifyId);
-      setLocalArtists(updatedArtists);
-      onArtistsChange?.(updatedArtists);
+      
+      // Show success message
       toast.success('Artist removed successfully');
+      
+      // Trigger a page refresh to update the UI
+      window.location.reload();
     } catch (error) {
       console.error('Error deleting artist:', error);
       toast.error('Failed to remove artist');
@@ -187,25 +208,26 @@ export default function SpotifyArtistsDisplay({
   };
 
   const toggleArtistVisibility = async (spotifyId: string) => {
-    if (!isEditable) return;
 
     try {
-      const updatedArtists = localArtists.map(artist =>
-        artist.spotifyId === spotifyId 
-          ? { ...artist, hidden: !artist.hidden }
-          : artist
-      );
-
-      setLocalArtists(updatedArtists);
-      onArtistsChange?.(updatedArtists);
+      const artistToUpdate = profile.artists.find(a => a.artist.spotifyId === spotifyId);
+      if (!artistToUpdate) return;
 
       const response = await fetch(`/api/profile/artists/${spotifyId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hidden: !localArtists.find(a => a.spotifyId === spotifyId)?.hidden })
+        body: JSON.stringify({ 
+          hidden: !artistToUpdate.hidden 
+        })
       });
 
       if (!response.ok) throw new Error('Failed to update artist visibility');
+      
+      // Show success message
+      toast.success('Artist visibility updated');
+      
+      // Trigger a page refresh to update the UI
+      window.location.reload();
     } catch (error) {
       console.error('Error toggling artist visibility:', error);
       toast.error('Failed to update artist visibility');
@@ -243,7 +265,7 @@ export default function SpotifyArtistsDisplay({
           onClick={onConnect}
           className="bg-[#1DB954] hover:bg-[#1ed760] text-white"
         >
-          Connect to Spotifyy
+          Connect to Spotdifyy
         </Button>
       </div>
     );
@@ -267,26 +289,31 @@ export default function SpotifyArtistsDisplay({
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {localArtists.map((artist) => (
+        {profile.artists.map(({ artist, hidden }) => (
           <div 
             key={artist.spotifyId}
-            className={`relative group ${artist.hidden ? 'opacity-50' : ''}`}
+            className={`relative group ${hidden ? 'opacity-50' : ''}`}
           >
             <div className="aspect-square relative rounded-lg overflow-hidden">
               <Image
-                src={artist.imageUrl}
+                src={artist.imageUrl || ''}
                 alt={artist.name}
                 fill
                 sizes="(max-width: 768px) 50vw, 33vw"
                 className="object-cover"
               />
-              {isEditable && (
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div 
+                  className="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 
+                  opacity-0 group-hover:opacity-100 md:transition-opacity
+                  touch:opacity-100 touch:bg-black/30"
+                >
                   <button
                     onClick={() => toggleArtistVisibility(artist.spotifyId)}
-                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 
+                    transition-colors active:scale-95 transform"
+                    aria-label={hidden ? "Show artist" : "Hide artist"}
                   >
-                    {artist.hidden ? (
+                    {hidden ? (
                       <EyeIcon className="w-5 h-5 text-white" />
                     ) : (
                       <EyeSlashIcon className="w-5 h-5 text-white" />
@@ -294,16 +321,18 @@ export default function SpotifyArtistsDisplay({
                   </button>
                   <button
                     onClick={() => deleteArtist(artist.spotifyId)}
-                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                    className="p-2 rounded-full bg-white/10 hover:bg-white/20 
+                    transition-colors active:scale-95 transform"
+                    aria-label="Delete artist"
                   >
                     <TrashIcon className="w-5 h-5 text-white" />
                   </button>
                 </div>
-              )}
+              
             </div>
             <h3 className="mt-2 font-semibold">{artist.name}</h3>
             <p className="text-sm text-gray-500">
-              {artist.genres.slice(0, 2).join(', ')}
+              {artist.genres.slice(0, 2).map(genre => genre.name).join(', ')}
             </p>
           </div>
         ))}

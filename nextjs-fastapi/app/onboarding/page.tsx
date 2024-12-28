@@ -4,9 +4,24 @@ import { useEffect, useState } from 'react';
 import OnboardingFlow from '../components/OnboardingFlow';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
+import { Prisma } from '@prisma/client';
+
+type ProfileWithArtists = Prisma.ProfileGetPayload<{
+  include: {
+    artists: {
+      include: {
+        artist: {
+          include: {
+            genres: true
+          }
+        }
+      }
+    }
+  }
+}>;
 
 export default function OnboardingPage() {
-  const [initialData, setInitialData] = useState(null);
+  const [initialData, setInitialData] = useState<ProfileWithArtists | null>(null);
   const supabase = createClient();
   const router = useRouter();
 
@@ -24,7 +39,6 @@ export default function OnboardingPage() {
         
         const data = await response.json();
         
-        // If onboarding is already completed, redirect to dashboard
         if (data.onboardingCompleted) {
           router.push('/dashboard');
           return;
