@@ -11,6 +11,11 @@ export async function GET(req: NextRequest) {
 
   try {
     const hikes = await prisma.activity.findMany({
+      where: {
+        primaryImageId: {
+          not: ""
+        }
+      },
       take: 10,
       include: {
         category: true,

@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import { Genre, Prisma } from '@prisma/client';
 
 // Type for incoming artist data
 interface SpotifyArtistData {
   spotifyId: string;
   name: string;
-  imageUrl?: string;
-  genres: string[];
+  imageUrl?: string | null;
+  genres: Genre[]; // Array of genre names as strings
 }
 
 export async function POST(request: Request) {
@@ -44,52 +44,34 @@ export async function POST(request: Request) {
 }
 
 async function processArtist(artistData: SpotifyArtistData, userId: string) {
-  const sanitizedArtist = {
-    spotifyId: artistData.spotifyId,
-    name: artistData.name || 'Unknown Artist',
-    imageUrl: artistData.imageUrl || '',
-    genres: artistData.genres || []
-  };
-
   try {
-    // First ensure all genres exist
-    await Promise.all(
-      sanitizedArtist.genres.map(genreName =>
-        prisma.genre.upsert({
-          where: { name: genreName },
-          create: { name: genreName },
-          update: {} // No updates needed for existing genres
-        })
-      )
-    );
-
-    // Then create/update the artist
+    // Create or update the artist with genres in a single transaction
     const result = await prisma.artist.upsert({
       where: { 
-        spotifyId: sanitizedArtist.spotifyId 
+        spotifyId: artistData.spotifyId 
       },
       create: {
-        spotifyId: sanitizedArtist.spotifyId,
-        name: sanitizedArtist.name,
-        imageUrl: sanitizedArtist.imageUrl,
+        spotifyId: artistData.spotifyId,
+        name: artistData.name,
+        imageUrl: artistData.imageUrl || '',
         genres: {
-          connect: sanitizedArtist.genres.map(genreName => ({
-            name: genreName
+          connectOrCreate: artistData.genres.map(genreName => ({
+            where: { name: genreName.name },
+            create: { name: genreName.name }
           }))
         },
         profiles: {
-          create: {
-            profileId: userId
-          }
+          create: { profileId: userId }
         }
       },
       update: {
-        name: sanitizedArtist.name,
-        imageUrl: sanitizedArtist.imageUrl,
+        name: artistData.name,
+        imageUrl: artistData.imageUrl || '',
         genres: {
           set: [], // Clear existing genres
-          connect: sanitizedArtist.genres.map(genreName => ({
-            name: genreName
+          connectOrCreate: artistData.genres.map(genreName => ({
+            where: { name: genreName.name },
+            create: { name: genreName.name }
           }))
         }
       },
@@ -104,7 +86,12 @@ async function processArtist(artistData: SpotifyArtistData, userId: string) {
 
     return result;
   } catch (error) {
-    console.error(`Error processing artist ${sanitizedArtist.name}:`, error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        // Handle unique constraint violation
+        console.error(`Genre name conflict for artist ${artistData.name}`);
+      }
+    }
     throw error;
   }
 }

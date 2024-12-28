@@ -156,7 +156,10 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
 
                   <div className="relative h-full w-full">
                     <Image
-                      src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
+                      src={data.primaryImageId 
+                        ? `https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`
+                        : '/fallback-image.jpg'
+                      }
                       fill
                       alt={data.title}
                       className="object-cover"
@@ -182,7 +185,10 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
-                    src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
+                    src={data.primaryImageId 
+                      ? `https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`
+                      : '/fallback-image.jpg'
+                    }
                     fill
                     alt={data.title}
                     className="object-cover rounded-t-2xl"

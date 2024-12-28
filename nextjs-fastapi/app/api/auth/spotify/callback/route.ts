@@ -16,7 +16,6 @@ export async function GET(request: Request) {
     const path = isProfile ? '/profile' : '/onboarding';
     console.log("Path:", path);
     if (!code) {
-      console.log("No code provided");
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
 
@@ -28,14 +27,10 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    console.log("the code:", code);
 
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
-    console.log("Redirect URI:", redirectUri);
-    console.log("Client ID:", clientId);
-    console.log("Client Secret:", clientSecret);
     // Exchange the code for tokens
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
@@ -68,7 +63,7 @@ export async function GET(request: Request) {
 
     if (!topArtistsResponse.ok) {
       console.error('Failed to fetch top artists');
-      console.log('Top artists response:', await topArtistsResponse.json());
+      // console.log('Top artists response:', await topArtistsResponse.json());
     } else {
       const topArtistsData = await topArtistsResponse.json();
       
