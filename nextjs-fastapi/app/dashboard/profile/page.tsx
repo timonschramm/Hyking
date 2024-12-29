@@ -180,7 +180,7 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const response = await fetch(`/api/profile/${user.id}`);
+      const response = await fetch(`/api/profile?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
       
       const profileData = await response.json();
@@ -216,7 +216,7 @@ export default function ProfilePage() {
         formData.append('image', newImageFile);
       }
 
-      const response = await fetch(`/api/profile/${user.id}`, {
+      const response = await fetch(`/api/profile?userId=${user.id}`, {
         method: 'PUT',
         body: formData,
       });
