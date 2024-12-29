@@ -89,6 +89,7 @@ export default function SpotifyArtistsDisplay({
         isProfile: isEditable ? '1' : '0'
       });
       
+      console.log("Params:", params.toString());
       const response = await fetch(`/api/spotify/authorize?${params}`);
 
       if (!response.ok) {

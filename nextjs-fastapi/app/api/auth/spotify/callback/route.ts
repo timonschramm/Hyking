@@ -7,21 +7,31 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
 
   try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const profile = await prisma.profile.findUnique({
+      where: {
+        id: user?.id
+      }
+    });
+
+    const onboardingCompleted = profile?.onboardingCompleted;
+
     const url = new URL(request.url);
     const rawIsProfile = url.searchParams.get('isProfile');
     const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
     console.log("Parsed isProfile:", isProfile);
 
     const code = url.searchParams.get('code');
-    const path = isProfile ? '/profile' : '/onboarding';
+    const path = onboardingCompleted ? '/profile' : '/onboarding';
     console.log("Path:", path);
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
 
     // Get user from Supabase
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+ 
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -31,7 +41,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
-    // Exchange the code for tokens
+    console.log("Redirect URI:", redirectUri);
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
