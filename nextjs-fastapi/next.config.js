@@ -4,6 +4,8 @@ const nextConfig = {
   images: {
     domains: ['images.unsplash.com', 'i.scdn.co', 'img.oastatic.com', 'expertclimbers.com', 'iqpolftsoulpgmfmxobu.supabase.co'],
   },
+
+  //
   rewrites: async () => {
     return [
       {
@@ -11,7 +13,7 @@ const nextConfig = {
         destination:
           process.env.NODE_ENV === "development"
             ? "http://127.0.0.1:8000/api/py/:path*"
-            : "/api/",
+            : "/api/py/:path*",
       },
     {
         source: "/docs",

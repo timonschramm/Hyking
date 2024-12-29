@@ -40,7 +40,7 @@ export default function OnboardingPage() {
         const response = await fetch(`/api/profile/${user.id}`);
         if (!response.ok) {
           const errorData = await response.text();
-          console.error('Profile fetch error:', response.status, errorData);
+          console.error('Profile fetch error:', response.status, response.body, errorData);
           throw new Error(`Failed to fetch profile: ${response.status}`);
         }
         
