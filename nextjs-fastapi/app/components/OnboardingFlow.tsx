@@ -148,52 +148,35 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        // Add error handling for the response
         const response = await fetch('/api/profile/me');
-        if (!response.ok) {
-          // Log the error response for debugging
-          const errorData = await response.text();
-          console.error('Profile fetch error:', response.status, errorData);
+        if (response.ok) {
+          const profile = await response.json();
           
-          if (response.status !== 404) {  // Only throw for non-404 errors
-            throw new Error(`Failed to fetch profile: ${response.status}`);
-          }
-          return; // Exit early for 404s
-        }
-
-        const profile = await response.json();
-        
-        try {
-          // Fetch artists separately with error handling
+          // Fetch artists separately
           const artistsResponse = await fetch('/api/profile/artists');
           if (artistsResponse.ok) {
             const artists = await artistsResponse.json();
             profile.artists = artists;
             profile.spotifyConnected = artists.length > 0;
-          } else {
-            console.warn('Failed to fetch artists:', artistsResponse.status);
-            profile.artists = [];
-            profile.spotifyConnected = false;
           }
-        } catch (artistError) {
-          console.error('Error fetching artists:', artistError);
-          profile.artists = [];
-          profile.spotifyConnected = false;
-        }
 
-        setUserData({
-          artists: profile.artists || [],
-          spotifyConnected: profile.spotifyConnected || false,
-          'Age': profile.age?.toString() || '',
-          'Gender': profile.gender || '',
-          'Location': profile.location || '',
-          'Experience Level': profile.experienceLevel !== undefined ? convertExperienceLevelBack(profile.experienceLevel) : '',
-          'Preferred Pace': profile.preferredPace !== undefined ? convertPreferredPaceBack(profile.preferredPace) : '',
-          'Preferred Distance': profile.preferredDistance !== undefined ? convertPreferredDistanceBack(profile.preferredDistance) : '',
-          'Hobbies': profile.hobbies || [],
-          'Dog Friendly': profile.dogFriendly || false,
-          'Transportation': profile.transportation !== undefined ? convertTransportationBack(profile.transportation) : '',
-        });
+          setUserData({
+            artists: profile.artists,
+            spotifyConnected: profile.spotifyConnected,
+            'Age': profile.age?.toString(),
+            'Gender': profile.gender,
+            'Location': profile.location,
+            'Experience Level': profile.experienceLevel !== undefined ? convertExperienceLevelBack(profile.experienceLevel) : undefined,
+            'Preferred Pace': profile.preferredPace !== undefined ? convertPreferredPaceBack(profile.preferredPace) : undefined,
+            'Preferred Distance': profile.preferredDistance !== undefined ? convertPreferredDistanceBack(profile.preferredDistance) : undefined,
+            'Hobbies': profile.hobbies || [],
+            'Dog Friendly': profile.dogFriendly,
+            'Transportation': profile.transportation !== undefined ? convertTransportationBack(profile.transportation) : undefined,
+          });
+          console.log("userDataLoaded:", userData);
+        } else if (response.status === 404) {
+          console.log('No existing profile found, starting fresh');
+        }
       } catch (error) {
         console.error('Error loading profile:', error);
         toast.error('Failed to load profile data');
