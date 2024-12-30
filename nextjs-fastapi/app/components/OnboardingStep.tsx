@@ -7,15 +7,15 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { InterestCategory, Interest } from '@prisma/client';
 
 interface StepOption {
-  type: 'select' | 'input' | 'bubbles' | 'toggle';
+  type: 'select' | 'input' | 'bubbles' | 'toggle' | 'interests';
   label: string;
   choices?: string[];
   maxSelect?: number;
   placeholder?: string;
   description?: string;
-  validation?: (value: any) => boolean;
 }
 
 interface StepData {
@@ -33,6 +33,16 @@ interface OnboardingStepProps {
   validation?: (value: any) => boolean;
   initialValues?: Record<string, any>;
   loading?: boolean;
+}
+
+
+
+interface GroupedInterests {
+  [key: string]: Array<{
+    id: string;
+    name: string;
+    category: InterestCategory;
+  }>;
 }
 
 const InputStepSkeleton = () => (
@@ -129,13 +139,33 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   onSelect, 
   isLastStep, 
   onBack, 
-  currentStep, 
-  validation, 
+  validation,
+  currentStep,
   initialValues,
   loading = false 
 }) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
+
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const response = await fetch('/api/interests');
+        if (response.ok) {
+          const interests = await response.json();
+          // The interests are already grouped by category from the API
+          setAvailableInterests(interests);
+        }
+      } catch (error) {
+        console.error('Error fetching interests:', error);
+      }
+    };
+
+    if (stepData.options.some(opt => opt.type === 'interests')) {
+      fetchInterests();
+    }
+  }, [stepData.options]);
 
   useEffect(() => {
     if (initialValues) {
@@ -168,16 +198,20 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
     });
   };
 
-  const handleAddHobby = (value: string) => {
-    if (!value.trim()) return;
-    
+  const handleInterestSelect = (interestId: string) => {
     setFormData(prev => {
-      const currentHobbies = prev['Hobbies'] || [];
-      if (!currentHobbies.includes(value)) {
+      const currentInterests = prev.interests || [];
+      const maxSelect = stepData.options.find(opt => opt.label === 'Interests')?.maxSelect || 5;
+      
+      if (currentInterests.includes(interestId)) {
         return {
           ...prev,
-          'Hobbies': [...currentHobbies, value],
-          'Add Hobby': '' // Clear input after adding
+          interests: currentInterests.filter((id: string) => id !== interestId)
+        };
+      } else if (currentInterests.length < maxSelect) {
+        return {
+          ...prev,
+          interests: [...currentInterests, interestId]
         };
       }
       return prev;
@@ -190,9 +224,9 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
     stepData.options.forEach(option => {
       const value = formData[option.label];
       
-      if (option.validation && !option.validation(value)) {
-        newErrors[option.label] = `Please select a valid ${option.label.toLowerCase()}`;
-      }
+      // if (option.validation && !option.validation(value)) {
+      //   newErrors[option.label] = `Please select a valid ${option.label.toLowerCase()}`;
+      // }
       
       if (option.label === 'Age') {
         const age = parseInt(value);
@@ -268,7 +302,11 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
                     <Button
                       key={choice}
                       variant={isSelected ? "default" : "outline"}
-                      onClick={() => handleBubbleSelect(option.label, choice)}
+                      onClick={() => 
+                        option.label === 'Interests' 
+                          ? handleInterestSelect(choice)
+                          : handleBubbleSelect(option.label, choice)
+                      }
                       className={cn(
                         "rounded-full transition-colors duration-200",
                         isSelected ? bubbleButtonStyles.selected : bubbleButtonStyles.outline
@@ -297,25 +335,33 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
               </div>
             )}
 
-            {option.type === 'input' && option.label === 'Add Hobby' && (
-              <div>
-                <Input
-                  placeholder={option.placeholder}
-                  value={formData['Add Hobby'] || ''}
-                  onChange={(e) => handleInputChange('Add Hobby', e.target.value)}
-                  onBlur={() => handleAddHobby(formData['Add Hobby'])}
-                />
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {formData['Hobbies']?.map((hobby: string) => (
-                    <Button
-                      key={hobby}
-                      variant="default"
-                      className="rounded-full"
-                    >
-                      {hobby}
-                    </Button>
-                  ))}
-                </div>
+            {option.type === 'interests' && (
+              <div className="space-y-4">
+                {Object.entries(availableInterests).map(([category, interests]) => (
+                  <div key={category} className="space-y-2">
+                    <h3 className="font-medium text-primary">
+                      {category.split('_').map(word => 
+                        word.charAt(0) + word.slice(1).toLowerCase()
+                      ).join(' ')}
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {(interests as unknown as Array<{ id: string; name: string; category: InterestCategory }>).map((interest) => (
+                        <button
+                          key={interest.id}
+                          onClick={() => handleInterestSelect(interest.id)}
+                          className={cn(
+                            "p-2 rounded-lg text-sm transition-colors",
+                            formData.interests?.includes(interest.id)
+                              ? "bg-primary text-white"
+                              : "bg-gray-100 hover:bg-gray-200"
+                          )}
+                        >
+                          {interest.name.split(/(?=[A-Z])/).join(' ')}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>

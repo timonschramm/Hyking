@@ -22,64 +22,20 @@ interface OnboardingFlowProps {
   initialData?: any;
 }
 
-// Add Spotify-related types
-interface SpotifyData {
-  artists?: Array<{
-    spotifyId: string;
-    name: string;
-    imageUrl: string;
-    genres: { name: string }[];
-    hidden: boolean;
-  }>;
-  spotifyConnected?: boolean;
-}
-
 interface FormData {
   artists: ArtistWithRelations[];
   spotifyConnected?: boolean;
-  Age?: string;
-  Gender?: string;
-  Location?: string;
-  'Experience Level'?: string;
-  'Preferred Pace'?: string;
-  'Preferred Distance'?: string;
-  Hobbies?: string[];
-  'Dog Friendly'?: boolean;
-  Transportation?: string;
+  age?: string;
+  gender?: string;
+  location?: string;
+  experienceLevel?: string;
+  preferredPace?: string;
+  preferredDistance?: string;
+  interests?: string[];
+  dogFriendly?: boolean;
+  transportation?: string;
 }
 
-// Add this new component for the loading state
-const OnboardingFlowSkeleton = () => {
-  return (
-    <div className="space-y-6">
-      {/* Title and subtitle skeletons matching exact structure */}
-      <div className="space-y-2">
-        <Skeleton className="h-8 w-64" /> {/* Title - matches text-2xl font-bold */}
-        <Skeleton className="h-5 w-full" /> {/* Subtitle - matches actual text size */}
-      </div>
-
-      {/* For Spotify step - matching SpotifyArtistsDisplay structure */}
-      <div className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="flex items-center space-x-3">
-              <Skeleton className="w-12 h-12 rounded-full" /> {/* Artist image */}
-              <div className="space-y-2">
-                <Skeleton className="h-5 w-24" /> {/* Artist name */}
-                <Skeleton className="h-4 w-32" /> {/* Genres */}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Button skeleton */}
-      <div className="mt-6 flex justify-end">
-        <Skeleton className="h-10 w-24" /> {/* Next button */}
-      </div>
-    </div>
-  );
-};
 
 export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
@@ -93,15 +49,15 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const [userData, setUserData] = useState<FormData>({
     artists: [],
     spotifyConnected: false,
-    'Age': '',
-    'Gender': '',
-    'Location': '',
-    'Experience Level': '',
-    'Preferred Pace': '',
-    'Preferred Distance': '',
-    'Hobbies': [],
-    'Dog Friendly': false,
-    'Transportation': ''
+    age: '',
+    gender: '',
+    location: '',
+    experienceLevel: '',
+    preferredPace: '',
+    preferredDistance: '',
+    interests: [],
+    dogFriendly: false,
+    transportation: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   console.log("userData:", userData);
@@ -109,14 +65,18 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     localStorage.setItem('onboardingStep', currentStep.toString());
   }, [currentStep]);
 
-  const completeOnboarding = async () => {
+  const handleUpdateProfile = async (formData: any) => {
     try {
-      // Update profile with onboardingCompleted
+      const { availableInterests, ...profileData } = formData; // Remove availableInterests from data sent to API
+      console.log("profileData:", profileData);
       const response = await fetch('/api/profile/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          ...userData,
+          ...profileData,
+          interests: formData.interests || [],
           onboardingCompleted: true
         }),
       });
@@ -125,10 +85,9 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
         throw new Error('Failed to update profile');
       }
 
-      localStorage.removeItem('onboardingStep');
       router.push('/dashboard');
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      console.error('Error updating profile:', error);
       toast.error('Failed to complete onboarding');
     }
   };
@@ -160,22 +119,11 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
             profile.spotifyConnected = artists.length > 0;
           }
 
+          // Don't store availableInterests in userData
           setUserData({
-            artists: profile.artists,
-            spotifyConnected: profile.spotifyConnected,
-            'Age': profile.age?.toString(),
-            'Gender': profile.gender,
-            'Location': profile.location,
-            'Experience Level': profile.experienceLevel !== undefined ? convertExperienceLevelBack(profile.experienceLevel) : undefined,
-            'Preferred Pace': profile.preferredPace !== undefined ? convertPreferredPaceBack(profile.preferredPace) : undefined,
-            'Preferred Distance': profile.preferredDistance !== undefined ? convertPreferredDistanceBack(profile.preferredDistance) : undefined,
-            'Hobbies': profile.hobbies || [],
-            'Dog Friendly': profile.dogFriendly,
-            'Transportation': profile.transportation !== undefined ? convertTransportationBack(profile.transportation) : undefined,
+            ...profile,
+            interests: profile.interests?.map((ui: any) => ui.interest.id) || [],
           });
-          console.log("userDataLoaded:", userData);
-        } else if (response.status === 404) {
-          console.log('No existing profile found, starting fresh');
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -273,10 +221,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
             'Advanced (2-3)', 
             'Expert (3)'
           ],
-          maxSelect: 1,
-          validation: (value: string) => {
-            return value !== undefined && value !== null;
-          }
+          maxSelect: 1
         },
         {
           type: 'bubbles' as const,
@@ -293,14 +238,13 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       ]
     },
     {
-      title: 'Additional preferences',
-      subtitle: 'Almost there! Just a few more details',
+      title: 'Your Interests',
+      subtitle: 'Select interests that match your personality',
       options: [
         {
-          type: 'bubbles' as const,
-          label: 'Hobbies',
-          choices: ['Photography', 'Bird Watching', 'Rock Climbing', 'Camping', 'Nature Study', 'Wildlife Spotting'],
-          maxSelect: 4
+          type: 'interests' as const,
+          label: 'Interests',
+          maxSelect: 5
         },
         {
           type: 'toggle' as const,
@@ -319,7 +263,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const handleSelect = async (stepData: any) => {
     const newUserData = { ...userData, ...stepData };
     setUserData(newUserData);
-    console.log("newUserData isConnected:", newUserData.spotifyConnected);
+    console.log("newUserData isConnected:", newUserData);
 
     try {
       if (currentStep > 0) {
@@ -337,7 +281,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        await completeOnboarding();
+        await handleUpdateProfile(newUserData);
       }
     } catch (error) {
       console.error('Error saving progress:', error);

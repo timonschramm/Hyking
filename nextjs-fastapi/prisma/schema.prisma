@@ -1,125 +1,158 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider  = "postgresql"
-    url       = env("DATABASE_URL")
-    directUrl = env("DIRECT_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model Activity {
-    id                      Int      @id @default(autoincrement())
-    title                   String
-    teaserText              String
-    descriptionShort        String
-    descriptionLong         String
-    categoryId              Int
-    difficulty              Int
-    landscapeRating         Int
-    experienceRating        Int
-    staminaRating           Int
-    length                  Float
-    ascent                  Float
-    descent                 Float
-    durationMin             Float
-    minAltitude             Float
-    maxAltitude             Float
-    pointLat                Float
-    pointLon                Float
-    isWinter                Boolean
-    isClosed                Boolean
-    primaryRegion           String
-    primaryImageId          String
-    publicTransportFriendly Boolean
-    category                Category @relation(fields: [categoryId], references: [id])
-    seasons                 Season[]
-    images                  Image[]
+  id                      Int      @id @default(autoincrement())
+  title                   String
+  teaserText              String
+  descriptionShort        String
+  descriptionLong         String
+  categoryId              Int
+  difficulty              Int
+  landscapeRating         Int
+  experienceRating        Int
+  staminaRating           Int
+  length                  Float
+  ascent                  Float
+  descent                 Float
+  durationMin             Float
+  minAltitude             Float
+  maxAltitude             Float
+  pointLat                Float
+  pointLon                Float
+  isWinter                Boolean
+  isClosed                Boolean
+  primaryRegion           String
+  primaryImageId          String
+  publicTransportFriendly Boolean
+  category                Category @relation(fields: [categoryId], references: [id])
+  images                  Image[]
+  seasons                 Season[]
 }
 
 model Category {
-    id         Int        @id @default(autoincrement())
-    name       String
-    activities Activity[]
-}
-
-enum Month {
-    jan
-    feb
-    mar
-    apr
-    may
-    jun
-    jul
-    aug
-    sep
-    oct
-    nov
-    dec
+  id         Int        @id @default(autoincrement())
+  name       String
+  activities Activity[]
 }
 
 model Season {
-    id         Int      @id @default(autoincrement())
-    activityId Int
-    month      String
-    isActive   Boolean
-    activity   Activity @relation(fields: [activityId], references: [id])
+  id         Int      @id @default(autoincrement())
+  activityId Int
+  month      String
+  isActive   Boolean
+  activity   Activity @relation(fields: [activityId], references: [id])
 }
 
 model Image {
-    id         Int      @id @default(autoincrement())
-    activityId Int
-    imageId    String
-    activity   Activity @relation(fields: [activityId], references: [id])
+  id         Int      @id @default(autoincrement())
+  activityId Int
+  imageId    String
+  activity   Activity @relation(fields: [activityId], references: [id])
 }
 
 model Profile {
-    id                String   @id @default(cuid())
-    email             String
-    age               Int?
-    imageUrl          String?
-    gender            String?
-    location          String?
-    experienceLevel   Int?
-    preferredPace     Int?
-    preferredDistance Int?
-    hobbies           String[]
-    dogFriendly       Boolean?
-    transportation    Int?
-    spotifyConnected  Boolean  @default(false)
-    spotifyAccessToken  String?
-    spotifyRefreshToken String?
-    spotifyTokenExpiry  DateTime?
-    onboardingCompleted Boolean @default(false)
-    artists           UserArtist[]
+  id                  String       @id @default(cuid())
+  email               String
+  age                 Int?
+  imageUrl            String?
+  gender              String?
+  location            String?
+  experienceLevel     Int?
+  preferredPace       Int?
+  preferredDistance   Int?
+  dogFriendly         Boolean?
+  transportation      Int?
+  spotifyConnected    Boolean      @default(false)
+  spotifyAccessToken  String?
+  spotifyRefreshToken String?
+  spotifyTokenExpiry  DateTime?
+  onboardingCompleted Boolean      @default(false)
+  artists             UserArtist[]
+  interests           UserInterest[]
+
 }
 
 model Artist {
-    id        String   @id @default(cuid())
-    spotifyId String   @unique
-    name      String
-    imageUrl  String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    genres    Genre[] @relation("ArtistGenres")
-    profiles  UserArtist[]
+  id        String       @id @default(cuid())
+  spotifyId String       @unique
+  name      String
+  imageUrl  String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  profiles  UserArtist[]
+  genres    Genre[]      @relation("ArtistGenres")
 }
 
 model Genre {
-    id      String   @id @default(uuid())
-    name    String   @unique
-    artists Artist[] @relation("ArtistGenres")
+  id      String   @id @default(uuid())
+  name    String   @unique
+  artists Artist[] @relation("ArtistGenres")
 }
 
 model UserArtist {
-    id        String   @id @default(cuid())
-    profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-    profileId String
-    artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
-    artistId  String
-    hidden    Boolean  @default(false)
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  profileId String
+  artistId  String
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-    @@unique([profileId, artistId])
+  @@unique([profileId, artistId])
+}
+
+enum Month {
+  jan
+  feb
+  mar
+  apr
+  may
+  jun
+  jul
+  aug
+  sep
+  oct
+  nov
+  dec
+}
+
+
+enum InterestCategory {
+  SELF_CARE
+  SPORTS
+  CREATIVITY
+  GOING_OUT
+  STAYING_IN
+}
+
+model Interest {
+  id          String           @id @default(cuid())
+  name        String           @unique
+  category    InterestCategory
+  users       UserInterest[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+
+model UserInterest {
+  id        String   @id @default(cuid())
+  profileId String
+  interestId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interest  Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, interestId])
 }

@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma} from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
+import { Artist, UserArtist } from '@prisma/client';
+
+
+type UserArtistWithArtist = UserArtist & {
+  artist: Artist;
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,51 +16,92 @@ export async function POST(req: NextRequest) {
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-    // if(user.id != undefined) {
-    //     console.log(`User ID is defined ${user.id}`);
-    //   return NextResponse.json({ error: `User ID is defined ${user.id}` }, { status: 431 });
-    // }
 
-    const userData = await req.json();
+    const data = await req.json();
+    console.log("dataaa:", data);
+    const { interests = [], artists = [], something = [], ...formData  } = data;
+    console.log("something:", something);
+    console.log("artistss:", artists);
 
-    // Convert form data to match your Prisma schema
+    // First, ensure all artists exist in the database
+    const artistPromises = artists.map(async (artist: any) => {
+      return prisma.artist.upsert({
+        where: { spotifyId: artist.spotifyId },
+        create: {
+          id: crypto.randomUUID(),
+          spotifyId: artist.spotifyId,
+          name: artist.name,
+          imageUrl: artist.imageUrl || null
+        },
+        update: {
+          name: artist.name,
+          imageUrl: artist.imageUrl || null
+        }
+      });
+    });
+    const createdArtists = await Promise.all(artistPromises);
+    // Convert form data to match Prisma schema
     const profileData = {
       email: user.email,
-      age: userData['Age'] ? parseInt(userData['Age']) : undefined,
-      gender: userData['Gender'] || undefined,
-      location: userData['Location'] || undefined,
-      experienceLevel: userData['Experience Level']?.[0] ? convertExperienceLevel(userData['Experience Level'][0]) : undefined,
-      preferredPace: userData['Preferred Pace']?.[0] ? convertPreferredPace(userData['Preferred Pace'][0]) : undefined,
-      preferredDistance: userData['Preferred Distance']?.[0] ? convertPreferredDistance(userData['Preferred Distance'][0]) : undefined,
-      hobbies: userData['Hobbies'] || [], // Ensure hobbies is always an array
-      dogFriendly: userData['Dog Friendly'] || undefined,
-      transportation: userData['Transportation'] ? convertTransportation(userData['Transportation']) : undefined,
-      spotifyConnected: userData.spotifyConnected || false,
-      onboardingCompleted: userData.onboardingCompleted || false,
+      age: formData.Age ? parseInt(formData.Age) : undefined,
+      gender: formData.Gender || undefined,
+      location: formData.Location || undefined,
+      experienceLevel: formData['Experience Level']?.[0] ? convertExperienceLevel(formData['Experience Level'][0]) : undefined,
+      preferredPace: formData['Preferred Pace']?.[0] ? convertPreferredPace(formData['Preferred Pace'][0]) : undefined,
+      preferredDistance: formData['Preferred Distance']?.[0] ? convertPreferredDistance(formData['Preferred Distance'][0]) : undefined,
+      dogFriendly: formData['Dog Friendly'] || undefined,
+      transportation: formData.Transportation ? convertTransportation(formData.Transportation) : undefined,
+      spotifyConnected: formData.spotifyConnected || false,
+      onboardingCompleted: formData.onboardingCompleted || false,
     };
 
-    // Remove undefined values for the update operation
-    const cleanedProfileData = Object.fromEntries(
-      Object.entries(profileData).filter(([_, value]) => value !== undefined)
-    );
-
-    // Upsert the profile
-    const updatedProfile = await prisma.profile.upsert({
+    console.log("interestsss:", interests);
+    
+    // Update profile with relations
+    const updatedProfile = await prisma.profile.update({
       where: { id: user.id },
-      create: {
-        id: user.id,
-        email: user.email!,
-        ...cleanedProfileData,
+      data: {
+        ...profileData,
+        interests: {
+          deleteMany: {},
+          create: interests.map((interestId: string) => ({
+            id: crypto.randomUUID(),
+            interest: {
+              connect: { id: interestId }
+            }
+          }))
+        },
+        artists: {
+          deleteMany: {},
+          create: createdArtists.map((artist) => ({
+            id: crypto.randomUUID(),
+            artist: {
+              connect: { id: artist.id }
+            }
+          }))
+        }
       },
-      update: cleanedProfileData,
+      include: {
+        interests: {
+          include: {
+            interest: true
+          }
+        },
+        artists: {
+          include: {
+            artist: true
+          }
+        }
+      }
     });
 
     return NextResponse.json(updatedProfile);
   } catch (error) {
     console.error('Error updating profile:', error);
-    return NextResponse.json({ error: 'Failed to update profile' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
+    return NextResponse.json(
+      { error: 'Failed to update profile' },
+      { status: 500 }
+    );
   }
 }
 
