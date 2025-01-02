@@ -9,7 +9,10 @@ export default function Home() {
     <>
         <Header />
         <main>
-          <Hero />
+         
+          <Suspense fallback={<div>Loading...</div>}>
+            <Hero />
+          </Suspense>
         </main>
   </>
   );

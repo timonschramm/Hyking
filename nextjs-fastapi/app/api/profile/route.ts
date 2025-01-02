@@ -4,6 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
 import { UserArtistWithArtist } from '@/app/types/profile';
 
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
