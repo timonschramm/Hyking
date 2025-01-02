@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
+import { UserArtistWithArtist } from '@/app/types/profile';
 
 
 export async function GET(request: NextRequest) {
@@ -80,13 +81,18 @@ export async function PUT(request: NextRequest) {
 
     const formData = await request.formData();
     const imageFile = formData.get('image') as File | null;
-    const profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
-
+    const first_profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
+    const interests = formData.get('interests') ? JSON.parse(formData.get('interests') as string) : [];
+    // Extract interests from profileData
+    console.log("interests:", interests)
+    console.log("profileData:", first_profileData)
+    const { artists, topArtists, ...profileData } = first_profileData;
+    // Clean the basic profile data
     let cleanedData = Object.fromEntries(
       Object.entries(profileData)
-        .filter(([key, value]) => value !== undefined && key !== 'topArtists' && key !== 'artists')
+        .filter(([key, value]) => value !== undefined && key !== 'topArtists')
     );
-
+    console.log("cleanedData:", cleanedData)
     // Handle image upload if present
     if (imageFile) {
       console.log('Processing image upload:', imageFile.name);
@@ -135,10 +141,41 @@ export async function PUT(request: NextRequest) {
       };
     }
 
-    // Update profile with basic data first
+    const interestsUpdate = interests.length > 0 ? {
+      deleteMany: {},
+      create: interests.map((interestId: string) => ({
+        id: crypto.randomUUID(),
+        interest: {
+          connect: { id: interestId }
+        }
+      }))
+    } : undefined;
+
+    const artistPromises = artists.map(async (artist: UserArtistWithArtist) => {
+      return prisma.artist.upsert({
+        where: { spotifyId: artist.artist.spotifyId },
+        create: {
+          id: crypto.randomUUID(),
+          spotifyId: artist.artist.spotifyId,
+          name: artist.artist.name,
+          imageUrl: artist.artist.imageUrl || null
+        },
+        update: {
+          name: artist.artist.name,
+          imageUrl: artist.artist.imageUrl || null
+        }
+      });
+    });
+    const createdArtists = await Promise.all(artistPromises);
+
+
+    // Update profile with all data
     const updatedProfile = await prisma.profile.update({
       where: { id: userId },
-      data: cleanedData,
+      data: {
+        ...cleanedData,
+        interests: interestsUpdate
+      },
       include: {
         artists: {
           include: {
@@ -147,6 +184,11 @@ export async function PUT(request: NextRequest) {
                 genres: true
               }
             }
+          }
+        },
+        interests: {
+          include: {
+            interest: true
           }
         }
       }

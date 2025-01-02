@@ -137,7 +137,7 @@ export default function SpotifyArtistsDisplay({
           }
 
           const { access_token } = await refreshResponse.json();
-          // Retry with new token
+          console.log("new token:", access_token)
           return fetchSpotifyArtists(access_token);
         }
         throw new Error('Failed to fetch artists');
@@ -174,6 +174,7 @@ export default function SpotifyArtistsDisplay({
       if (!newArtists) return;
 
       // Upload to database
+      console.log("newArtists:", newArtists)
       const response = await fetch('/api/profile/artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -184,6 +185,7 @@ export default function SpotifyArtistsDisplay({
       
       // No need to manage local state - let the page refresh handle updates
       toast.success('Artists refreshed successfully');
+      window.location.reload();
     } catch (error) {
       console.error('Error refreshing artists:', error);
       toast.error('Failed to refresh artists');

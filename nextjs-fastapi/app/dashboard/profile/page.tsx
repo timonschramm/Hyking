@@ -192,8 +192,9 @@ export default function ProfilePage() {
 
       const response = await fetch(`/api/profile?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
-
+      console.log("response:", response)
       const profileData : ProfileWithArtistsAndInterests = await response.json();
+      console.log("profileData:", profileData)
       setProfileData(profileData);
       setUserInterestIds(profileData.interests.map(interest => interest.interestId))
     } catch (error) {
@@ -218,27 +219,23 @@ export default function ProfilePage() {
       if (!user) return;
 
       const formData = new FormData();
-
+      
+      // Add profile data
       formData.append('profileData', JSON.stringify(editedData));
-
+      
       // Add image if there's a new one
       if (newImageFile) { // You'll need to track the new image file in state
         formData.append('image', newImageFile);
       }
+      formData.append('interests', JSON.stringify(userInterestIds));
 
-      const response = await fetch(`/api/profile/update`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-
-        body: JSON.stringify({
-          ...formData,
-          interests: userInterestIds || [],
-          artists: profileData?.artists,
-        })
+      const response = await fetch(`/api/profile?userId=${user.id}`, {
+        method: 'PUT',
+        body: formData,
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
-
+      
       const updatedProfile = await response.json();
       setProfileData(updatedProfile);
       setIsEditing(false);
@@ -304,10 +301,18 @@ export default function ProfilePage() {
     const currentInterests = userInterestIds;
     console.log("currentInterests:", currentInterests)
     console.log("selcted interestid: ", interestId)
-    const newInterests = currentInterests.filter((id: string) => id !== interestId);
-    console.log("newInterests:", newInterests)
+    if (currentInterests.includes(interestId)) {
+      // Fix: Create new array to ensure state update
+      const newInterests = currentInterests.filter((id: string) => id !== interestId);
+      console.log("newInterests:", newInterests)
+      setUserInterestIds(newInterests);
+    } else  {
+      // Fix: Create new array to ensure state update
+      const newInterests = [...currentInterests, interestId];
+      console.log("newInterests:", newInterests)
+      setUserInterestIds(newInterests);
+    }
 
-    setUserInterestIds(newInterests);
   };
 
   useEffect(() => {
@@ -577,7 +582,7 @@ export default function ProfilePage() {
                   <InterestOption
                     availableInterests={availableInterests}
                     formData={{
-                      interests: editedData?.interests?.map(ui => ui.interestId) || []
+                      interests: userInterestIds || []
                     }}
                     onInterestSelect={handleInterestSelect}
                     maxSelect={5}

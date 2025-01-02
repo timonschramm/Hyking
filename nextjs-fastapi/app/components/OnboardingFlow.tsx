@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SpotifyArtistsDisplaySkeleton } from './SpotifyArtistsDisplay';
 import { Prisma } from '@prisma/client';
 import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } from '@prisma/client';
-
+import { ProfileWithArtistsAndInterests } from '../types/profile';
 // Use Prisma's utility types for Artist with relations
 type ArtistWithRelations = Prisma.ArtistGetPayload<{
   include: {
@@ -115,48 +115,36 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
     return 0;
   });
-  const [userData, setUserData] = useState<FormData>(() => {
-    const interests = initialData.interests?.map(ui => ui.interest.id) || [];
-    console.log('Initializing userData with interests:', interests);
-    
-    return {
-      artists: initialData.artists?.map(ua => ua.artist) || [],
-      spotifyConnected: initialData.spotifyConnected || false,
-      age: initialData.age?.toString() || '',
-      gender: initialData.gender || '',
-      location: initialData.location || '',
-      experienceLevel: initialData.experienceLevel ? EXPERIENCE_LEVEL_MAP[initialData.experienceLevel] : '',
-      preferredPace: initialData.preferredPace ? PREFERRED_PACE_MAP[initialData.preferredPace] : '',
-      preferredDistance: initialData.preferredDistance ? PREFERRED_DISTANCE_MAP[initialData.preferredDistance] : '',
-      interests,
-      dogFriendly: initialData.dogFriendly || false,
-      transportation: initialData.transportation ? TRANSPORTATION_MAP[initialData.transportation] : ''
-    };
-  });
+  const [userData, setUserData] = useState<FormData>(() => ({
+    artists: initialData.artists?.map(ua => ua.artist) || [],
+    spotifyConnected: initialData.spotifyConnected || false,
+    // Map the basic fields directly
+    Age: initialData.age?.toString() || '',
+    Gender: initialData.gender || '',
+    Location: initialData.location || '',
+    // Map enum values to their display values
+    'Experience Level': initialData.experienceLevel ? [EXPERIENCE_LEVEL_MAP[initialData.experienceLevel]] : [],
+    'Preferred Pace': initialData.preferredPace ? [PREFERRED_PACE_MAP[initialData.preferredPace]] : [],
+    'Preferred Distance': initialData.preferredDistance ? [PREFERRED_DISTANCE_MAP[initialData.preferredDistance]] : [],
+    interests: initialData.interests?.map(ui => ui.interest.id) || [],
+    'Dog Friendly': initialData.dogFriendly || false,
+    Transportation: initialData.transportation ? TRANSPORTATION_MAP[initialData.transportation] : ''
+  }));
   const [isLoading, setIsLoading] = useState(true);
   console.log("userDataexp:", userData);
   useEffect(() => {
     localStorage.setItem('onboardingStep', currentStep.toString());
   }, [currentStep]);
 
-  const handleUpdateProfile = async (formData: FormData) => {
+  const handleUpdateProfile = async (profileData: ProfileWithArtistsAndInterests) => {
     try {
-      const profileData = {
-        ...formData,
-        experienceLevel: formData.experienceLevel ? REVERSE_EXPERIENCE_LEVEL_MAP[formData.experienceLevel] : undefined,
-        preferredPace: formData.preferredPace ? REVERSE_PREFERRED_PACE_MAP[formData.preferredPace] : undefined,
-        preferredDistance: formData.preferredDistance ? REVERSE_PREFERRED_DISTANCE_MAP[formData.preferredDistance] : undefined,
-        transportation: formData.transportation ? REVERSE_TRANSPORTATION_MAP[formData.transportation] : undefined,
-      };
-
       const response = await fetch('/api/profile/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...profileData,
-          interests: formData.interests || [],
           onboardingCompleted: true
-        }),
+        })
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
@@ -281,38 +269,31 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   ];
 
   const handleSelect = async (stepData: any) => {
-    console.log('Previous userData:', userData);
-    console.log('Incoming stepData:', stepData);
-    
-    const newUserData = { 
+    const transformedData = {
       ...userData,
       ...stepData,
-      interests: Array.isArray(stepData.interests) ? stepData.interests : userData.interests
+      // Convert display values back to enum values
+      experienceLevel: stepData.experienceLevel ? REVERSE_EXPERIENCE_LEVEL_MAP[stepData.experienceLevel] : userData.experienceLevel,
+      preferredPace: stepData.preferredPace ? REVERSE_PREFERRED_PACE_MAP[stepData.preferredPace] : userData.preferredPace,
+      preferredDistance: stepData.preferredDistance ? REVERSE_PREFERRED_DISTANCE_MAP[stepData.preferredDistance] : userData.preferredDistance,
+      transportation: stepData.transportation ? REVERSE_TRANSPORTATION_MAP[stepData.transportation] : userData.transportation,
     };
-    
-    console.log('New userData:', newUserData);
-    setUserData(newUserData);
+
+    setUserData(transformedData);
 
     try {
       if (currentStep > 0) {
-        const response = await fetch('/api/profile/update', {
+        await fetch('/api/profile/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...newUserData,
-            interests: newUserData.interests || []
-          }),
+          body: JSON.stringify(transformedData)
         });
-
-        if (!response.ok) {
-          throw new Error('Failed to save progress');
-        }
       }
 
       if (currentStep < steps.length - 1) {
         setCurrentStep(currentStep + 1);
       } else {
-        await handleUpdateProfile(newUserData);
+        await handleUpdateProfile(transformedData);
       }
     } catch (error) {
       console.error('Error saving progress:', error);

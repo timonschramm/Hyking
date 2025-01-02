@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const { artists } = await request.json();
-
+    console.log("artists in api:", artists)
     if (!Array.isArray(artists) || artists.some(a => !a.spotifyId)) {
       return NextResponse.json({ 
         error: 'Invalid artist data', 
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
 async function processArtist(artistData: SpotifyArtistData, userId: string) {
   try {
-    // Create or update the artist with genres in a single transaction
+    // First upsert the artist
     const result = await prisma.artist.upsert({
       where: { 
         spotifyId: artistData.spotifyId 
@@ -59,9 +59,6 @@ async function processArtist(artistData: SpotifyArtistData, userId: string) {
             where: { name: genreName.name },
             create: { name: genreName.name }
           }))
-        },
-        profiles: {
-          create: { profileId: userId }
         }
       },
       update: {
@@ -76,20 +73,37 @@ async function processArtist(artistData: SpotifyArtistData, userId: string) {
         }
       },
       include: {
-        genres: true,
-        profiles: {
-          where: { profileId: userId },
-          include: { profile: true }
-        }
+        genres: true
       }
     });
 
-    return result;
+    // Then try to create the profile connection, ignore if it already exists
+    await prisma.userArtist.upsert({
+      where: {
+        profileId_artistId: {
+          profileId: userId,
+          artistId: result.id
+        }
+      },
+      create: {
+        profileId: userId,
+        artistId: result.id
+      },
+      update: {} // No updates needed if it exists
+    });
+
+  
+    return {
+      ...result,
+      profiles: [{ profileId: userId }]
+    };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
         // Handle unique constraint violation
-        console.error(`Genre name conflict for artist ${artistData.name}`);
+        console.error(`Relationship already exists for artist ${artistData.name}`);
+        // Continue execution
+        return null;
       }
     }
     throw error;
@@ -123,7 +137,7 @@ export async function GET(request: Request) {
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
-
+   
     return NextResponse.json(profile.artists);
   } catch (error) {
     console.error('Error fetching artists:', error);
@@ -162,6 +176,7 @@ export async function PATCH(request: Request) {
         }
       }
     });
+    console.log("updatedUserArtist:", updatedUserArtist)
 
     return NextResponse.json(updatedUserArtist);
   } catch (error) {
