@@ -17,7 +17,8 @@ export async function GET(request: Request) {
     });
 
     const onboardingCompleted = profile?.onboardingCompleted;
-
+    console.log("Onboard compl: ", onboardingCompleted)
+    console.log("profile: ", profile)
     const url = new URL(request.url);
     const rawIsProfile = url.searchParams.get('isProfile');
     const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';

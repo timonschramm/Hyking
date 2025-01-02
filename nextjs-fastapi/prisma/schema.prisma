@@ -65,11 +65,11 @@ model Profile {
   imageUrl            String?
   gender              String?
   location            String?
-  experienceLevel     Int?
-  preferredPace       Int?
-  preferredDistance   Int?
+  experienceLevel     ExperienceLevel?
+  preferredPace       PreferredPace?
+  preferredDistance   PreferredDistance?
   dogFriendly         Boolean?
-  transportation      Int?
+  transportation      Transportation?
   spotifyConnected    Boolean      @default(false)
   spotifyAccessToken  String?
   spotifyRefreshToken String?
@@ -155,4 +155,31 @@ model UserInterest {
   interest  Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, interestId])
+}
+
+enum ExperienceLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+enum PreferredPace {
+  LEISURELY
+  MODERATE
+  FAST
+  VERY_FAST
+}
+
+enum PreferredDistance {
+  SHORT
+  MEDIUM
+  LONG
+  VERY_LONG
+}
+
+enum Transportation {
+  CAR
+  PUBLIC_TRANSPORT
+  BOTH
 }

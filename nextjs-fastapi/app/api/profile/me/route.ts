@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    console.log('profile');
+    console.log('profile/me');
     console.log(profile);
 
     return NextResponse.json(profile);

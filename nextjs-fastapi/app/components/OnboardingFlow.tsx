@@ -9,6 +9,7 @@ import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
 import { Skeleton } from "@/components/ui/skeleton";
 import { SpotifyArtistsDisplaySkeleton } from './SpotifyArtistsDisplay';
 import { Prisma } from '@prisma/client';
+import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } from '@prisma/client';
 
 // Use Prisma's utility types for Artist with relations
 type ArtistWithRelations = Prisma.ArtistGetPayload<{
@@ -18,12 +19,39 @@ type ArtistWithRelations = Prisma.ArtistGetPayload<{
   }
 }>;
 
+type ProfileWithAllData = Prisma.ProfileGetPayload<{
+  include: {
+    artists: {
+      include: {
+        artist: {
+          include: {
+            genres: true
+          }
+        }
+      }
+    }
+    interests: {
+      include: {
+        interest: true
+      }
+    }
+  }
+}>;
+
 interface OnboardingFlowProps {
-  initialData?: any;
+  initialData: ProfileWithAllData;
 }
 
 interface FormData {
-  artists: ArtistWithRelations[];
+  artists: Array<{
+    id: string;
+    name: string;
+    imageUrl: string | null;
+    spotifyId: string;
+    createdAt: Date;
+    updatedAt: Date;
+    genres: Array<{ name: string; id: string; }>;
+  }>;
   spotifyConnected?: boolean;
   age?: string;
   gender?: string;
@@ -36,7 +64,48 @@ interface FormData {
   transportation?: string;
 }
 
+// Add type-safe mappings
+const EXPERIENCE_LEVEL_MAP: Record<ExperienceLevel, string> = {
+  BEGINNER: 'Beginner (0-1)',
+  INTERMEDIATE: 'Intermediate (1-2)',
+  ADVANCED: 'Advanced (2-3)',
+  EXPERT: 'Expert (3)'
+};
 
+const PREFERRED_PACE_MAP: Record<PreferredPace, string> = {
+  LEISURELY: 'Leisurely',
+  MODERATE: 'Moderate',
+  FAST: 'Fast',
+  VERY_FAST: 'Very Fast'
+};
+
+const PREFERRED_DISTANCE_MAP: Record<PreferredDistance, string> = {
+  SHORT: '1-5 km',
+  MEDIUM: '5-10 km',
+  LONG: '10-20 km',
+  VERY_LONG: '20+ km'
+};
+
+const TRANSPORTATION_MAP: Record<Transportation, string> = {
+  CAR: 'Car',
+  PUBLIC_TRANSPORT: 'Public Transport',
+  BOTH: 'Both'
+};
+
+// Add reverse mappings for form submission
+const REVERSE_EXPERIENCE_LEVEL_MAP = Object.entries(EXPERIENCE_LEVEL_MAP)
+  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, ExperienceLevel>;
+
+const REVERSE_PREFERRED_PACE_MAP = Object.entries(PREFERRED_PACE_MAP)
+  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, PreferredPace>;
+
+const REVERSE_PREFERRED_DISTANCE_MAP = Object.entries(PREFERRED_DISTANCE_MAP)
+  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, PreferredDistance>;
+
+const REVERSE_TRANSPORTATION_MAP = Object.entries(TRANSPORTATION_MAP)
+  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, Transportation>;
+
+  
 export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(() => {
@@ -46,34 +115,43 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
     return 0;
   });
-  const [userData, setUserData] = useState<FormData>({
-    artists: [],
-    spotifyConnected: false,
-    age: '',
-    gender: '',
-    location: '',
-    experienceLevel: '',
-    preferredPace: '',
-    preferredDistance: '',
-    interests: [],
-    dogFriendly: false,
-    transportation: ''
+  const [userData, setUserData] = useState<FormData>(() => {
+    const interests = initialData.interests?.map(ui => ui.interest.id) || [];
+    console.log('Initializing userData with interests:', interests);
+    
+    return {
+      artists: initialData.artists?.map(ua => ua.artist) || [],
+      spotifyConnected: initialData.spotifyConnected || false,
+      age: initialData.age?.toString() || '',
+      gender: initialData.gender || '',
+      location: initialData.location || '',
+      experienceLevel: initialData.experienceLevel ? EXPERIENCE_LEVEL_MAP[initialData.experienceLevel] : '',
+      preferredPace: initialData.preferredPace ? PREFERRED_PACE_MAP[initialData.preferredPace] : '',
+      preferredDistance: initialData.preferredDistance ? PREFERRED_DISTANCE_MAP[initialData.preferredDistance] : '',
+      interests,
+      dogFriendly: initialData.dogFriendly || false,
+      transportation: initialData.transportation ? TRANSPORTATION_MAP[initialData.transportation] : ''
+    };
   });
   const [isLoading, setIsLoading] = useState(true);
-  console.log("userData:", userData);
+  console.log("userDataexp:", userData);
   useEffect(() => {
     localStorage.setItem('onboardingStep', currentStep.toString());
   }, [currentStep]);
 
-  const handleUpdateProfile = async (formData: any) => {
+  const handleUpdateProfile = async (formData: FormData) => {
     try {
-      const { availableInterests, ...profileData } = formData; // Remove availableInterests from data sent to API
-      console.log("profileData:", profileData);
+      const profileData = {
+        ...formData,
+        experienceLevel: formData.experienceLevel ? REVERSE_EXPERIENCE_LEVEL_MAP[formData.experienceLevel] : undefined,
+        preferredPace: formData.preferredPace ? REVERSE_PREFERRED_PACE_MAP[formData.preferredPace] : undefined,
+        preferredDistance: formData.preferredDistance ? REVERSE_PREFERRED_DISTANCE_MAP[formData.preferredDistance] : undefined,
+        transportation: formData.transportation ? REVERSE_TRANSPORTATION_MAP[formData.transportation] : undefined,
+      };
+
       const response = await fetch('/api/profile/update', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...profileData,
           interests: formData.interests || [],
@@ -81,10 +159,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update profile');
-      }
-
+      if (!response.ok) throw new Error('Failed to update profile');
       router.push('/dashboard');
     } catch (error) {
       console.error('Error updating profile:', error);
@@ -92,17 +167,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
   };
 
-  // Add handleSpotifyConnect function
-  const handleSpotifyConnect = async () => {
-    try {
-      const response = await fetch('/api/connectToSpotify?from=onboarding');
-      const data = await response.json();
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Error connecting to Spotify:', error);
-      toast.error('Failed to connect to Spotify');
-    }
-  };
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -136,50 +200,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     loadProfile();
   }, []);
 
-  useEffect(() => {
-    const checkAndFetchArtists = async () => {
-      console.log("Checking and fetching artists");
-      try {
-        // Get the current profile
-        const profileResponse = await fetch('/api/profile/me');
-        const profile = await profileResponse.json();
-        // if request files get now token with refreshtoken TODO!
-        if (profile.spotifyConnected && profile.spotifyAccessToken) {
-          // Fetch artists from Spotify
-          const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
-            headers: {
-              'Authorization': `Bearer ${profile.spotifyAccessToken}`
-            }
-          });
-          console.log("Response:", response);
-
-          if (!response.ok) {
-            throw new Error('Failed to fetch artists from Spotify');
-          }
-
-          const data = await response.json();
-
-          // Transform artists to the correct format
-          const formattedArtists = data.items.map((artist: any) => ({
-            spotifyId: artist.id,
-            name: artist.name,
-            imageUrl: artist.images[0]?.url,
-            genres: artist.genres,
-            hidden: false
-          }));  
-
-          setUserData(prev => ({
-            ...prev,
-            artists: formattedArtists
-          }));
-        }
-      } catch (error) {
-        console.error('Error fetching artists:', error);
-      }
-    };
-
-    checkAndFetchArtists();
-  }, []);
 
   const steps = [
     {
@@ -261,16 +281,27 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   ];
 
   const handleSelect = async (stepData: any) => {
-    const newUserData = { ...userData, ...stepData };
+    console.log('Previous userData:', userData);
+    console.log('Incoming stepData:', stepData);
+    
+    const newUserData = { 
+      ...userData,
+      ...stepData,
+      interests: Array.isArray(stepData.interests) ? stepData.interests : userData.interests
+    };
+    
+    console.log('New userData:', newUserData);
     setUserData(newUserData);
-    console.log("newUserData isConnected:", newUserData);
 
     try {
       if (currentStep > 0) {
         const response = await fetch('/api/profile/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newUserData),
+          body: JSON.stringify({
+            ...newUserData,
+            interests: newUserData.interests || []
+          }),
         });
 
         if (!response.ok) {
@@ -305,6 +336,10 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
   console.log("initialData:", initialData);
 
+  useEffect(() => {
+    console.log('userData.interests changed:', userData.interests);
+  }, [userData.interests]);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
@@ -327,7 +362,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                   isConnected={initialData?.spotifyConnected || false}
                   isEditable={false}
                   profile={initialData}
-                  user={initialData?.id || { id: '' }}
                 
                 />
               )}
@@ -351,42 +385,3 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     </div>
   );
 }
-
-function convertExperienceLevelBack(level: number): string {
-  const mapping = {
-    0: 'Beginner (0-1)',
-    1: 'Intermediate (1-2)',
-    2: 'Advanced (2-3)',
-    3: 'Expert (3)'
-  };
-  return mapping[level as keyof typeof mapping];
-}
-
-function convertPreferredPaceBack(pace: number): string {
-  const mapping = {
-    0: 'Leisurely',
-    1: 'Moderate',
-    2: 'Fast',
-    3: 'Very Fast'
-  };
-  return mapping[pace as keyof typeof mapping];
-}
-
-function convertPreferredDistanceBack(distance: number): string {
-  const mapping = {
-    0: '1-5 km',
-    1: '5-10 km',
-    2: '10-20 km',
-    3: '20+ km'
-  };
-  return mapping[distance as keyof typeof mapping];
-}
-
-function convertTransportationBack(transportation: number): string {
-  const mapping = {
-    0: 'Car',
-    1: 'Public Transport',
-    2: 'Both'
-  };
-  return mapping[transportation as keyof typeof mapping];
-} 

@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { InterestCategory, Interest } from '@prisma/client';
+import InterestOption from './OnboardingStep/StepOptions/InterestsOption';
+
 
 interface StepOption {
   type: 'select' | 'input' | 'bubbles' | 'toggle' | 'interests';
@@ -33,16 +35,6 @@ interface OnboardingStepProps {
   validation?: (value: any) => boolean;
   initialValues?: Record<string, any>;
   loading?: boolean;
-}
-
-
-
-interface GroupedInterests {
-  [key: string]: Array<{
-    id: string;
-    name: string;
-    category: InterestCategory;
-  }>;
 }
 
 const InputStepSkeleton = () => (
@@ -144,7 +136,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   initialValues,
   loading = false 
 }) => {
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, any>>(initialValues || {});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
 
@@ -154,7 +146,9 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
         const response = await fetch('/api/interests');
         if (response.ok) {
           const interests = await response.json();
-          // The interests are already grouped by category from the API
+          console.log('API Response:', interests);
+          console.log('Response type:', typeof interests);
+          console.log('Is Array?', Array.isArray(interests));
           setAvailableInterests(interests);
         }
       } catch (error) {
@@ -169,8 +163,18 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
 
   useEffect(() => {
     if (initialValues) {
-      console.log('Received initial values:', initialValues);
-      setFormData(initialValues);
+      setFormData(prev => {
+        // Only update interests if initialValues.interests exists and is non-empty
+        const newInterests = initialValues.interests?.length 
+          ? initialValues.interests 
+          : prev.interests || [];
+
+        return {
+          ...prev,
+          ...initialValues,
+          interests: newInterests
+        };
+      });
     }
   }, [initialValues]);
 
@@ -202,18 +206,24 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
     setFormData(prev => {
       const currentInterests = prev.interests || [];
       const maxSelect = stepData.options.find(opt => opt.label === 'Interests')?.maxSelect || 5;
-      
+      console.log('currentInterests:', currentInterests);
       if (currentInterests.includes(interestId)) {
+        // Fix: Create new array to ensure state update
+        const newInterests = currentInterests.filter((id: string) => id !== interestId);
         return {
           ...prev,
-          interests: currentInterests.filter((id: string) => id !== interestId)
+          interests: newInterests
         };
       } else if (currentInterests.length < maxSelect) {
+        // Fix: Create new array to ensure state update
+        const newInterests = [...currentInterests, interestId];
+        console.log("newInterests:", newInterests)
         return {
           ...prev,
-          interests: [...currentInterests, interestId]
+          interests: newInterests
         };
       }
+      
       return prev;
     });
   };
@@ -336,33 +346,12 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
             )}
 
             {option.type === 'interests' && (
-              <div className="space-y-4">
-                {Object.entries(availableInterests).map(([category, interests]) => (
-                  <div key={category} className="space-y-2">
-                    <h3 className="font-medium text-primary">
-                      {category.split('_').map(word => 
-                        word.charAt(0) + word.slice(1).toLowerCase()
-                      ).join(' ')}
-                    </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                      {(interests as unknown as Array<{ id: string; name: string; category: InterestCategory }>).map((interest) => (
-                        <button
-                          key={interest.id}
-                          onClick={() => handleInterestSelect(interest.id)}
-                          className={cn(
-                            "p-2 rounded-lg text-sm transition-colors",
-                            formData.interests?.includes(interest.id)
-                              ? "bg-primary text-white"
-                              : "bg-gray-100 hover:bg-gray-200"
-                          )}
-                        >
-                          {interest.name.split(/(?=[A-Z])/).join(' ')}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <InterestOption
+                availableInterests={availableInterests}
+                formData={formData}
+                onInterestSelect={handleInterestSelect}
+                maxSelect={option.maxSelect}
+              />
             )}
           </div>
         ))}

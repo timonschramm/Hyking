@@ -29,6 +29,11 @@ export async function GET(request: NextRequest) {
               }
             }
           }
+        },
+        interests: {
+          include: {
+            interest: true
+          }
         }
       }
     });
@@ -50,8 +55,8 @@ export async function GET(request: NextRequest) {
       }))
     };
 
-    console.log('Raw profile data:', profile);
-    console.log('Transformed profile data:', transformedProfile);
+    // console.log('Raw profile data:', profile);
+    // console.log('Transformed profile data:', transformedProfile);
     return NextResponse.json(profile);
   } catch (error) {
     console.error('Error fetching profile:', error);

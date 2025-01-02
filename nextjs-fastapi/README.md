@@ -18,6 +18,7 @@ Run the project
 
 
 dotenv -f .env.local run -- npx prisma migrate status
+dotenv -f .env.local run -- npx prisma generate  
 dotenv -f .env.local run -- npx prisma migrate dev --name name
 dotenv -f .env.local run -- npx prisma migrate deploy
 dotenv -f .env.local run -- npx prisma db push 

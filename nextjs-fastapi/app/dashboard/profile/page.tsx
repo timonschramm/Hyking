@@ -4,58 +4,63 @@ import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import Image from 'next/image';
 import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
-// import SpotifyConnect from '@/app/components/SpotifyConnect';
-import SpotifyArtists from '@/app/components/SpotifyArtists';
-import { v4 as uuidv4 } from 'uuid';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Prisma } from '@prisma/client';
+import { Prisma, Interest, InterestCategory, Transportation, ExperienceLevel, PreferredPace, PreferredDistance } from '@prisma/client';
+import InterestOption from '@/app/components/OnboardingStep/StepOptions/InterestsOption';
+
 
 // Use Prisma's utility types for Artist with relations
-type ProfileWithArtists = Prisma.ProfileGetPayload<{
-    include: {
-      artists: {
-        include: {
-          artist: {
-            include: {
-              genres: true
-            }
+type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
+  include: {
+    artists: {
+      include: {
+        artist: {
+          include: {
+            genres: true
           }
         }
       }
     }
-  }>;
+    interests: {
+      include: {
+        interest: true
+      }
+    }
+  }
+
+}>;
 
 
 
 // Helper functions to convert database values to display values
-const experienceLevelMap = {
-  0: 'Beginner (0-1)',
-  1: 'Intermediate (1-2)',
-  2: 'Advanced (2-3)',
-  3: 'Expert (3)'
+const experienceLevelMap: Record<ExperienceLevel, string> = {
+  BEGINNER: 'Beginner (0-1)',
+  INTERMEDIATE: 'Intermediate (1-2)',
+  ADVANCED: 'Advanced (2-3)',
+  EXPERT: 'Expert (3)'
 };
 
-const paceMap = {
-  0: 'Leisurely',
-  1: 'Moderate',
-  2: 'Fast',
-  3: 'Very Fast'
+const paceMap: Record<PreferredPace, string> = {
+  LEISURELY: 'Leisurely',
+  MODERATE: 'Moderate',
+  FAST: 'Fast',
+  VERY_FAST: 'Very Fast'
 };
 
-const distanceMap = {
-  0: '1-5 km',
-  1: '5-10 km',
-  2: '10-20 km',
-  3: '20+ km'
+const distanceMap: Record<PreferredDistance, string> = {
+  SHORT: '1-5 km',
+  MEDIUM: '5-10 km',
+  LONG: '10-20 km',
+  VERY_LONG: '20+ km'
 };
 
-const transportationMap = {
-  0: 'Car',
-  1: 'Public Transport',
-  2: 'Both'
+const transportationMap: Record<Transportation, string> = {
+  CAR: 'Car',
+  PUBLIC_TRANSPORT: 'Public Transport',
+  BOTH: 'Both'
 };
 
 const ProfileSkeleton = () => {
@@ -145,7 +150,7 @@ const ProfileSkeleton = () => {
                 <h2 className="text-xl font-semibold">Spotify Integration</h2>
                 <Skeleton className="h-10 w-32 bg-gray-200 rounded-full" />
               </div>
-              
+
               {/* Artists Grid */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
@@ -164,17 +169,22 @@ const ProfileSkeleton = () => {
   );
 };
 
+// Add type for grouped interests
+
+
+
 export default function ProfilePage() {
-  const [profileData, setProfileData] = useState<ProfileWithArtists | null>(null);
+  const [profileData, setProfileData] = useState<ProfileWithArtistsAndInterests | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<ProfileWithArtists | null>(null);
+  const [editedData, setEditedData] = useState<ProfileWithArtistsAndInterests | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
-
+  const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
+  const [userInterestIds, setUserInterestIds] = useState<string[]>([]);
   const loadProfileData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -182,9 +192,10 @@ export default function ProfilePage() {
 
       const response = await fetch(`/api/profile?userId=${user.id}`);
       if (!response.ok) throw new Error('Failed to fetch profile data');
-      
-      const profileData = await response.json();
+
+      const profileData : ProfileWithArtistsAndInterests = await response.json();
       setProfileData(profileData);
+      setUserInterestIds(profileData.interests.map(interest => interest.interestId))
     } catch (error) {
       console.error('[Profile] Error loading profile data:', error);
     } finally {
@@ -207,22 +218,27 @@ export default function ProfilePage() {
       if (!user) return;
 
       const formData = new FormData();
-      
-      // Add profile data
+
       formData.append('profileData', JSON.stringify(editedData));
-      
+
       // Add image if there's a new one
       if (newImageFile) { // You'll need to track the new image file in state
         formData.append('image', newImageFile);
       }
 
-      const response = await fetch(`/api/profile?userId=${user.id}`, {
-        method: 'PUT',
-        body: formData,
+      const response = await fetch(`/api/profile/update`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify({
+          ...formData,
+          interests: userInterestIds || [],
+          artists: profileData?.artists,
+        })
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
-      
+
       const updatedProfile = await response.json();
       setProfileData(updatedProfile);
       setIsEditing(false);
@@ -231,29 +247,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleSpotifyConnect = async () => {
-    try {
-      const response = await fetch('/api/connectToSpotify?from=profile');
-      const data = await response.json();
-      window.location.href = data.url;
-    } catch (error) {
-      console.error('Error connecting to Spotify:', error);
-    }
-  };
-
-  const handleSpotifyDisconnect = async () => {
-    try {
-      const response = await fetch('/api/spotify/disconnect', {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to disconnect Spotify');
-      
-      // Refresh profile data
-      loadProfileData();
-    } catch (error) {
-      console.error('Error disconnecting Spotify:', error);
-    }
-  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) {
@@ -262,11 +255,11 @@ export default function ProfilePage() {
 
     const file = event.target.files[0];
     console.log('Selected file:', file.name);
-    
+
     // Create temporary URL for immediate preview
     const objectUrl = URL.createObjectURL(file);
     setProfileData(prev => prev ? { ...prev, imageUrl: objectUrl } : null);
-    
+
     setNewImageFile(file);
   };
 
@@ -289,7 +282,7 @@ export default function ProfilePage() {
       setDeleteError(null);
 
       const supabase = createClient();
-      
+
       // Delete user on the client side
       const { error } = await supabase.rpc('delete_user');
       if (error) throw error;
@@ -305,6 +298,36 @@ export default function ProfilePage() {
     }
   };
 
+
+  const handleInterestSelect = (interestId: string) => {
+    if (!editedData) return;
+    const currentInterests = userInterestIds;
+    console.log("currentInterests:", currentInterests)
+    console.log("selcted interestid: ", interestId)
+    const newInterests = currentInterests.filter((id: string) => id !== interestId);
+    console.log("newInterests:", newInterests)
+
+    setUserInterestIds(newInterests);
+  };
+
+  useEffect(() => {
+    const fetchInterests = async () => {
+      try {
+        const response = await fetch('/api/interests');
+        if (!response.ok) throw new Error('Failed to fetch interests');
+        const interests: Interest[] = await response.json();
+        setAvailableInterests(interests);
+        // Convert the grouped interests to a flat array like in OnboardingStep
+      } catch (error) {
+        console.error('Error fetching interests:', error);
+        setAvailableInterests([]);
+      }
+    };
+
+    fetchInterests();
+  }, []);
+
+
   if (isLoading) return <ProfileSkeleton />;
 
   return (
@@ -315,9 +338,9 @@ export default function ProfilePage() {
           <div className="absolute -bottom-16 left-6">
             <div className="relative w-32 h-32">
               <Avatar className="w-32 h-32 border-4 border-white">
-                <AvatarImage 
-                  src={profileData?.imageUrl || ''} 
-                  alt="Profile picture" 
+                <AvatarImage
+                  src={profileData?.imageUrl || ''}
+                  alt="Profile picture"
                 />
                 <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
                   {profileData?.email?.[0]?.toUpperCase() || '?'}
@@ -424,8 +447,11 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Experience Level</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.experienceLevel?.toString() || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, experienceLevel: parseInt(e.target.value) })}
+                    value={editedData?.experienceLevel || ''}
+                    onChange={(e) => setEditedData({
+                      ...editedData!,
+                      experienceLevel: e.target.value as ExperienceLevel
+                    })}
                     className="w-full p-2 border rounded-lg"
                   >
                     {Object.entries(experienceLevelMap).map(([key, value]) => (
@@ -434,7 +460,7 @@ export default function ProfilePage() {
                   </select>
                 ) : (
                   <p className="text-lg">
-                    {experienceLevelMap[profileData.experienceLevel as keyof typeof experienceLevelMap]}
+                    {experienceLevelMap[profileData.experienceLevel || 'BEGINNER']}
                   </p>
                 )}
               </div>
@@ -444,8 +470,11 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Preferred Pace</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.preferredPace?.toString() || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, preferredPace: parseInt(e.target.value) })}
+                    value={editedData?.preferredPace || ''}
+                    onChange={(e) => setEditedData({
+                      ...editedData!,
+                      preferredPace: e.target.value as PreferredPace
+                    })}
                     className="w-full p-2 border rounded-lg"
                   >
                     {Object.entries(paceMap).map(([key, value]) => (
@@ -454,7 +483,7 @@ export default function ProfilePage() {
                   </select>
                 ) : (
                   <p className="text-lg">
-                    {paceMap[profileData.preferredPace as keyof typeof paceMap]}
+                    {paceMap[profileData.preferredPace || 'LEISURELY']}
                   </p>
                 )}
               </div>
@@ -464,8 +493,11 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Preferred Distance</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.preferredDistance?.toString() || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, preferredDistance: parseInt(e.target.value) })}
+                    value={editedData?.preferredDistance || ''}
+                    onChange={(e) => setEditedData({
+                      ...editedData!,
+                      preferredDistance: e.target.value as PreferredDistance
+                    })}
                     className="w-full p-2 border rounded-lg"
                   >
                     {Object.entries(distanceMap).map(([key, value]) => (
@@ -474,27 +506,8 @@ export default function ProfilePage() {
                   </select>
                 ) : (
                   <p className="text-lg">
-                    {distanceMap[profileData.preferredDistance as keyof typeof distanceMap]}
+                    {distanceMap[profileData.preferredDistance || 'SHORT']}
                   </p>
-                )}
-              </div>
-
-              {/* Hobbies Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Hobbies</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedData?.hobbies?.join(', ') || ''}
-                    onChange={(e) => setEditedData({ 
-                      ...editedData!, 
-                      hobbies: e.target.value.split(',').map(hobby => hobby.trim())
-                    })}
-                    placeholder="Enter hobbies separated by commas"
-                    className="w-full p-2 border rounded-lg"
-                  />
-                ) : (
-                  <p className="text-lg">{profileData.hobbies?.join(', ')}</p>
                 )}
               </div>
 
@@ -521,8 +534,11 @@ export default function ProfilePage() {
                 <label className="text-sm text-gray-500">Transportation</label>
                 {isEditing ? (
                   <select
-                    value={editedData?.transportation?.toString() || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, transportation: parseInt(e.target.value) })}
+                    value={editedData?.transportation || ''}
+                    onChange={(e) => setEditedData({
+                      ...editedData!,
+                      transportation: e.target.value as Transportation
+                    })}
                     className="w-full p-2 border rounded-lg"
                   >
                     {Object.entries(transportationMap).map(([key, value]) => (
@@ -531,7 +547,7 @@ export default function ProfilePage() {
                   </select>
                 ) : (
                   <p className="text-lg">
-                    {transportationMap[profileData.transportation as keyof typeof transportationMap]}
+                    {transportationMap[profileData.transportation || 'CAR']}
                   </p>
                 )}
               </div>
@@ -554,13 +570,38 @@ export default function ProfilePage() {
                 )}
               </div>
 
+              {/* Interests Field */}
+              <div className="space-y-2">
+                <label className="text-sm text-gray-500">Interests</label>
+                {isEditing ? (
+                  <InterestOption
+                    availableInterests={availableInterests}
+                    formData={{
+                      interests: editedData?.interests?.map(ui => ui.interestId) || []
+                    }}
+                    onInterestSelect={handleInterestSelect}
+                    maxSelect={5}
+                  />
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {profileData.interests?.map((userInterest) => (
+                      <span
+                        key={userInterest.interest.id}
+                        className="bg-primary-light text-primary px-3 py-1 rounded-full text-sm"
+                      >
+                        {userInterest.interest.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               {/* Spotify section */}
               <SpotifyArtistsDisplay
                 isConnected={profileData?.spotifyConnected || false}
-                onDisconnect={handleSpotifyDisconnect}
+                onDisconnect={() => { }}
                 isEditable={true}
                 profile={profileData}
-                user={{ id: profileData?.id || '' }}
               />
             </div>
           ) : (

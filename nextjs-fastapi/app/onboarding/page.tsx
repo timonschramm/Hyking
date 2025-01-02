@@ -6,7 +6,7 @@ import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Prisma } from '@prisma/client';
 
-type ProfileWithArtists = Prisma.ProfileGetPayload<{
+type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
   include: {
     artists: {
       include: {
@@ -17,11 +17,16 @@ type ProfileWithArtists = Prisma.ProfileGetPayload<{
         }
       }
     }
+    interests: {
+      include: {
+        interest: true
+      }
+    }
   }
 }>;
 
 export default function OnboardingPage() {
-  const [initialData, setInitialData] = useState<ProfileWithArtists | null>(null);
+  const [initialData, setInitialData] = useState<ProfileWithArtistsAndInterests  | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
@@ -46,12 +51,13 @@ export default function OnboardingPage() {
         
         const data = await response.json();
         
-        if (data.onboardingCompleted) {
-          router.push('/dashboard');
-          return;
-        }
+        // if (data.onboardingCompleted) {
+        //   router.push('/dashboard');
+        //   return;
+        // }
 
         setInitialData(data);
+        console.log('initialDatafromonboarding:', data);
       } catch (error) {
         console.error("Error loading profile data:", error);
         setError(error instanceof Error ? error.message : 'Failed to load profile');
@@ -63,9 +69,7 @@ export default function OnboardingPage() {
     loadProfileData();
   }, [supabase.auth, router]);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+
 
   if (error) {
     return <div>Error: {error}</div>;

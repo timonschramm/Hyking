@@ -20,7 +20,7 @@ type ArtistWithRelations = Prisma.ArtistGetPayload<{
   }
 }>;
 
-type ProfileWithArtists = Prisma.ProfileGetPayload<{
+type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
     include: {
         artists: {
           include: {
@@ -31,6 +31,11 @@ type ProfileWithArtists = Prisma.ProfileGetPayload<{
             }
           }
         }
+        interests: {
+          include: {
+            interest: true
+          }
+        }
       }
 }>;
 
@@ -39,8 +44,7 @@ interface SpotifyArtistsDisplayProps {
     isConnected: boolean;
     onDisconnect?: () => void;
     isEditable?: boolean;
-    user: { id: string };
-    profile: ProfileWithArtists;
+    profile: ProfileWithArtistsAndInterests;
 }
 
 export const SpotifyArtistsDisplaySkeleton = () => {
@@ -70,7 +74,6 @@ export default function SpotifyArtistsDisplay({
   isConnected,
   onDisconnect,
   isEditable = false,
-  user,
   profile,
 }: SpotifyArtistsDisplayProps) {
   // Update state to use profile.artists directly

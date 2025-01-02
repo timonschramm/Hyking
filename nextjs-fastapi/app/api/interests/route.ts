@@ -10,7 +10,7 @@ export async function GET() {
       ]
     });
     
-    console.log('Fetched interests:', interests);
+    // console.log('Fetched interests:', interests);
     
     // Group interests by category
     const groupedInterests = interests.reduce((acc, interest) => {
@@ -22,7 +22,7 @@ export async function GET() {
       return acc;
     }, {} as Record<string, typeof interests>);
 
-    console.log('Grouped interests:', groupedInterests);
+    // console.log('Grouped interests:', groupedInterests);
     return NextResponse.json(groupedInterests);
   } catch (error) {
     console.error('Error fetching interests:', error);
