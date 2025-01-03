@@ -1,8 +1,8 @@
 'use client';
-import { Card, CardSkeleton } from '@/app/components/Card';
 import { AnimatePresence } from 'framer-motion';
 import { Activity } from '@prisma/client';
 import { useEffect, useState } from 'react';
+import { UserCard, UserCardSkeleton} from '@/app/components/UserCard'
 
 export default function Match() {
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -41,12 +41,12 @@ export default function Match() {
     <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
       <h1>Matching</h1>
       {isLoading ? (
-        <CardSkeleton />
+        <UserCardSkeleton />
       ) : (
         <AnimatePresence>
           {activities.length ? (
             activities.map((activity) => (
-              <Card
+              <UserCard
                 key={activity.id}
                 data={activity}
                 active={activity.id === activities[activeIndex]?.id}
