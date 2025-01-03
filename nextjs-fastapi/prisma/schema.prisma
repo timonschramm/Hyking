@@ -183,3 +183,4 @@ enum Transportation {
   PUBLIC_TRANSPORT
   BOTH
 }
+

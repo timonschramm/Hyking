@@ -17,16 +17,12 @@ export async function GET(request: Request) {
     });
 
     const onboardingCompleted = profile?.onboardingCompleted;
-    console.log("Onboard compl: ", onboardingCompleted)
-    console.log("profile: ", profile)
     const url = new URL(request.url);
     const rawIsProfile = url.searchParams.get('isProfile');
     const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
-    console.log("Parsed isProfile:", isProfile);
 
     const code = url.searchParams.get('code');
     const path = onboardingCompleted ? '/profile' : '/onboarding';
-    console.log("Path:", path);
     if (!code) {
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
@@ -42,7 +38,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
-    console.log("Redirect URI:", redirectUri);
+    // console.log("Redirect URI:", redirectUri);
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -63,7 +59,6 @@ export async function GET(request: Request) {
     }
 
     const data = await tokenResponse.json();
-    console.log("Datahere:", data);
 
     // Fetch top artists before updating profile
     const topArtistsResponse = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3&time_range=long_term', {

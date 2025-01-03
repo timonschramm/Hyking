@@ -85,18 +85,18 @@ export async function PUT(request: NextRequest) {
     const first_profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
     const interests = formData.get('interests') ? JSON.parse(formData.get('interests') as string) : [];
     // Extract interests from profileData
-    console.log("interests:", interests)
-    console.log("profileData:", first_profileData)
+    // console.log("interests:", interests)
+    // console.log("profileData:", first_profileData)
     const { artists, topArtists, ...profileData } = first_profileData;
     // Clean the basic profile data
     let cleanedData = Object.fromEntries(
       Object.entries(profileData)
         .filter(([key, value]) => value !== undefined && key !== 'topArtists')
     );
-    console.log("cleanedData:", cleanedData)
+    // console.log("cleanedData:", cleanedData)
     // Handle image upload if present
     if (imageFile) {
-      console.log('Processing image upload:', imageFile.name);
+      // console.log('Processing image upload:', imageFile.name);
       // Delete old image if exists
       const currentProfile = await prisma.profile.findUnique({
         where: { id: userId },
@@ -128,7 +128,7 @@ export async function PUT(request: NextRequest) {
           }
         });
 
-      console.log('Upload result:', uploadError || uploadData);
+      // console.log('Upload result:', uploadError || uploadData);
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage

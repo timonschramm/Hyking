@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     }
 
     const { artists } = await request.json();
-    console.log("artists in api:", artists)
+    // console.log("artists in api:", artists)
     if (!Array.isArray(artists) || artists.some(a => !a.spotifyId)) {
       return NextResponse.json({ 
         error: 'Invalid artist data', 
@@ -176,7 +176,7 @@ export async function PATCH(request: Request) {
         }
       }
     });
-    console.log("updatedUserArtist:", updatedUserArtist)
+   // console.log("updatedUserArtist:", updatedUserArtist)
 
     return NextResponse.json(updatedUserArtist);
   } catch (error) {
