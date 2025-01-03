@@ -59,7 +59,7 @@ model Image {
 }
 
 model Profile {
-  id                  String       @id @default(cuid())
+  id                  String             @id @default(cuid())
   email               String
   age                 Int?
   imageUrl            String?
@@ -70,15 +70,45 @@ model Profile {
   preferredDistance   PreferredDistance?
   dogFriendly         Boolean?
   transportation      Transportation?
-  spotifyConnected    Boolean      @default(false)
+  spotifyConnected    Boolean            @default(false)
   spotifyAccessToken  String?
   spotifyRefreshToken String?
   spotifyTokenExpiry  DateTime?
-  onboardingCompleted Boolean      @default(false)
+  onboardingCompleted Boolean            @default(false)
   artists             UserArtist[]
   interests           UserInterest[]
-
+  sentSwipes          UserSwipe[]        @relation("SwipeSender") // Swipes they've sent to others
+  receivedSwipes      UserSwipe[]        @relation("SwipeReceiver") // Swipes they've received
+  matches             Match[]            @relation("UserMatches") // Their matches
+  bio                 String?
 }
+
+model UserSwipe {
+    id            String    @id @default(cuid())
+    senderId      String
+    receiverId    String
+    action        String    // 'like' or 'dislike'
+    timestamp     DateTime  @default(now())
+    sender        Profile   @relation("SwipeSender", fields: [senderId], references: [id], onDelete: Cascade)
+    receiver      Profile   @relation("SwipeReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+    isViewed      Boolean   @default(false)  // For tracking if the receiver has seen this like
+
+    @@unique([senderId, receiverId])
+}
+
+model Match {
+    id            String    @id @default(cuid())
+    users         Profile[] @relation("UserMatches")
+    createdAt     DateTime  @default(now())
+    lastActivity  DateTime  @default(now())
+    // messages      Message[]
+    isActive      Boolean   @default(true)
+      // Optional: planned activity for the match
+    // plannedActivityId Int?
+    // plannedActivity   Activity? @relation(fields: [plannedActivityId], references: [id])
+}
+
+
 
 model Artist {
   id        String       @id @default(cuid())
@@ -125,7 +155,6 @@ enum Month {
   dec
 }
 
-
 enum InterestCategory {
   SELF_CARE
   SPORTS
@@ -135,24 +164,25 @@ enum InterestCategory {
 }
 
 model Interest {
-  id          String           @id @default(cuid())
-  name        String           @unique
-  category    InterestCategory
-  users       UserInterest[]
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id        String           @id @default(cuid())
+  name      String           @unique
+  category  InterestCategory
+  users     UserInterest[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 
+
 model UserInterest {
-  id        String   @id @default(cuid())
-  profileId String
+  id         String   @id @default(cuid())
+  profileId  String
   interestId String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  
-  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  interest  Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, interestId])
 }
@@ -183,4 +213,3 @@ enum Transportation {
   PUBLIC_TRANSPORT
   BOTH
 }
-
