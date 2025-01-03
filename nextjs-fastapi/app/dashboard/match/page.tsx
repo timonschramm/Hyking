@@ -1,35 +1,38 @@
 'use client';
 import { AnimatePresence } from 'framer-motion';
-import { Activity } from '@prisma/client';
+import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
-import { UserCard, UserCardSkeleton} from '@/app/components/UserCard'
-
+import { UserCard, UserCardSkeleton } from '@/app/components/UserCard';
+import { ProfileWithArtistsAndInterests } from '@/app/types/profile';
 export default function Match() {
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterests[]>([]);
   const [rightSwipe, setRightSwipe] = useState(0);
   const [leftSwipe, setLeftSwipe] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchActivities = async () => {
+    const fetchProfiles = async () => {
       try {
-        const response = await fetch('/api/hikes');
+        const response = await fetch('/api/userRecs');
+        if (!response.ok) {
+          throw new Error('Failed to fetch profiles');
+        }
         const data = await response.json();
-        setActivities(data);
+        setProfiles(data);
       } catch (error) {
-        console.error('Failed to fetch activities:', error);
+        console.error('Failed to fetch profiles:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchActivities();
+    fetchProfiles();
   }, []);
 
-  const activeIndex = activities.length - 1;
+  const activeIndex = profiles.length - 1;
   
-  const removeCard = (id: number, action: 'right' | 'left') => {
-    setActivities((prev) => prev.filter((activity) => activity.id !== id));
+  const removeCard = (id: string, action: 'right' | 'left') => {
+    setProfiles((prev) => prev.filter((profile) => profile.id !== id));
     if (action === 'right') {
       setRightSwipe((prev) => prev + 1);
     } else {
@@ -39,29 +42,32 @@ export default function Match() {
 
   return (
     <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
-      <h1>Matching</h1>
-      {isLoading ? (
-        <UserCardSkeleton />
-      ) : (
-        <AnimatePresence>
-          {activities.length ? (
-            activities.map((activity) => (
-              <UserCard
-                key={activity.id}
-                data={activity}
-                active={activity.id === activities[activeIndex]?.id}
-                removeCard={removeCard}
-              />
-            ))
-          ) : (
-            <h2 className="absolute z-10 text-center text-2xl font-bold text-primary dark:text-primary-white">
-              No more activities available!
-              <br />
-              Come back later for more
-            </h2>
-          )}
-        </AnimatePresence>
-      )}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {isLoading ? (
+          <UserCardSkeleton />
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {profiles.length ? (
+              profiles.map((profile, index) => (
+                index === activeIndex && (
+                  <UserCard
+                    key={profile.id}
+                    data={profile}
+                    active={true}
+                    removeCard={removeCard}
+                  />
+                )
+              ))
+            ) : (
+              <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+                No more profiles available!
+                <br />
+                Come back later for more
+              </h2>
+            )}
+          </AnimatePresence>
+        )}
+      </div>
     </div>
   );
 }
