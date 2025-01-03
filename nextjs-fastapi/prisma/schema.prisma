@@ -35,6 +35,7 @@ model Activity {
   category                Category @relation(fields: [categoryId], references: [id])
   images                  Image[]
   seasons                 Season[]
+  swipes                 ActivitySwipe[]
 }
 
 model Category {
@@ -81,6 +82,7 @@ model Profile {
   receivedSwipes      UserSwipe[]        @relation("SwipeReceiver") // Swipes they've received
   matches             Match[]            @relation("UserMatches") // Their matches
   bio                 String?
+  activitySwipes     ActivitySwipe[]
 }
 
 model UserSwipe {
@@ -212,4 +214,16 @@ enum Transportation {
   CAR
   PUBLIC_TRANSPORT
   BOTH
+}
+
+model ActivitySwipe {
+  id         String   @id @default(cuid())
+  userId     String
+  activityId Int
+  action     String   // 'like' or 'dislike'
+  timestamp  DateTime @default(now())
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
 }

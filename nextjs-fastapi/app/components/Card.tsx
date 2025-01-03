@@ -7,7 +7,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,22 +78,49 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
     { ease: easeIn }
   );
 
-  const dragEnd = (event: any, info: PanInfo) => {
+  const recordSwipe = useCallback(async (activityId: number, action: 'like' | 'dislike') => {
+    try {
+      const response = await fetch('/api/activities/swipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          activityId,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record swipe');
+      }
+    } catch (error) {
+      console.error('Error recording swipe:', error);
+    }
+  }, []);
+
+  const dragEnd = async (event: any, info: PanInfo) => {
     setIsDragging(false);
     if (info.offset.x > 100) {
       setExitX(200);
       setDirection('right');
+      // add await but then you will get a delay
+      recordSwipe(data.id, 'like');
       removeCard(data.id, 'right');
     } else if (info.offset.x < -100) {
       setExitX(-200);
       setDirection('left');
+      // add await but then you will get a delay
+      // await recordSwipe(data.id, 'dislike');
+      recordSwipe(data.id, 'dislike');
       removeCard(data.id, 'left');
     }
   };
 
-  const handleAction = (direction: 'left' | 'right') => {
+  const handleAction = async (direction: 'left' | 'right') => {
     setDirection(direction);
     setExitX(direction === 'left' ? -200 : 200);
+    await recordSwipe(data.id, direction === 'left' ? 'dislike' : 'like');
     removeCard(data.id, direction);
   };
 
