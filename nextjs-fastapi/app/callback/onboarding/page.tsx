@@ -21,15 +21,13 @@ function CallbackContent() {
         }
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/onboarding`);
         console.log('Token exchange response status:', tokenResponse.status);
-
-        console.log("Token exchange response status onbo:", tokenResponse);
-        console.log("Token exchange response status onbo:", tokenResponse.body);
+        console.log("Token exchange response body:", tokenResponse.body);
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }
 
         const data = await tokenResponse.json();
-        console.log('Token exchange response data:', data);
+        console.log('Token exchange response data callback onboarding:', data);
 
         if (!data.access_token) {
           throw new Error('No access token received');

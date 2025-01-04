@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
-    // console.log("Redirect URI:", redirectUri);
+    console.log("Redirect URI:", redirectUri);
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {

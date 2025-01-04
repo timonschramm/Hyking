@@ -63,6 +63,7 @@ model Profile {
   id                  String             @id @default(cuid())
   email               String
   age                 Int?
+  displayName         String?
   imageUrl            String?
   gender              String?
   location            String?

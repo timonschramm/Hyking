@@ -1,75 +1,23 @@
 import { useState, useEffect } from 'react';
-import OnboardingStep from './OnboardingStep';
 import { Progress } from "@/components/ui/progress";
 import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
-import { UserProfileData } from '@/types/UserData';
 import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
-import { Skeleton } from "@/components/ui/skeleton";
-import { SpotifyArtistsDisplaySkeleton } from './SpotifyArtistsDisplay';
-import { Prisma } from '@prisma/client';
+import { BasicInformationStep } from './OnboardingStep/Steps/BasicInformationStep';
+import { PreferencesStep } from './OnboardingStep/Steps/PreferencesStep';
+import { InterestsStep } from './OnboardingStep/Steps/InterestsStep';
 import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } from '@prisma/client';
 import { ProfileWithArtistsAndInterests } from '../types/profile';
-// Use Prisma's utility types for Artist with relations
-type ArtistWithRelations = Prisma.ArtistGetPayload<{
-  include: {
-    genres: true;
-    profiles: true;
-  }
-}>;
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-type ProfileWithAllData = Prisma.ProfileGetPayload<{
-  include: {
-    artists: {
-      include: {
-        artist: {
-          include: {
-            genres: true
-          }
-        }
-      }
-    }
-    interests: {
-      include: {
-        interest: true
-      }
-    }
-  }
-}>;
-
-interface OnboardingFlowProps {
-  initialData: ProfileWithAllData;
-}
-
-interface FormData {
-  artists: Array<{
-    id: string;
-    name: string;
-    imageUrl: string | null;
-    spotifyId: string;
-    createdAt: Date;
-    updatedAt: Date;
-    genres: Array<{ name: string; id: string; }>;
-  }>;
-  spotifyConnected?: boolean;
-  age?: string;
-  gender?: string;
-  location?: string;
-  experienceLevel?: string;
-  preferredPace?: string;
-  preferredDistance?: string;
-  interests?: string[];
-  dogFriendly?: boolean;
-  transportation?: string;
-}
-
-// Add type-safe mappings
+// Type-safe mappings
 const EXPERIENCE_LEVEL_MAP: Record<ExperienceLevel, string> = {
-  BEGINNER: 'Beginner (0-1)',
-  INTERMEDIATE: 'Intermediate (1-2)',
-  ADVANCED: 'Advanced (2-3)',
-  EXPERT: 'Expert (3)'
+  BEGINNER: 'Beginner',
+  INTERMEDIATE: 'Intermediate',
+  ADVANCED: 'Advanced',
+  EXPERT: 'Expert'
 };
 
 const PREFERRED_PACE_MAP: Record<PreferredPace, string> = {
@@ -92,275 +40,276 @@ const TRANSPORTATION_MAP: Record<Transportation, string> = {
   BOTH: 'Both'
 };
 
-// Add reverse mappings for form submission
-const REVERSE_EXPERIENCE_LEVEL_MAP = Object.entries(EXPERIENCE_LEVEL_MAP)
-  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, ExperienceLevel>;
+interface OnboardingFlowProps {
+  initialData: ProfileWithArtistsAndInterests;
+}
 
-const REVERSE_PREFERRED_PACE_MAP = Object.entries(PREFERRED_PACE_MAP)
-  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, PreferredPace>;
+// First, define an interface for the step structure
+interface OnboardingStep {
+  id: 'spotify' | 'basics' | 'preferences' | 'interests';
+  title: string;
+  subtitle: string;
+  validate: () => boolean;
+}
 
-const REVERSE_PREFERRED_DISTANCE_MAP = Object.entries(PREFERRED_DISTANCE_MAP)
-  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, PreferredDistance>;
-
-const REVERSE_TRANSPORTATION_MAP = Object.entries(TRANSPORTATION_MAP)
-  .reduce((acc, [key, value]) => ({ ...acc, [value]: key }), {}) as Record<string, Transportation>;
-
-  
 export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const savedStep = localStorage.getItem('onboardingStep');
-      return savedStep ? parseInt(savedStep, 10) : 0;
-    }
-    return 0;
-  });
-  const [userData, setUserData] = useState<FormData>(() => ({
-    artists: initialData.artists?.map(ua => ua.artist) || [],
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState(() => ({
+    artists: initialData.artists || [],
     spotifyConnected: initialData.spotifyConnected || false,
-    // Map the basic fields directly
-    Age: initialData.age?.toString() || '',
-    Gender: initialData.gender || '',
-    Location: initialData.location || '',
-    // Map enum values to their display values
-    'Experience Level': initialData.experienceLevel ? [EXPERIENCE_LEVEL_MAP[initialData.experienceLevel]] : [],
-    'Preferred Pace': initialData.preferredPace ? [PREFERRED_PACE_MAP[initialData.preferredPace]] : [],
-    'Preferred Distance': initialData.preferredDistance ? [PREFERRED_DISTANCE_MAP[initialData.preferredDistance]] : [],
+    age: initialData.age?.toString() || '',
+    gender: initialData.gender || '',
+    location: initialData.location || '',
+    experienceLevel: initialData.experienceLevel 
+      ? [EXPERIENCE_LEVEL_MAP[initialData.experienceLevel]]
+      : [],
+    preferredPace: initialData.preferredPace 
+      ? [PREFERRED_PACE_MAP[initialData.preferredPace]]
+      : [],
+    preferredDistance: initialData.preferredDistance 
+      ? [PREFERRED_DISTANCE_MAP[initialData.preferredDistance]]
+      : [],
     interests: initialData.interests?.map(ui => ui.interest.id) || [],
-    'Dog Friendly': initialData.dogFriendly || false,
-    Transportation: initialData.transportation ? TRANSPORTATION_MAP[initialData.transportation] : ''
+    dogFriendly: initialData.dogFriendly || false,
+    transportation: initialData.transportation 
+      ? TRANSPORTATION_MAP[initialData.transportation] 
+      : ''
   }));
-  const [isLoading, setIsLoading] = useState(true);
-  console.log("userDataexp:", userData);
-  useEffect(() => {
-    localStorage.setItem('onboardingStep', currentStep.toString());
-  }, [currentStep]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleUpdateProfile = async (profileData: ProfileWithArtistsAndInterests) => {
-    try {
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...profileData,
-          onboardingCompleted: true
-        })
+  // Define steps with proper syntax
+  const steps: OnboardingStep[] = [
+    {
+      id: 'spotify',
+      title: 'Connect Your Music',
+      subtitle: 'Lets find hiking buddies who share your music taste',
+      validate: function() { return true; }
+    } as const,
+    {
+      id: 'basics',
+      title: 'Basic Information',
+      subtitle: 'Tell us a bit about yourself',
+      validate: function() {
+        const newErrors: Record<string, string> = {};
+        if (!formData.age) newErrors.age = 'Age is required';
+        if (!formData.gender) newErrors.gender = 'Gender is required';
+        if (!formData.location) newErrors.location = 'Location is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      }
+    } as const,
+    {
+      id: 'preferences',
+      title: 'Hiking Preferences',
+      subtitle: 'Help us match you with compatible hiking partners',
+      validate: function() {
+        const newErrors: Record<string, string> = {};
+        if (!formData.experienceLevel?.length) newErrors.experienceLevel = 'Experience level is required';
+        if (!formData.preferredPace?.length) newErrors.preferredPace = 'Preferred pace is required';
+        if (!formData.preferredDistance?.length) newErrors.preferredDistance = 'Preferred distance is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      }
+    } as const,
+    {
+      id: 'interests',
+      title: 'Your Interests',
+      subtitle: 'Select interests that match your personality',
+      validate: function() {
+        const newErrors: Record<string, string> = {};
+        if (!formData.interests?.length) newErrors.interests = 'Please select at least one interest';
+        if (!formData.transportation) newErrors.transportation = 'Transportation preference is required';
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+      }
+    } as const
+  ];
+
+  // Handle form updates
+  const updateFormData = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // Clear any errors for this field
+    if (errors[field]) {
+      setErrors(prev => {
+        const { [field]: _, ...rest } = prev;
+        return rest;
       });
-
-      if (!response.ok) throw new Error('Failed to update profile');
-      router.push('/dashboard');
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('Failed to complete onboarding');
     }
   };
 
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const response = await fetch('/api/profile/me');
-        if (response.ok) {
-          const profile = await response.json();
-          
-          // Fetch artists separately
-          const artistsResponse = await fetch('/api/profile/artists');
-          if (artistsResponse.ok) {
-            const artists = await artistsResponse.json();
-            profile.artists = artists;
-            profile.spotifyConnected = artists.length > 0;
-          }
-
-          // Don't store availableInterests in userData
-          setUserData({
-            ...profile,
-            interests: profile.interests?.map((ui: any) => ui.interest.id) || [],
-          });
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-        toast.error('Failed to load profile data');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-
-  const steps = [
-    {
-      title: 'Connect to Spotify',
-      subtitle: 'Link your Spotify account to personalize your experience with your favorite artists',
-      options: []
-    },
-    {
-      title: 'Tell us about yourself',
-      subtitle: 'This helps us personalize your experience',
-      options: [
-        { 
-          type: 'input' as const, 
-          label: 'Age', 
-          placeholder: 'Enter your age' 
-        },
-        { 
-          type: 'select' as const, 
-          label: 'Gender', 
-          choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'] 
-        },
-        { 
-          type: 'input' as const, 
-          label: 'Location', 
-          placeholder: 'Enter your city' 
-        }
-      ]
-    },
-    {
-      title: 'Your hiking preferences',
-      subtitle: 'Help us find the perfect hiking buddies for you',
-      options: [
-        {
-          type: 'bubbles' as const,
-          label: 'Experience Level',
-          choices: [
-            'Beginner (0-1)', 
-            'Intermediate (1-2)', 
-            'Advanced (2-3)', 
-            'Expert (3)'
-          ],
-          maxSelect: 1
-        },
-        {
-          type: 'bubbles' as const,
-          label: 'Preferred Pace',
-          choices: ['Leisurely', 'Moderate', 'Fast', 'Very Fast'],
-          maxSelect: 1
-        },
-        {
-          type: 'bubbles' as const,
-          label: 'Preferred Distance',
-          choices: ['1-5 km', '5-10 km', '10-20 km', '20+ km'],
-          maxSelect: 2
-        }
-      ]
-    },
-    {
-      title: 'Your Interests',
-      subtitle: 'Select interests that match your personality',
-      options: [
-        {
-          type: 'interests' as const,
-          label: 'Interests',
-          maxSelect: 5
-        },
-        {
-          type: 'toggle' as const,
-          label: 'Dog Friendly',
-          description: 'Are you open to hiking with people who bring their dogs?'
-        },
-        {
-          type: 'select' as const,
-          label: 'Transportation',
-          choices: ['Car', 'Public Transport', 'Both']
-        }
-      ]
+  // Handle step navigation
+  const handleNext = async () => {
+    const currentStepData = steps[currentStep];
+    
+    if (!currentStepData.validate()) {
+      toast.error('Please fill in all required fields');
+      return;
     }
-  ];
 
-  const handleSelect = async (stepData: any) => {
-    const transformedData = {
-      ...userData,
-      ...stepData,
-      // Convert display values back to enum values
-      experienceLevel: stepData.experienceLevel ? REVERSE_EXPERIENCE_LEVEL_MAP[stepData.experienceLevel] : userData.experienceLevel,
-      preferredPace: stepData.preferredPace ? REVERSE_PREFERRED_PACE_MAP[stepData.preferredPace] : userData.preferredPace,
-      preferredDistance: stepData.preferredDistance ? REVERSE_PREFERRED_DISTANCE_MAP[stepData.preferredDistance] : userData.preferredDistance,
-      transportation: stepData.transportation ? REVERSE_TRANSPORTATION_MAP[stepData.transportation] : userData.transportation,
-    };
-
-    setUserData(transformedData);
-
-    try {
-      if (currentStep > 0) {
-        await fetch('/api/profile/update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(transformedData)
-        });
-      }
-
-      if (currentStep < steps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      } else {
-        await handleUpdateProfile(transformedData);
-      }
-    } catch (error) {
-      console.error('Error saving progress:', error);
-      toast.error('Failed to save progress');
+    if (currentStep === steps.length - 1) {
+      await handleComplete();
+    } else {
+      setCurrentStep(prev => prev + 1);
     }
   };
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+    setCurrentStep(prev => prev - 1);
+  };
+
+  // Handle form completion
+  const handleComplete = async () => {
+    setIsLoading(true);
+    const spotifyConnected = formData.artists.length > 0 ;
+    try {
+      // Transform form data to match API expectations
+      const transformedData = {
+        age: parseInt(formData.age),
+        gender: formData.gender,
+        location: formData.location,
+        experienceLevel: Object.entries(EXPERIENCE_LEVEL_MAP)
+          .find(([_, value]) => value === formData.experienceLevel?.[0])?.[0],
+        preferredPace: Object.entries(PREFERRED_PACE_MAP)
+          .find(([_, value]) => value === formData.preferredPace?.[0])?.[0],
+        preferredDistance: Object.entries(PREFERRED_DISTANCE_MAP)
+          .find(([_, value]) => value === formData.preferredDistance?.[0])?.[0],
+        transportation: Object.entries(TRANSPORTATION_MAP)
+          .find(([_, value]) => value === formData.transportation)?.[0],
+        dogFriendly: formData.dogFriendly,
+        interests: formData.interests,
+        onboardingCompleted: true,
+        artists: formData.artists,
+        spotifyConnected: spotifyConnected
+      };
+      console.log('transformedData:', transformedData);
+
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transformedData)
+      });
+
+      if (!response.ok) throw new Error('Failed to update profile');
+      
+      toast.success('Profile updated successfully!');
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to complete onboarding');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (typeof window !== 'undefined' && !window.location.pathname.includes('onboarding')) {
-        localStorage.removeItem('onboardingStep');
-      }
-    };
-  }, []);
+  // Render step content
+  const renderStepContent = () => {
+    switch (steps[currentStep].id) {
+      case 'spotify':
+        return (
+          <div className="space-y-6">
+            <SpotifyArtistsDisplay
+              isConnected={formData.spotifyConnected}
+              isEditable={false}
+              profile={initialData}
+            />
+          </div>
+        );
 
-  console.log("initialData:", initialData);
+      case 'basics':
+        return (
+          <BasicInformationStep
+            formData={formData}
+            errors={errors}
+            onChange={updateFormData}
+          />
+        );
 
-  useEffect(() => {
-    console.log('userData.interests changed:', userData.interests);
-  }, [userData.interests]);
+      case 'preferences':
+        return (
+          <PreferencesStep
+            formData={formData}
+            errors={errors}
+            onChange={updateFormData}
+          />
+        );
+
+      case 'interests':
+        return (
+          <InterestsStep
+            formData={formData}
+            errors={errors}
+            onChange={updateFormData}
+          />
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Progress
             value={(currentStep / (steps.length - 1)) * 100}
             className="mb-8"
           />
 
-          {currentStep === 0 ? (
-            <div>
-              <h2 className="text-2xl font-bold mb-4">Connectttt to Spotify</h2>
-              <p className="text-gray-600 mb-6">
-                Link your Spotify account to personalize your experience with your favorite artists
-              </p>
-              {isLoading ? (
-                <SpotifyArtistsDisplaySkeleton />
-              ) : (
-                <SpotifyArtistsDisplay
-                  isConnected={initialData?.spotifyConnected || false}
-                  isEditable={false}
-                  profile={initialData}
-                
-                />
-              )}
-              <div className="mt-6 flex justify-end">
-                <Button onClick={() => setCurrentStep(1)}>Next</Button>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              <div className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold tracking-tight">
+                    {steps[currentStep].title}
+                  </h2>
+                  <p className="text-muted-foreground">
+                    {steps[currentStep].subtitle}
+                  </p>
+                </div>
+
+                {renderStepContent()}
+
+                <div className="flex justify-between pt-4">
+                  <Button
+                    onClick={handleBack}
+                    disabled={currentStep === 0 || isLoading}
+                    variant="outline"
+                    className="w-32"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Back
+                  </Button>
+
+                  <Button
+                    onClick={handleNext}
+                    disabled={isLoading}
+                    className="w-32"
+                  >
+                    {currentStep === steps.length - 1 ? (
+                      'Complete'
+                    ) : (
+                      <>
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <OnboardingStep
-              stepData={steps[currentStep]}
-              onSelect={handleSelect}
-              onBack={handleBack}
-              isLastStep={currentStep === steps.length - 1}
-              currentStep={currentStep}
-              initialValues={userData}
-              loading={isLoading}
-            />
-          )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
     </div>
