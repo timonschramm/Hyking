@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import InterestOption from '../StepOptions/InterestsOption';
 import { useState, useEffect } from 'react';
 import { Interest } from '@prisma/client';
+import { cn } from "@/lib/utils";
 
 interface InterestsStepProps {
   formData: Record<string, any>;
@@ -82,7 +83,10 @@ export function InterestsStep({ formData, errors, onChange }: InterestsStepProps
           value={formData.transportation}
           onValueChange={(value) => onChange('transportation', value)}
         >
-          <SelectTrigger className={errors.transportation ? 'border-red-500' : ''}>
+          <SelectTrigger className={cn(
+            "w-full rounded-full h-10",
+            errors.transportation ? 'border-red-500' : ''
+          )}>
             <SelectValue placeholder="Select your transportation preference" />
           </SelectTrigger>
           <SelectContent>
