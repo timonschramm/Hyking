@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 25;
 
 export async function GET(request: Request) {
   console.log('=== Starting Spotify API Callback Handler ===');
