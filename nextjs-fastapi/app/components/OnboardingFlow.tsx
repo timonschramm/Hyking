@@ -11,6 +11,7 @@ import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } fro
 import { ProfileWithArtistsAndInterests } from '../types/profile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import ProfilePhotoOption from './OnboardingStep/StepOptions/ProfilePhotoOption';
 
 // Type-safe mappings
 const EXPERIENCE_LEVEL_MAP: Record<ExperienceLevel, string> = {
@@ -46,7 +47,7 @@ interface OnboardingFlowProps {
 
 // First, define an interface for the step structure
 interface OnboardingStep {
-  id: 'spotify' | 'basics' | 'preferences' | 'interests';
+  id: 'spotify' | 'basics' | 'preferences' | 'interests' | 'photo';
   title: string;
   subtitle: string;
   validate: () => boolean;
@@ -56,6 +57,9 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState(() => ({
+    imageFile: null,
+    imageUrl: initialData.imageUrl || null,
+    email: initialData.email || '',
     artists: initialData.artists || [],
     spotifyConnected: initialData.spotifyConnected || false,
     age: initialData.age?.toString() || '',
@@ -81,6 +85,12 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
   // Define steps with proper syntax
   const steps: OnboardingStep[] = [
+    {
+      id: 'photo',
+      title: 'Profile Photo',
+      subtitle: 'Add a photo to help others recognize you',
+      validate: function() { return true; }
+    } as const,
     {
       id: 'spotify',
       title: 'Connect Your Music',
@@ -165,9 +175,17 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   // Handle form completion
   const handleComplete = async () => {
     setIsLoading(true);
-    const spotifyConnected = formData.artists.length > 0 ;
+    const spotifyConnected = formData.artists.length > 0;
     try {
-      // Transform form data to match API expectations
+      // Create FormData instance for multipart/form-data
+      const submitFormData = new FormData();
+      
+      // Add the image if one was selected
+      if (formData.imageFile) {
+        submitFormData.append('image', formData.imageFile);
+      }
+
+      // Transform and add the rest of the data
       const transformedData = {
         age: parseInt(formData.age),
         gender: formData.gender,
@@ -186,12 +204,12 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
         artists: formData.artists,
         spotifyConnected: spotifyConnected
       };
-      console.log('transformedData:', transformedData);
+
+      submitFormData.append('data', JSON.stringify(transformedData));
 
       const response = await fetch('/api/profile/update', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(transformedData)
+        body: submitFormData, // Send as FormData instead of JSON
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
@@ -209,6 +227,17 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   // Render step content
   const renderStepContent = () => {
     switch (steps[currentStep].id) {
+      case 'photo':
+        return (
+          <ProfilePhotoOption
+            formData={{
+              imageFile: formData.imageFile,
+              imageUrl: formData.imageUrl,
+              email: formData.email,
+            }}
+            onPhotoSelect={(file) => updateFormData('imageFile', file)}
+          />
+        );
       case 'spotify':
         return (
           <div className="space-y-6">

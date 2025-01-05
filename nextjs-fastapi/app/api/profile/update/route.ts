@@ -19,11 +19,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const data = await req.json();
-    console.log("dataaa:", data);
-    const { interests = [], artists = [], something = [], ...formData  } = data;
-    console.log("something:", something);
-    console.log("artistss:", artists);
+
+
+    const formData = await req.formData();
+    const imageFile = formData.get('image') as File | null;
+    const jsonData = formData.get('data') as string;
+    const data = JSON.parse(jsonData);
+    const { interests = [], artists = [] } = data;
+
+    // Handle image upload if present
+    let imageUrl;
+    if (imageFile) {
+      // Delete old image if exists
+      const currentProfile = await prisma.profile.findUnique({
+        where: { id: user.id },
+        select: { imageUrl: true }
+      });
+
+      if (currentProfile?.imageUrl) {
+        const oldImagePath = currentProfile.imageUrl.split('/').pop();
+        if (oldImagePath) {
+          await (await supabase).storage
+            .from('images')
+            .remove([`profiles/${oldImagePath}`]);
+        }
+      }
+
+      // Upload new image
+      const fileExt = imageFile.name.split('.').pop();
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `profiles/${fileName}`;
+
+      const { error: uploadError } = await (await supabase).storage
+        .from('images')
+        .upload(filePath, imageFile, {
+          contentType: imageFile.type,
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = (await supabase).storage
+        .from('images')
+        .getPublicUrl(filePath);
+
+      imageUrl = publicUrl;
+    }
 
     // First, ensure all artists exist in the database
     const artistPromises = artists.map(async (artist: UserArtistWithArtist) => {
@@ -45,16 +86,16 @@ export async function POST(req: NextRequest) {
     // Convert form data to match Prisma schema
     const profileData = {
       email: user.email,
-      age: formData.Age ? parseInt(formData.Age) : undefined,
-      gender: formData.Gender || undefined,
-      location: formData.Location || undefined,
-      experienceLevel: formData.experienceLevel,
-      preferredPace: formData.preferredPace,
-      preferredDistance: formData.preferredDistance,
-      dogFriendly: formData.dogFriendly,
-      transportation: formData.Transportation ? convertTransportation(formData.Transportation) : undefined,
-      spotifyConnected: formData.spotifyConnected || false,
-      onboardingCompleted: formData.onboardingCompleted || false,
+      age: data.Age ? parseInt(data.Age) : undefined,
+      gender: data.Gender || undefined,
+      location: data.Location || undefined,
+      experienceLevel: data.experienceLevel,
+      preferredPace: data.preferredPace,
+      preferredDistance: data.preferredDistance,
+      dogFriendly: data.dogFriendly,
+      transportation: data.Transportation ? convertTransportation(data.Transportation) : undefined,
+      spotifyConnected: data.spotifyConnected || false,
+      onboardingCompleted: data.onboardingCompleted || false,
     };
 
     console.log("interestsss:", interests);
@@ -73,6 +114,8 @@ export async function POST(req: NextRequest) {
       data: {
         ...profileData,
         interests: interestsUpdate,
+        imageUrl: imageUrl || undefined,
+       
         artists: {
           deleteMany: {},
           create: createdArtists.map((artist) => ({
@@ -106,6 +149,7 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
 
 // Helper functions to convert form values to database values
 function convertExperienceLevel(level: string): ExperienceLevel | undefined {

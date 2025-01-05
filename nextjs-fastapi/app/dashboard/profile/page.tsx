@@ -10,6 +10,7 @@ import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Prisma, Interest, InterestCategory, Transportation, ExperienceLevel, PreferredPace, PreferredDistance } from '@prisma/client';
 import InterestOption from '@/app/components/OnboardingStep/StepOptions/InterestsOption';
+import ImageUpload from '@/app/components/ImageUpload';
 
 
 // Use Prisma's utility types for Artist with relations
@@ -341,28 +342,12 @@ export default function ProfilePage() {
         {/* Profile Header */}
         <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-lg">
           <div className="absolute -bottom-16 left-6">
-            <div className="relative w-32 h-32">
-              <Avatar className="w-32 h-32 border-4 border-white">
-                <AvatarImage
-                  src={profileData?.imageUrl || ''}
-                  alt="Profile picture"
-                />
-                <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
-                  {profileData?.email?.[0]?.toUpperCase() || '?'}
-                </AvatarFallback>
-              </Avatar>
-              {isEditing && (
-                <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <span className="text-white text-sm">Change Photo</span>
-                </label>
-              )}
-            </div>
+            <ImageUpload
+              currentImageUrl={profileData?.imageUrl}
+              onImageSelect={(file) => setNewImageFile(file)}
+              size="lg"
+              email={profileData?.email}
+            />
           </div>
           <div className="absolute top-4 right-4">
             {!isEditing ? (
