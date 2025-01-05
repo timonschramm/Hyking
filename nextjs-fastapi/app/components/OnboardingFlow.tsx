@@ -85,16 +85,17 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
   // Define steps with proper syntax
   const steps: OnboardingStep[] = [
-    {
-      id: 'photo',
-      title: 'Profile Photo',
-      subtitle: 'Add a photo to help others recognize you',
-      validate: function() { return true; }
-    } as const,
+  
     {
       id: 'spotify',
       title: 'Connect Your Music',
       subtitle: 'Lets find hiking buddies who share your music taste',
+      validate: function() { return true; }
+    } as const,
+    {
+      id: 'photo',
+      title: 'Profile Photo',
+      subtitle: 'Add a photo to help others recognize you',
       validate: function() { return true; }
     } as const,
     {
