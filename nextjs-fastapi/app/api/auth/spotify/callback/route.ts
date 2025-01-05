@@ -5,40 +5,72 @@ import { createClient } from '@/utils/supabase/server';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
-
+  console.log('=== Starting Spotify API Callback Handler ===');
+  
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    // Log incoming request details
+    const url = new URL(request.url);
+    console.log('Incoming request URL:', url.toString());
+    console.log('Query parameters:', Object.fromEntries(url.searchParams));
 
+    // Initialize Supabase and get user
+    console.log('Initializing Supabase client...');
+    const supabase = await createClient();
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error('Supabase auth error:', userError);
+      return NextResponse.json({ error: 'Authentication error' }, { status: 401 });
+    }
+    console.log('Authenticated user ID:', user?.id);
+
+    // Get user profile
+    console.log('Fetching user profile...');
     const profile = await prisma.profile.findUnique({
-      where: {
-        id: user?.id
-      }
+      where: { id: user?.id }
+    });
+    console.log('Profile found:', {
+      id: profile?.id,
+      onboardingCompleted: profile?.onboardingCompleted
     });
 
+    // Parse request parameters
     const onboardingCompleted = profile?.onboardingCompleted;
-    const url = new URL(request.url);
     const rawIsProfile = url.searchParams.get('isProfile');
     const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
-
     const code = url.searchParams.get('code');
     const path = onboardingCompleted ? '/profile' : '/onboarding';
+    
+    console.log('Request parameters:', {
+      onboardingCompleted,
+      isProfile,
+      path,
+      codePresent: !!code
+    });
+
     if (!code) {
+      console.error('No authorization code provided');
       return NextResponse.json({ error: 'No code provided' }, { status: 400 });
     }
 
-    // Get user from Supabase
- 
-
     if (!user) {
+      console.error('No authenticated user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-
+    // Prepare Spotify API request
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
-    console.log("Redirect URI:", redirectUri);
+    
+    console.log('Spotify API configuration:', {
+      clientIdPresent: !!clientId,
+      clientSecretPresent: !!clientSecret,
+      redirectUri
+    });
+
+    // Exchange code for token
+    console.log('Initiating token exchange with Spotify...');
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -52,15 +84,30 @@ export async function GET(request: Request) {
       }).toString()
     });
 
+    console.log('Token exchange response status:', tokenResponse.status);
+    
     if (!tokenResponse.ok) {
-      const errorData = await tokenResponse.json();
-      console.error('Spotify API error here:', errorData);
-      return NextResponse.json({ error: 'Failed to exchange code for token' }, { status: tokenResponse.status });
+      const errorData = await tokenResponse.text();
+      console.error('Spotify token exchange error:', {
+        status: tokenResponse.status,
+        statusText: tokenResponse.statusText,
+        body: errorData
+      });
+      return NextResponse.json({ 
+        error: 'Failed to exchange code for token',
+        details: errorData
+      }, { status: tokenResponse.status });
     }
 
     const data = await tokenResponse.json();
+    console.log('Token exchange successful:', {
+      access_token: data.access_token ? '✓ Present' : '✗ Missing',
+      refresh_token: data.refresh_token ? '✓ Present' : '✗ Missing',
+      expires_in: data.expires_in
+    });
 
-    // Fetch top artists before updating profile
+    // Fetch top artists
+    console.log('Fetching top artists from Spotify...');
     const topArtistsResponse = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3&time_range=long_term', {
       headers: {
         'Authorization': `Bearer ${data.access_token}`
@@ -68,85 +115,92 @@ export async function GET(request: Request) {
     });
 
     if (!topArtistsResponse.ok) {
-      console.error('Failed to fetch top artists');
-      // console.log('Top artists response:', await topArtistsResponse.json());
+      console.error('Top artists fetch failed:', {
+        status: topArtistsResponse.status,
+        statusText: topArtistsResponse.statusText
+      });
     } else {
       const topArtistsData = await topArtistsResponse.json();
-      
-      // Process each artist
+      console.log(`Processing ${topArtistsData.items.length} top artists...`);
+
       for (const artistData of topArtistsData.items) {
-        // Create or update artist
-        const artist = await prisma.artist.upsert({
-          where: { spotifyId: artistData.id },
-          update: {
-            name: artistData.name,
-            imageUrl: artistData.images[0]?.url || null,
-          },
-          create: {
-            spotifyId: artistData.id,
-            name: artistData.name,
-            imageUrl: artistData.images[0]?.url || null,
-          },
-        });
-
-        // Handle genres - first find existing genres
-        const existingGenres = await prisma.genre.findMany({
-          where: {
-            name: {
-              in: artistData.genres
-            }
-          }
-        });
-
-        const existingGenreNames = new Set(existingGenres.map(g => g.name));
-
-        // Create any new genres that don't exist yet
-        const genresToCreate = artistData.genres.filter((name: string) => !existingGenreNames.has(name));
+        console.log(`Processing artist: ${artistData.name}`);
         
-        if (genresToCreate.length > 0) {
-          await prisma.genre.createMany({
-            data: genresToCreate.map((name: string) => ({ name })),
-            skipDuplicates: true,
+        try {
+          // Create or update artist
+          const artist = await prisma.artist.upsert({
+            where: { spotifyId: artistData.id },
+            update: {
+              name: artistData.name,
+              imageUrl: artistData.images[0]?.url || null,
+            },
+            create: {
+              spotifyId: artistData.id,
+              name: artistData.name,
+              imageUrl: artistData.images[0]?.url || null,
+            },
           });
-        }
+          console.log(`Artist ${artist.name} upserted successfully`);
 
-        // Get all genres (both existing and newly created)
-        const allGenres = await prisma.genre.findMany({
-          where: {
-            name: {
-              in: artistData.genres
+          // Process genres
+          console.log(`Processing ${artistData.genres.length} genres for ${artist.name}`);
+          const existingGenres = await prisma.genre.findMany({
+            where: {
+              name: { in: artistData.genres }
             }
-          }
-        });
+          });
 
-        // Connect genres to artist
-        await prisma.artist.update({
-          where: { id: artist.id },
-          data: {
-            genres: {
-              connect: allGenres.map(genre => ({ id: genre.id }))
+          const existingGenreNames = new Set(existingGenres.map(g => g.name));
+          const genresToCreate = artistData.genres.filter((name: string) => !existingGenreNames.has(name));
+          
+          if (genresToCreate.length > 0) {
+            console.log(`Creating ${genresToCreate.length} new genres`);
+            await prisma.genre.createMany({
+              data: genresToCreate.map((name: string) => ({ name })),
+              skipDuplicates: true,
+            });
+          }
+
+          // Connect genres to artist
+          const allGenres = await prisma.genre.findMany({
+            where: {
+              name: { in: artistData.genres }
             }
-          }
-        });
+          });
+          
+          await prisma.artist.update({
+            where: { id: artist.id },
+            data: {
+              genres: {
+                connect: allGenres.map(genre => ({ id: genre.id }))
+              }
+            }
+          });
+          console.log(`Connected ${allGenres.length} genres to ${artist.name}`);
 
-        // Create UserArtist connection
-        await prisma.userArtist.upsert({
-          where: {
-            profileId_artistId: {
+          // Create UserArtist connection
+          await prisma.userArtist.upsert({
+            where: {
+              profileId_artistId: {
+                profileId: user.id,
+                artistId: artist.id
+              }
+            },
+            update: {},
+            create: {
               profileId: user.id,
-              artistId: artist.id
-            }
-          },
-          update: {}, // No updates needed if it exists
-          create: {
-            profileId: user.id,
-            artistId: artist.id,
-          },
-        });
+              artistId: artist.id,
+            },
+          });
+          console.log(`User-Artist connection created for ${artist.name}`);
+        } catch (artistError) {
+          console.error(`Error processing artist ${artistData.name}:`, artistError);
+        }
       }
     }
 
-    // Store tokens in the database
+    // Update profile with tokens
+    console.log('Updating profile with Spotify tokens...');
     await prisma.profile.update({
       where: { id: user.id },
       data: {
@@ -156,11 +210,17 @@ export async function GET(request: Request) {
         spotifyConnected: true
       }
     });
+    console.log('Profile updated successfully');
 
-    
+    console.log('=== Spotify Callback Completed Successfully ===');
     return NextResponse.json(data);
-  } catch (error) {
-    console.error('Server error:', error);
+  } catch (error: any) {
+    console.error('=== Spotify Callback Error ===');
+    console.error('Error type:', error.constructor.name);
+    console.error('Error message:', error instanceof Error ? error.message : String(error));
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('===============================');
+    
     return NextResponse.json({ 
       error: 'Internal server error',
       details: error instanceof Error ? error.message : String(error)
