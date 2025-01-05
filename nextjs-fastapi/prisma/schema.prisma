@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Activity {
-  id                      Int      @id @default(autoincrement())
+  id                      Int             @id @default(autoincrement())
   title                   String
   teaserText              String
   descriptionShort        String
@@ -32,10 +32,10 @@ model Activity {
   primaryRegion           String
   primaryImageId          String
   publicTransportFriendly Boolean
-  category                Category @relation(fields: [categoryId], references: [id])
+  category                Category        @relation(fields: [categoryId], references: [id])
+  swipes                  ActivitySwipe[]
   images                  Image[]
   seasons                 Season[]
-  swipes                 ActivitySwipe[]
 }
 
 model Category {
@@ -61,64 +61,58 @@ model Image {
 
 model Profile {
   id                  String             @id @default(cuid())
-  email               String
   age                 Int?
-  displayName         String?
   imageUrl            String?
   gender              String?
   location            String?
+  dogFriendly         Boolean?
+  spotifyConnected    Boolean            @default(false)
+  email               String
+  onboardingCompleted Boolean            @default(false)
+  spotifyAccessToken  String?
+  spotifyTokenExpiry  DateTime?
+  spotifyRefreshToken String?
   experienceLevel     ExperienceLevel?
   preferredPace       PreferredPace?
   preferredDistance   PreferredDistance?
-  dogFriendly         Boolean?
   transportation      Transportation?
-  spotifyConnected    Boolean            @default(false)
-  spotifyAccessToken  String?
-  spotifyRefreshToken String?
-  spotifyTokenExpiry  DateTime?
-  onboardingCompleted Boolean            @default(false)
+  bio                 String?
+  displayName         String?
+  activitySwipes      ActivitySwipe[]
   artists             UserArtist[]
   interests           UserInterest[]
-  sentSwipes          UserSwipe[]        @relation("SwipeSender") // Swipes they've sent to others
-  receivedSwipes      UserSwipe[]        @relation("SwipeReceiver") // Swipes they've received
-  matches             Match[]            @relation("UserMatches") // Their matches
-  bio                 String?
-  activitySwipes     ActivitySwipe[]
+  receivedSwipes      UserSwipe[]        @relation("SwipeReceiver")
+  sentSwipes          UserSwipe[]        @relation("SwipeSender")
+  matches             Match[]            @relation("UserMatches")
 }
 
 model UserSwipe {
-    id            String    @id @default(cuid())
-    senderId      String
-    receiverId    String
-    action        String    // 'like' or 'dislike'
-    timestamp     DateTime  @default(now())
-    sender        Profile   @relation("SwipeSender", fields: [senderId], references: [id], onDelete: Cascade)
-    receiver      Profile   @relation("SwipeReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-    isViewed      Boolean   @default(false)  // For tracking if the receiver has seen this like
+  id         String   @id @default(cuid())
+  senderId   String
+  receiverId String
+  action     String
+  timestamp  DateTime @default(now())
+  isViewed   Boolean  @default(false)
+  receiver   Profile  @relation("SwipeReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     Profile  @relation("SwipeSender", fields: [senderId], references: [id], onDelete: Cascade)
 
-    @@unique([senderId, receiverId])
+  @@unique([senderId, receiverId])
 }
 
 model Match {
-    id            String    @id @default(cuid())
-    users         Profile[] @relation("UserMatches")
-    createdAt     DateTime  @default(now())
-    lastActivity  DateTime  @default(now())
-    // messages      Message[]
-    isActive      Boolean   @default(true)
-      // Optional: planned activity for the match
-    // plannedActivityId Int?
-    // plannedActivity   Activity? @relation(fields: [plannedActivityId], references: [id])
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  lastActivity DateTime  @default(now())
+  isActive     Boolean   @default(true)
+  users        Profile[] @relation("UserMatches")
 }
 
-
-
 model Artist {
-  id        String       @id @default(cuid())
-  spotifyId String       @unique
   name      String
   imageUrl  String?
+  id        String       @id @default(cuid())
   createdAt DateTime     @default(now())
+  spotifyId String       @unique
   updatedAt DateTime     @updatedAt
   profiles  UserArtist[]
   genres    Genre[]      @relation("ArtistGenres")
@@ -143,6 +137,39 @@ model UserArtist {
   @@unique([profileId, artistId])
 }
 
+model Interest {
+  id        String           @id @default(cuid())
+  name      String           @unique
+  category  InterestCategory
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  users     UserInterest[]
+}
+
+model UserInterest {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  interestId String
+  profileId  String
+  updatedAt  DateTime @updatedAt
+  interest   Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, interestId])
+}
+
+model ActivitySwipe {
+  id         String   @id @default(cuid())
+  userId     String
+  activityId Int
+  action     String
+  timestamp  DateTime @default(now())
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, activityId])
+}
+
 enum Month {
   jan
   feb
@@ -164,30 +191,6 @@ enum InterestCategory {
   CREATIVITY
   GOING_OUT
   STAYING_IN
-}
-
-model Interest {
-  id        String           @id @default(cuid())
-  name      String           @unique
-  category  InterestCategory
-  users     UserInterest[]
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-}
-
-
-
-model UserInterest {
-  id         String   @id @default(cuid())
-  profileId  String
-  interestId String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  profile  Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  interest Interest @relation(fields: [interestId], references: [id], onDelete: Cascade)
-
-  @@unique([profileId, interestId])
 }
 
 enum ExperienceLevel {
@@ -215,16 +218,4 @@ enum Transportation {
   CAR
   PUBLIC_TRANSPORT
   BOTH
-}
-
-model ActivitySwipe {
-  id         String   @id @default(cuid())
-  userId     String
-  activityId Int
-  action     String   // 'like' or 'dislike'
-  timestamp  DateTime @default(now())
-  user       Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
-  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, activityId])
 }
