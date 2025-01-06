@@ -3,7 +3,15 @@ from sentence_transformers import SentenceTransformer
 import torch
 import sqlite3
 import numpy as np
+import math
 from sklearn.metrics.pairwise import cosine_similarity
+from supabase import create_client, Client
+from dotenv import load_dotenv
+import os
+from collections import Counter
+
+load_dotenv(".env.local")
+
 def get_text_embedding(text:str, model, tokenizer, avg:bool):
     """
     Calculate an embedding for the given text using the specified model
@@ -50,12 +58,11 @@ def get_closest_hikes(lat:int, lon:int, radius_km:int):
     cursor = conn.cursor()
 
     # Calculate a bounding box to reduce num number of hike distances that are calculated
-    # TODO: change radius_km calculation by dividing by the right number
-    min_lat = lat - radius_km
-    max_lat = lat + radius_km
+    min_lat = lat - (radius_km / 111)
+    max_lat = lat + (radius_km / 111)
 
-    min_lon = lon - radius_km
-    max_lon = lon + radius_km
+    min_lon = lon - (radius_km / (111 * math.cos(math.radians(lat))))
+    max_lon = lon + (radius_km / (111 * math.cos(math.radians(lat))))
 
 
     query = """ 
@@ -104,7 +111,7 @@ def get_user_embedding(user_id:int):
     conn = sqlite3.connect("Hike_SQL.db")
     cursor = conn.cursor()
 
-    attributes = ["stamina", "max_hike_time", "average_hike_time", "hike_count", "average_distance", "average_elevation_diff"] #TODO: Adjust attributes
+    attributes = ["stamina", "max_hike_time", "average_hike_time", "hike_count", "average_distance", "average_elevation_diff"]
 
     query = f"SELECT {', '.join(attributes)} FROM users WHERE user_id = {user_id}"
 
@@ -115,7 +122,7 @@ def get_user_embedding(user_id:int):
     user_embedding = np.array(user_attributes)
     return user_embedding
 
-def get_user_skill_embedding(user_id:int): #TODO: Implement
+def get_user_skill_embedding(user_id:str):
     """
     Fetches the database for the user and returns an embedding of the user's hikingskills
 
@@ -125,9 +132,18 @@ def get_user_skill_embedding(user_id:int): #TODO: Implement
     Returns:
     - numpy Array: Array of the embedding
     """
-    return 0
+    
+    url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase: Client = create_client(url, key)
 
-def get_user_interest_embedding(user_id:int): #TODO: Implement
+    attributes = ['experienceLevel','preferredPace','preferredDistance']  #TODO: Might change
+    response = supabase.table("Profile").select(','.join(attributes)).eq("id", user_id).execute().data[0].values()
+
+    skill_embedding = np.array(response).reshape(1, -1)
+    return skill_embedding
+
+def get_user_direct_interest_embedding(user_id:int):
     """
     Fetches the database for the user and returns an embedding of the user's interests
 
@@ -136,10 +152,48 @@ def get_user_interest_embedding(user_id:int): #TODO: Implement
 
     Returns:
     - numpy Array: Array of the embedding
-    """
-    return 0
+    """      
+    url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase: Client = create_client(url, key)
 
-def calc_skill_similarity(user_id_a:int, user_id_b:int)
+    
+    response = supabase.table("UserInterest").select("interestId").eq("profileId", user_id).execute().data
+    user_interests = [item["interestId"] for item in response]
+    response = supabase.table("Interest").select("id").execute().data
+    all_interests = [item["id"] for item in response]
+
+    interest_embedding = np.array([1 if interest in user_interests else 0 for interest in all_interests], dtype=float)
+
+    return interest_embedding.reshape(1, -1)
+
+def get_user_indirect_interest_embedding(user_id:int):
+    """
+    Fetches the database for the user and returns an embedding of the user's interest groups
+
+    Parameters:
+    - user_id: ID of the user
+
+    Returns:
+    - numpy Array: Array of the embedding
+    """      
+    url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase: Client = create_client(url, key)
+
+
+    response = supabase.from_("UserInterest").select("Interest(category)").eq("profileId", user_id).execute().data
+    categories_response = supabase.from_("Interest").select("category").execute().data
+
+    categories_in_user_interests = [interest['Interest']['category'] for interest in response]
+    category_count = Counter(categories_in_user_interests)
+    categories = sorted(list(set([category['category'] for category in categories_response])))
+    result = [category_count[category] for category in categories]
+
+    interest_embedding = np.array(result).reshape(1, -1)
+    return interest_embedding
+
+def calc_skill_similarity(user_id_a:int, user_id_b:int):
     """
     Calculates the skill similarity between two users
 
@@ -154,7 +208,7 @@ def calc_skill_similarity(user_id_a:int, user_id_b:int)
     user_a_skill_embedding = get_user_skill_embedding(user_id_a)
     user_b_skill_embedding = get_user_skill_embedding(user_id_b)
 
-    return cosine_similarity(user_a_skill_embedding, user_b_skill_embedding)
+    return cosine_similarity(user_a_skill_embedding, user_b_skill_embedding)[0][0]
 
 def calc_interest_similarity(user_id_a:int, user_id_b:int):
     """
@@ -167,10 +221,15 @@ def calc_interest_similarity(user_id_a:int, user_id_b:int):
     Returns:
     - float: Interest similarity between the two users
     """
-    user_a_interest_embedding = get_user_interest_embedding(user_id_a)
-    user_b_interest_embedding = get_user_interest_embedding(user_id_b)
+    user_a_direct_interest_embedding = get_user_direct_interest_embedding(user_id_a)
+    user_b_direct_interest_embedding = get_user_direct_interest_embedding(user_id_b)
+    direct_interest_sim = cosine_similarity(user_a_direct_interest_embedding, user_b_direct_interest_embedding)[0][0]
 
-    return cosine_similarity(user_a_interest_embedding, user_b_interest_embedding)
+    user_a_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_a)
+    user_b_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_b) 
+    indirect_interest_sim = cosine_similarity(user_a_indirect_interest_embedding, user_b_indirect_interest_embedding)[0][0]
+
+    return 0.33 * direct_interest_sim + 0.67 * indirect_interest_sim
 
 def calc_hike_description_similarity(hike_desc_a:str, hike_desc_b:str):
     """
@@ -214,6 +273,23 @@ def get_recommendation(user_id:int, hike_desc:str): #TODO: Implement
     - hike_desc: Description of the hike
 
     Returns:
-    - int: ID of another recommended user
+    - int: ID of a recommended user
     """
-    return 0
+
+    url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase: Client = create_client(url, key)
+
+    response = supabase.from_("Profile").select("id").neq("id", user_id).execute().data
+    all_ids = [item["id"] for item in response]
+
+    sim_list = []
+    for id in all_ids:
+        sim = calc_interest_similarity(user_id, id) #TODO: Change to overall similarity
+        sim_list.append((id, sim))
+
+    sim_list.sort(key=lambda x: x[1], reverse=True)
+
+    return [tuple[0] for tuple in sim_list] 
+
+print(get_recommendation("121f5b6f-6673-4b70-8434-4d9060ed2910", "Hike in the mountains"))

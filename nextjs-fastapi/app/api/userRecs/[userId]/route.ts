@@ -16,26 +16,30 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await prisma.profile.findUnique({
-      where: { id: params.userId },
-      include: {
-        artists: {
-          include: {
-            genres: true
-          }
-        }
-      }
+    const fastapiResponse = await fetch(`http://127.0.0.1:8000/api/recommendations?userID=${params.userId}`);
+
+    
+    if (!fastapiResponse.ok) {
+      return NextResponse.json({ error: 'Failed to fetch user recommendations' }, { status: fastapiResponse.status });
+    }
+
+    const response = await fastapiResponse.json();
+    const recommendedUserId = response.recommendedUserID;
+
+    console.log("recommendedUserId: " + recommendedUserId)
+    const recommendedProfile = await prisma.profile.findUnique({
+      where: { id: recommendedUserId },
+      
     });
 
-    if (!profile) {
+    if (!recommendedProfile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
-    return NextResponse.json(profile);
+    return NextResponse.json(recommendedUserId);
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+    console.error('Error fetching recommendation:', error);
+    return NextResponse.json({ error: 'Failed to process recommendation' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
