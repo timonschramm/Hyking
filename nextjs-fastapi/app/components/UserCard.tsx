@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserArtistWithArtist } from '@/types/Artists';
 import { UserInterestWithInterest } from '@/types/Interest';
+import UserArtistDisplay from './UserArtistDisplay';
 
 const UserCardSkeleton = () => {
   return (
@@ -265,16 +266,7 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
                   {data.artists.length > 0 && (
                     <div className="space-y-2">
                       <h3 className="text-lg font-medium">Top Artists</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {data.artists.slice(0, 3).map((userArtist: UserArtistWithArtist) => (
-                          <span
-                            key={userArtist.artistId}
-                            className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs"
-                          >
-                            {userArtist.artist.name}
-                          </span>
-                        ))}
-                      </div>
+                      <UserArtistDisplay artists={data.artists} />
                     </div>
                   )}
 
