@@ -6,15 +6,25 @@ Run the project
 
 
 
-- Prisma
+<!-- - Prisma
   - run to sync with supabase, if you uodate the database
-  - 1. dotenv -f .env.local run -- npx prisma migrate dev --name init 
-  - 2. dotenv -f .env.local run -- npx prisma generate
-  - 3. dotenv -f .env.local run -- npx prisma db push
+  - 1. dotenv -f .env.local run -- npx prisma migrate dev --name n  # add new change
+  - 2. dotenv -f .env.local run -- npx prisma generate         # Generate Prisma Client
+  - 3. dotenv -f .env.local run -- npx prisma db push         # Push the schema to the database
   - 4. dotenv -f .env.local run -- npx prisma studio
   - https://supabase.com/partners/integrations/prisma
   - Mass create new with
-    - dotenv -f .env.local run -- npx tsx lib/importdata.ts
+    - dotenv -f .env.local run -- npx tsx lib/importdata.ts -->
+
+
+dotenv -f .env.local run -- npx prisma migrate status
+dotenv -f .env.local run -- npx prisma generate  
+dotenv -f .env.local run -- npx prisma migrate dev --name name
+dotenv -f .env.local run -- npx prisma migrate deploy
+dotenv -f .env.local run -- npx prisma db push 
+
+Mass create new with
+dotenv -f .env.local run -- npx tsx lib/importdata.ts 
 
 - Supabase
 

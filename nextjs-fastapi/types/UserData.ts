@@ -1,3 +1,5 @@
+import { Artist, Genre } from '@prisma/client';
+
 export interface UserProfileData {
   age: number;
   gender: string | null;
@@ -9,4 +11,7 @@ export interface UserProfileData {
   dogFriendly: boolean;
   transportation: number;
   spotifyConnected: boolean;
+  topArtists?: (Omit<Artist, 'id' | 'createdAt' | 'updatedAt'> & {
+    genres: Genre[];
+  })[];
 } 

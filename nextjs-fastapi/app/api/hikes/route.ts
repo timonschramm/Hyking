@@ -1,23 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { createClient } from '@/utils/supabase/server';
 
 const prisma = new PrismaClient();
-console.log(Object.keys(prisma));
 
 export async function GET(req: NextRequest) {
-
-
-  // fetch10idfrompyhthon localalhost8000 /api/py/hikes
-
   try {
+    const supabase = createClient();
+    const { data: { user } } = await (await supabase).auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Fetch activities excluding ones the user has already swiped on
     const hikes = await prisma.activity.findMany({
+      where: {
+        AND: [
+          { primaryImageId: { not: "" } },
+          {
+            // Exclude activities that have been swiped by this user
+            NOT: {
+              swipes: {
+                some: {
+                  userId: user.id
+                }
+              }
+            }
+          }
+        ]
+      },
       take: 10,
       include: {
         category: true,
         images: true,
       },
     });
-    // console.log("hikes: " + JSON.stringify(hikes, null, 2));
+
     return NextResponse.json(hikes);
   } catch (error) {
     console.log("error: " + error)

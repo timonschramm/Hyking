@@ -1,23 +1,28 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
+import { Genre, Prisma } from '@prisma/client';
+
+// Type for incoming artist data
+interface SpotifyArtistData {
+  spotifyId: string;
+  name: string;
+  imageUrl?: string | null;
+  genres: Genre[]; // Array of genre names as strings
+}
 
 export async function POST(request: Request) {
   try {
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
 
-    if (!user) {
-      console.error('[POST /api/profile/artists] No authenticated user found');
+    if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { artists } = await request.json();
-    console.log('[POST /api/profile/artists] Received artists for upload:', artists);
-
-    // Validate the incoming data
+    // console.log("artists in api:", artists)
     if (!Array.isArray(artists) || artists.some(a => !a.spotifyId)) {
-      console.error('[POST /api/profile/artists] Invalid artist data received');
       return NextResponse.json({ 
         error: 'Invalid artist data', 
         details: 'Each artist must have a spotifyId' 
@@ -25,69 +30,12 @@ export async function POST(request: Request) {
     }
 
     const results = await Promise.all(
-      artists.map(async (artist: any) => {
-        console.log(`[POST /api/profile/artists] Processing artist: ${artist.name} (spotifyId=${artist.spotifyId})`);
-        try {
-          // Ensure all required fields have default values
-          const sanitizedArtist = {
-            spotifyId: artist.spotifyId,
-            name: artist.name || 'Unknown Artist',
-            imageUrl: artist.imageUrl || '',
-            hidden: artist.hidden || false,
-            genres: Array.isArray(artist.genres) ? artist.genres : []
-          };
-
-          const result = await prisma.artist.upsert({
-            where: {
-              spotifyId: sanitizedArtist.spotifyId
-            },
-            create: {
-              spotifyId: sanitizedArtist.spotifyId,
-              name: sanitizedArtist.name,
-              imageUrl: sanitizedArtist.imageUrl,
-              hidden: sanitizedArtist.hidden,
-              profiles: {
-                connect: { id: user.id }
-              },
-              genres: {
-                create: sanitizedArtist.genres.map((genre: string) => ({
-                  name: genre
-                }))
-              }
-            },
-            update: {
-              name: sanitizedArtist.name,
-              imageUrl: sanitizedArtist.imageUrl,
-              hidden: sanitizedArtist.hidden,
-              profiles: {
-                connect: { id: user.id }
-              },
-              genres: {
-                deleteMany: {},
-                create: sanitizedArtist.genres.map((genre: string) => ({
-                  name: genre
-                }))
-              }
-            },
-            include: {
-              genres: true,
-              profiles: true
-            }
-          });
-          console.log(`[POST /api/profile/artists] Successfully processed artist ${sanitizedArtist.name}`);
-          return result;
-        } catch (error) {
-          console.error(`[POST /api/profile/artists] Error processing artist ${artist.name}:`, error);
-          throw error;
-        }
-      })
+      artists.map((artist: SpotifyArtistData) => processArtist(artist, user.id))
     );
 
-    console.log('[POST /api/profile/artists] Successfully uploaded all artists');
     return NextResponse.json(results);
-
   } catch (error) {
-    console.error('[POST /api/profile/artists] Error in artist upload:', error);
+    console.error('[POST /api/profile/artists] Error:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -95,49 +43,185 @@ export async function POST(request: Request) {
   }
 }
 
+async function processArtist(artistData: SpotifyArtistData, userId: string) {
+  try {
+    // First upsert the artist
+    const result = await prisma.artist.upsert({
+      where: { 
+        spotifyId: artistData.spotifyId 
+      },
+      create: {
+        spotifyId: artistData.spotifyId,
+        name: artistData.name,
+        imageUrl: artistData.imageUrl || '',
+        genres: {
+          connectOrCreate: artistData.genres.map(genreName => ({
+            where: { name: genreName.name },
+            create: { name: genreName.name }
+          }))
+        }
+      },
+      update: {
+        name: artistData.name,
+        imageUrl: artistData.imageUrl || '',
+        genres: {
+          set: [], // Clear existing genres
+          connectOrCreate: artistData.genres.map(genreName => ({
+            where: { name: genreName.name },
+            create: { name: genreName.name }
+          }))
+        }
+      },
+      include: {
+        genres: true
+      }
+    });
+
+    // Then try to create the profile connection, ignore if it already exists
+    await prisma.userArtist.upsert({
+      where: {
+        profileId_artistId: {
+          profileId: userId,
+          artistId: result.id
+        }
+      },
+      create: {
+        profileId: userId,
+        artistId: result.id
+      },
+      update: {} // No updates needed if it exists
+    });
+
+  
+    return {
+      ...result,
+      profiles: [{ profileId: userId }]
+    };
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        // Handle unique constraint violation
+        console.error(`Relationship already exists for artist ${artistData.name}`);
+        // Continue execution
+        return null;
+      }
+    }
+    throw error;
+  }
+}
+
 export async function GET(request: Request) {
   try {
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
+    
     if (!user) {
-      console.error('No authenticated user found');
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const artists = await prisma.artist.findMany({
-      where: {
-        profiles: {
-          some: {
-            id: user.id
+    const profile = await prisma.profile.findUnique({
+      where: { id: user.id },
+      include: {
+        artists: {
+          include: {
+            artist: {
+              include: {
+                genres: true
+              }
+            }
           }
         }
-      },
-      include: {
-        genres: true,
-        profiles: true
-      },
-      orderBy: {
-        createdAt: 'desc'
       }
     });
 
-    console.log('[GET /api/profile/artists] Raw artists from DB:', JSON.stringify(artists, null, 2));
-
-    // Transform the data to match the expected format
-    const transformedArtists = artists.map(artist => ({
-      spotifyId: artist.spotifyId,
-      name: artist.name,
-      imageUrl: artist.imageUrl,
-      genres: artist.genres,
-      hidden: artist.hidden
-    }));
-
-    console.log('[GET /api/profile/artists] Transformed artists:', JSON.stringify(transformedArtists, null, 2));
-    return NextResponse.json(transformedArtists);
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+   
+    return NextResponse.json(profile.artists);
   } catch (error) {
     console.error('Error fetching artists:', error);
     return NextResponse.json({ 
       error: 'Internal server error', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+// Add PATCH endpoint for toggling visibility
+export async function PATCH(request: Request) {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await (await supabase).auth.getUser();
+    
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { artistId, hidden } = await request.json();
+
+    const updatedUserArtist = await prisma.userArtist.update({
+      where: {
+        profileId_artistId: {
+          profileId: user.id,
+          artistId
+        }
+      },
+      data: { hidden },
+      include: {
+        artist: {
+          include: {
+            genres: true
+          }
+        }
+      }
+    });
+   // console.log("updatedUserArtist:", updatedUserArtist)
+
+    return NextResponse.json(updatedUserArtist);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
+      }
+    }
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  }
+}
+
+// Add DELETE endpoint for removing artist association
+export async function DELETE(request: Request) {
+  try {
+    const supabase = createClient();
+    const { data: { user } } = await (await supabase).auth.getUser();
+    
+    if (!user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { artistId } = await request.json();
+
+    await prisma.userArtist.delete({
+      where: {
+        profileId_artistId: {
+          profileId: user.id,
+          artistId
+        }
+      }
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') {
+        return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
+      }
+    }
+    return NextResponse.json({ 
+      error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
   }

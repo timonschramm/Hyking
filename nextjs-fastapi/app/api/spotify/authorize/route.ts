@@ -1,27 +1,40 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const isProfile = searchParams.get('isProfile') === 'true';
+    const rawIsProfile = searchParams.get('isProfile');
+    console.log("Raw isProfile param:", rawIsProfile);
+    
+    const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
+    console.log("Parsed isProfile:", isProfile);
     
     const clientId = process.env.SPOTIFY_CLIENT_ID;
-    const callbackUrl = isProfile 
+    const baseRedirectUri = process.env.SPOTIFY_REDIRECT_URI;
     
-      ? `${process.env.SPOTIFY_REDIRECT_URI}/onboarding`
-      : `${process.env.SPOTIFY_REDIRECT_URI}/profile`;
+    const path = isProfile ? '/profile' : '/onboarding';
+    const callbackUrl = `${baseRedirectUri}${path}`;
     
-    console.log('process.env.SPOTIFY_CALLBACK_URL', process.env.SPOTIFY_CALLBACK_URL);
+    console.log("Final callbackUrl:", callbackUrl);
 
-    console.log('callbackUrl', callbackUrl);
     if (!clientId) {
       console.error('Spotify client ID not configured');
       return NextResponse.json({ error: 'Configuration error' }, { status: 500 });
     }
 
-    const spotifyAuthUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(callbackUrl)}&scope=user-top-read`;
+    const authParams = [
+      `client_id=${clientId}`,
+      'response_type=code',
+      `redirect_uri=${encodeURIComponent(callbackUrl)}`,
+      'scope=user-top-read'
+    ];
 
-    return NextResponse.json({ url: spotifyAuthUrl });
+    const spotifyAuthUrl = `https://accounts.spotify.com/authorize?${authParams.join('&')}`;
+    const response = NextResponse.json({ url: spotifyAuthUrl });
+    console.log("Response:", response);
+    return response;
   } catch (error) {
     console.error('Error generating auth URL:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

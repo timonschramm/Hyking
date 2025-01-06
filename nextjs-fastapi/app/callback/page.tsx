@@ -22,7 +22,7 @@ function CallbackContent() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Spotify API error:', errorText);
+        console.error('Spotify API error 2:', errorText);
         throw new Error('Failed to fetch artists from Spotify');
       }
 
@@ -81,14 +81,14 @@ function CallbackContent() {
         console.log('Exchanging code for a token now...');
 
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}`);
-        console.log('Token exchange response status:', tokenResponse.status);
 
+        console.log("Token exchange response:", tokenResponse);
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }
 
         const data = await tokenResponse.json();
-        console.log('Token exchange response data:', data);
+        console.log('Token exchange response data in callback:', data);
 
         if (!data.access_token) {
           throw new Error('No access token received');

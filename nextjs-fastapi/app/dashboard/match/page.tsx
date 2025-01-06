@@ -2,74 +2,78 @@
 import { AnimatePresence } from 'framer-motion';
 import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
-import { UserCard, UserCardSkeleton} from '@/app/components/UserCard'
+import { UserCard, UserCardSkeleton } from '@/app/components/UserCard';
+import { ProfileWithArtistsAndInterests } from '@/app/types/profile';
 import { createClient } from '@/utils/supabase/client';
 
 
 export default function Match() {
-  const supabase = createClient();
-
-  const [userRecs, setUserRecs] = useState<Profile[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterests[]>([]);
   const [rightSwipe, setRightSwipe] = useState(0);
   const [leftSwipe, setLeftSwipe] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserRecommendations = async () => {
+    const fetchProfiles = async () => {
       try {
+        const supabase = createClient();
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         const response = await fetch(`/api/userRecs/${user.id}`);
-        const userData = await response.json();
-        console.log(userData);
-        setUserRecs(userData);
+        if (!response.ok) {
+          throw new Error('Failed to fetch profiles');
+        }
+        const data = await response.json();
+        setProfiles(data);
 
       } catch (error) {
-        console.error('Failed to fetch user recommendations:', error);
+        console.error('Failed to fetch profiles:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserRecommendations();
+    fetchProfiles();
   }, []);
 
-  const activeIndex = userRecs.length - 1;
+  const activeIndex = profiles.length - 1;
   
   const removeCard = (id: string, action: 'right' | 'left') => {
-    setUserRecs((prev) => prev.filter((user) => user.id !== id));
+    setProfiles((prev) => prev.filter((profile) => profile.id !== id));
     if (action === 'right') {
       setRightSwipe((prev) => prev + 1);
     } else {
       setLeftSwipe((prev) => prev + 1);
     }
   };
-return (<div> <p> dummy</p></div>);
-  /*return (
+  return (
     <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
-      <h1>Matching</h1>
-      {isLoading ? (
-        <UserCardSkeleton />
-      ) : (
-        <AnimatePresence>
-          {userRecs.length ? (
-            userRecs.map((user) => (
-              <UserCard
-                key={user.id}
-                data={user}
-                active={user.id === userRecs[activeIndex]?.id}
-                removeCard={removeCard}
-              />
-            ))
-          ) : (
-            <h2 className="absolute z-10 text-center text-2xl font-bold text-primary dark:text-primary-white">
-              No more activities available!
-              <br />
-              Come back later for more
-            </h2>
-          )}
-        </AnimatePresence>
-      )}
+       <div className="absolute inset-0 flex items-center justify-center">
+        {isLoading ? (
+          <UserCardSkeleton />
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {profiles.length ? (
+              profiles.map((profile, index) => (
+                index === activeIndex && (
+                  <UserCard
+                    key={profile.id}
+                    data={profile}
+                    active={true}
+                    removeCard={removeCard}
+                  />
+                )
+              ))
+            ) : (
+              <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+                No more profiles available!
+                <br />
+                Come back later for more
+              </h2>
+            )}
+          </AnimatePresence>
+        )}
+      </div>
     </div>
-  )*/
+  );
 }

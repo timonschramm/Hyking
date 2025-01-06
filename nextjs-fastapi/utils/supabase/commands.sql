@@ -4,7 +4,7 @@ language plpgsql
 security definer set search_path = ''
 as $$
 begin
-  insert into public.profile (id, email)
+  insert into public."Profile" (id, email)
   values (new.id, new.email);
   return new;
 end;

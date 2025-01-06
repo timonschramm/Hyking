@@ -14,6 +14,9 @@ export default function Search() {
     const fetchActivities = async () => {
       try {
         const response = await fetch('/api/hikes');
+        if (!response.ok) {
+          throw new Error('Failed to fetch activities');
+        }
         const data = await response.json();
         setActivities(data);
       } catch (error) {

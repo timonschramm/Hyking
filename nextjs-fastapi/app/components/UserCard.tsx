@@ -1,4 +1,4 @@
-import { ActivityCardProps } from '../../types/ActivityCardProps';
+import { UserCardProps } from '@/types/UserCardProps';
 import {
   easeIn,
   motion,
@@ -7,10 +7,12 @@ import {
   useTransform,
 } from 'framer-motion';
 import Image from 'next/image';
-import { useState } from 'react';
-import { Check, X } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Check, X, Music, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { UserArtistWithArtist } from '@/types/Artists';
+import { UserInterestWithInterest } from '@/types/Interest';
 
 const UserCardSkeleton = () => {
   return (
@@ -40,7 +42,7 @@ const UserCardSkeleton = () => {
   );
 };
 
-const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
+const UserCard = ({ data, active, removeCard }: UserCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -83,10 +85,14 @@ const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
     if (info.offset.x > 100) {
       setExitX(200);
       setDirection('right');
+      recordSwipe(data.id, 'like');
+
       removeCard(data.id, 'right');
     } else if (info.offset.x < -100) {
       setExitX(-200);
       setDirection('left');
+      recordSwipe(data.id, 'dislike');
+
       removeCard(data.id, 'left');
     }
   };
@@ -94,19 +100,44 @@ const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
   const handleAction = (direction: 'left' | 'right') => {
     setDirection(direction);
     setExitX(direction === 'left' ? -200 : 200);
+    recordSwipe(data.id, direction === 'left' ? 'dislike' : 'like');
+
     removeCard(data.id, direction);
   };
+
+  const recordSwipe = useCallback(async (userId: string, action: 'like' | 'dislike') => {
+    try {
+      const response = await fetch('/api/users/swipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receiverId: userId,
+          action,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to record swipe');
+      }
+
+      const result = await response.json();
+      if (result.match) {
+        // Handle match (e.g., show a match notification)
+        console.log('It\'s a match!', result.match);
+      }
+    } catch (error) {
+      console.error('Error recording swipe:', error);
+    }
+  }, []);
 
   return (
     <div className="absolute flex flex-col items-center justify-center">
       <motion.div
         initial={{ scale: 0.95, opacity: 0.5 }}
         animate={{ scale: 1.05, opacity: 1 }}
-        exit={{ 
-          x: exitX,
-          opacity: 0,
-          transition: { duration: 0.2 }
-        }}
+        exit={{ x: exitX, opacity: 0, transition: { duration: 0.2 } }}
       >
         {active ? (
           <Dialog>
@@ -156,23 +187,34 @@ const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
 
                   <div className="relative h-full w-full">
                     <Image
-                      src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
+                      src={data.imageUrl || '/default-avatar.png'}
                       fill
-                      alt={data.title}
+                      alt={`${data.email}'s profile`}
                       className="object-cover"
                       priority
                     />
                   </div>
                   
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
-                    <h2 className="text-xl font-semibold mb-2">{data.title}</h2>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span>{data.primaryRegion}</span>
-                      <span>•</span>
-                      <span>{data.length}m</span>
-                      <span>•</span>
-                      <span>{data.difficulty}</span>
+                    <div className="flex items-center gap-2 mb-2">
+                      <h2 className="text-xl font-semibold">{data.email.split('@')[0]}</h2>
+                      <span className="text-sm">•</span>
+                      <span className="text-sm">{data.age || '?'}</span>
                     </div>
+                    
+                    {data.location && (
+                      <div className="flex items-center gap-1 text-sm">
+                        <MapPin className="h-4 w-4" />
+                        <span>{data.location}</span>
+                      </div>
+                    )}
+
+                    {data.spotifyConnected && (
+                      <div className="flex items-center gap-1 text-sm mt-1">
+                        <Music className="h-4 w-4" />
+                        <span>Spotify Connected</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -182,41 +224,75 @@ const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
-                    src={`https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`}
+                    src={data.imageUrl || '/default-avatar.png'}
                     fill
-                    alt={data.title}
+                    alt={`${data.email}'s profile`}
                     className="object-cover rounded-t-2xl"
                     priority
                   />
                 </div>
 
                 <div className="space-y-4 p-6 bg-background-white dark:bg-primary rounded-b-2xl">
-                  <h2 className="text-2xl font-semibold">{data.title}</h2>
-                  
-                  <p className="text-primary-medium dark:text-primary-white">
-                    {data.teaserText}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
-                      Difficulty: {data.difficulty}
-                    </span>
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
-                      ↑ {data.ascent}m
-                    </span>
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
-                      ↓ {data.descent}m
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-semibold">{data.email.split('@')[0]}</h2>
+                    <span className="text-lg">{data.age || '?'} years</span>
                   </div>
 
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-medium">Details</h3>
-                    <div className="space-y-2 text-sm">
-                      <p>Duration: {Math.round(data.durationMin / 60)} hours</p>
-                      <p>Max Altitude: {data.maxAltitude}m</p>
-                      <p>Region: {data.primaryRegion}</p>
-                      {data.publicTransportFriendly && (
-                        <p className="text-teal-700 dark:text-teal-400">Public Transport Friendly</p>
+                  {data.bio && (
+                    <p className="text-primary-medium dark:text-primary-white">
+                      {data.bio}
+                    </p>
+                  )}
+
+                  {/* Interests */}
+                  {data.interests.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium">Interests</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {data.interests.map((userInterest: UserInterestWithInterest) => (
+                          <span
+                            key={userInterest.interestId}
+                            className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs"
+                          >
+                            {userInterest.interest.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Spotify Artists */}
+                  {data.artists.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-medium">Top Artists</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {data.artists.slice(0, 3).map((userArtist: UserArtistWithArtist) => (
+                          <span
+                            key={userArtist.artistId}
+                            className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs"
+                          >
+                            {userArtist.artist.name}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Additional Profile Info */}
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Hiking Preferences</h3>
+                    <div className="space-y-1 text-sm">
+                      {data.experienceLevel && (
+                        <p>Experience: {data.experienceLevel}</p>
+                      )}
+                      {data.preferredPace && (
+                        <p>Preferred Pace: {data.preferredPace}</p>
+                      )}
+                      {data.preferredDistance && (
+                        <p>Preferred Distance: {data.preferredDistance}</p>
+                      )}
+                      {data.transportation && (
+                        <p>Transportation: {data.transportation}</p>
                       )}
                     </div>
                   </div>
@@ -248,56 +324,3 @@ const UserCard = ({ data, active, removeCard }: ActivityCardProps) => {
 };
 
 export { UserCard, UserCardSkeleton };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-export default function UserCard2(imgSrc:string, userName:string ,hikeDesc:string) {
-  return (
-    <div className="card bg-base-100 w-96 shadow-xl">
-      <figure>
-        <img src={imgSrc} alt="profilePic" className="h-48 w-full object-cover" />
-      </figure>
-      <div className="text-center mt-2">
-        <h2 className="text-xl font-bold">{userName}</h2>
-      </div>
-      <div className="card-body">
-        {/* Beschreibung des Hikes */}
-        <h2 className="card-title text-lg font-bold">Gewünschter Hike</h2>
-        <p>
-          {hikeDesc}
-        </p>
-
-        {/* TODO:Anpassen Interessen des Nutzers */}   
-        
-        <div className="flex flex-wrap mt-3 space-x-2">
-          <span className="badge badge-secondary">Fotografie</span>
-          <span className="badge badge-secondary">Natur</span>
-          <span className="badge badge-secondary">Camping</span>
-        </div>
-
-        {/* Like- und Dislike-Buttons */}
-        <div className="card-actions justify-between mt-4">
-          <button className="btn btn-success">Like</button>
-          <button className="btn btn-error">Dislike</button>
-        </div>
-      </div>
-    </div>)
-}

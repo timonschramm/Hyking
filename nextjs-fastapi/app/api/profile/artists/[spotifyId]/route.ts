@@ -7,31 +7,32 @@ export async function PATCH(
   { params }: { params: { spotifyId: string } }
 ) {
   try {
+    const { hidden } = await request.json();
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const { hidden } = await request.json();
-
-    const updatedArtist = await prisma.artist.update({
-      where: {
-        spotifyId: params.spotifyId,
-      },
-      data: {
-        hidden,
-      },
-      include: {
-        genres: true
-      }
+    const artist = await prisma.artist.findUnique({
+      where: { spotifyId: params.spotifyId },
     });
 
-    return NextResponse.json(updatedArtist);
+    if (!artist) {
+      return new Response('Artist not found', { status: 404 });
+    }
+
+    const updatedUserArtist = await prisma.userArtist.update({
+      where: {
+        profileId_artistId: {
+          profileId: user!.id,
+          artistId: artist.id
+        }
+      },
+      data: { hidden }
+    });
+
+    return Response.json(updatedUserArtist);
   } catch (error) {
     console.error('Error updating artist:', error);
-    return NextResponse.json({ error: 'Failed to update artist' }, { status: 500 });
+    return new Response('Internal Server Error', { status: 500 });
   }
 }
 
@@ -43,25 +44,27 @@ export async function DELETE(
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const artist = await prisma.artist.findUnique({
+      where: { spotifyId: params.spotifyId },
+    });
+
+    if (!artist) {
+      return new Response('Artist not found', { status: 404 });
     }
 
     // Disconnect the artist from the user's profile instead of deleting it
-    await prisma.profile.update({
-      where: { id: user.id },
-      data: {
-        artists: {
-          disconnect: {
-            spotifyId: params.spotifyId
-          }
+    await prisma.userArtist.delete({
+      where: {
+        profileId_artistId: {
+          profileId: user!.id,
+          artistId: artist.id
         }
       }
     });
 
-    return NextResponse.json({ success: true });
+    return new Response(null, { status: 204 });
   } catch (error) {
     console.error('Error removing artist:', error);
-    return NextResponse.json({ error: 'Failed to remove artist' }, { status: 500 });
+    return new Response('Internal Server Error', { status: 500 });
   }
 } 

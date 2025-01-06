@@ -7,12 +7,14 @@ import { Suspense } from "react";
 export default function Home() {
   return (
     <>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<div>Loading header...</div>}>
         <Header />
-        <main>
-          <Hero />
-        </main>
       </Suspense>
-  </>
+      <main>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Hero />
+        </Suspense>
+      </main>
+    </>
   );
 }
