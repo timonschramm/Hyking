@@ -255,7 +255,7 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
                             key={userInterest.interestId}
                             className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs"
                           >
-                            {userInterest.interest.name}
+                            {userInterest.interest.displayName}
                           </span>
                         ))}
                       </div>

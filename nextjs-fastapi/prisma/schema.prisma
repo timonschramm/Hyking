@@ -138,12 +138,13 @@ model UserArtist {
 }
 
 model Interest {
-  id        String           @id @default(cuid())
-  name      String           @unique
-  category  InterestCategory
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  users     UserInterest[]
+  id          String           @id @default(cuid())
+  name        String           @unique
+  displayName String?           // This will be the user-facing name with emoji (e.g., "💭 Deep Chats")
+  category    InterestCategory
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  users       UserInterest[]
 }
 
 model UserInterest {
