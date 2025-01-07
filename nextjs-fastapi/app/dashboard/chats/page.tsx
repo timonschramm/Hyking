@@ -54,6 +54,19 @@ export default function ChatsPage() {
             return match;
           })
         );
+
+        setSelectedMatch(current => {
+          if (current?.chatRoom?.id === newMessage.chatRoomId) {
+            return {
+              ...current,
+              chatRoom: {
+                ...current.chatRoom,
+                messages: [...current.chatRoom.messages, newMessage]
+              }
+            } satisfies MatchWithDetails;
+          }
+          return current;
+        });
       })
       .subscribe();
 
