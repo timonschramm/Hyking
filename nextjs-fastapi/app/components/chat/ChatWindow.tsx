@@ -16,9 +16,35 @@ type ChatWindowProps = {
 export default function ChatWindow({ match }: ChatWindowProps) {
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const otherUser = match.users[0];
   const supabase = createClient();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [match.chatRoom?.messages]);
+
+  // Listen for real-time messages
+  useEffect(() => {
+    if (!match.chatRoom?.id) return;
+
+    const channel = supabase
+      .channel(`chat_${match.chatRoom.id}`)
+      .on('broadcast', { event: 'new_message' }, () => {
+        // Scroll to bottom when receiving new message
+        scrollToBottom();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [match.chatRoom?.id]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +68,8 @@ export default function ChatWindow({ match }: ChatWindowProps) {
       });
 
       if (!response.ok) throw new Error('Failed to send message');
+      // Scroll to bottom after sending
+      scrollToBottom();
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -74,7 +102,7 @@ export default function ChatWindow({ match }: ChatWindowProps) {
         </div>
       </div>
 
-      <ScrollArea ref={scrollRef} className="flex-1 p-4">
+      <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-4">
           {match.chatRoom?.messages.map((msg) => (
             <div
@@ -92,14 +120,14 @@ export default function ChatWindow({ match }: ChatWindowProps) {
               >
                 <p>{msg.content}</p>
                 <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(msg
-                    .createdAt), { addSuffix: true })}
+                  {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
                 </span>
               </div>
             </div>
           ))}
+          <div ref={messagesEndRef} /> {/* Scroll anchor */}
         </div>
-      </ScrollArea>
+      </div>
 
       <form onSubmit={sendMessage} className="border-t p-4">
         <div className="flex space-x-2">
