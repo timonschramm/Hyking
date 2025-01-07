@@ -13,28 +13,33 @@ export default function Match() {
   const [leftSwipe, setLeftSwipe] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        const response = await fetch(`/api/userRecs/${user.id}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch profiles');
-        }
-        const data = await response.json();
-        setProfiles(data);
-
-      } catch (error) {
-        console.error('Failed to fetch profiles:', error);
-      } finally {
-        setIsLoading(false);
+  const fetchProfiles = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const response = await fetch(`/api/userRecs/${user.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch profiles');
       }
-    };
+      const data = await response.json();
+      setProfiles(prev => [...prev, ...data]);
+    } catch (error) {
+      console.error('Failed to fetch profiles:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProfiles();
   }, []);
+
+  useEffect(() => {
+    if (profiles.length <= 2 && !isLoading) {
+      fetchProfiles();
+    }
+  }, [profiles.length, isLoading]);
 
   const activeIndex = profiles.length - 1;
   
@@ -46,9 +51,11 @@ export default function Match() {
       setLeftSwipe((prev) => prev + 1);
     }
   };
-  return (
+  return (//( <div className="flex flex-col gap-4"> {JSON.stringify(profiles)}</div>)
+
     <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
        <div className="absolute inset-0 flex items-center justify-center">
+       
         {isLoading ? (
           <UserCardSkeleton />
         ) : (
