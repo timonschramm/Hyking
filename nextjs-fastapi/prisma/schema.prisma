@@ -84,6 +84,8 @@ model Profile {
   receivedSwipes      UserSwipe[]        @relation("SwipeReceiver")
   sentSwipes          UserSwipe[]        @relation("SwipeSender")
   matches             Match[]            @relation("UserMatches")
+  messages            Message[]
+  participants        Participant[]
 }
 
 model UserSwipe {
@@ -105,6 +107,7 @@ model Match {
   lastActivity DateTime  @default(now())
   isActive     Boolean   @default(true)
   users        Profile[] @relation("UserMatches")
+  chatRoom     ChatRoom?
 }
 
 model Artist {
@@ -219,4 +222,36 @@ enum Transportation {
   CAR
   PUBLIC_TRANSPORT
   BOTH
+}
+
+model ChatRoom {
+  id           String       @id @default(cuid())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  lastMessage  DateTime?
+  messages     Message[]
+  participants Participant[]
+  matchId      String       @unique
+  match        Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  content    String
+  createdAt  DateTime  @default(now())
+  chatRoomId String
+  senderId   String
+  chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  sender     Profile   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Participant {
+  id         String    @id @default(cuid())
+  chatRoomId String
+  profileId  String
+  chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+  profile    Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  lastRead   DateTime  @default(now())
+
+  @@unique([chatRoomId, profileId])
 }
