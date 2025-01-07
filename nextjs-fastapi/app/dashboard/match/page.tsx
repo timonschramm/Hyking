@@ -55,6 +55,7 @@ export default function Match() {
                     data={profile}
                     active={true}
                     removeCard={removeCard}
+                    displayMode="stack"
                   />
                 )
               ))

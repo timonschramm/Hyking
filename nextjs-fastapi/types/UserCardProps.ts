@@ -9,4 +9,6 @@ export interface UserCardProps {
   };
   active: boolean;
   removeCard: (id: string, action: 'right' | 'left') => void;
+  disableActions?: boolean;
+  displayMode?: 'stack' | 'grid';
 } 
