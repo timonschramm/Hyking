@@ -1,3 +1,8 @@
 -Description Key Words not sufficiently weighted. Idea: Seperate filter to exclusively filter for key words
 -Chat back, advise chatgpt to ask questions / answer questions (does not have direct access to DB, cannot answer questions about hikes)
 -Hybrid Approach. Coded fuzzy matching, keyword based matching, cosine similarity calculation. Look into amazon personalize once user data is available
+
+-Coded Chat Back function New Todos:
+-Let user specify importance of region. If unimportant, much much more focus on description matching
+-Ask user for many more criteria than right now. User does not know he can ask for e.g. max altitude or for being allowed to bring pets
+
