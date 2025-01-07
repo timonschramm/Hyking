@@ -1,4 +1,4 @@
-import { Interest } from "@prisma/client";
+import { Interest, Prisma } from "@prisma/client";
 
 import { InterestCategory } from '@prisma/client';
 import { SelectionButton } from "../../ui";
@@ -9,6 +9,7 @@ interface InterestOptionProps {
     onInterestSelect: (interestId: string) => void;
     maxSelect?: number;
 }
+
 
 const InterestOption: React.FC<InterestOptionProps> = ({
     availableInterests,
@@ -26,13 +27,13 @@ const InterestOption: React.FC<InterestOptionProps> = ({
                         ).join(' ')}
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                        {(interests as unknown as Array<{ id: string; name: string; category: InterestCategory }>).map((interest) => (
+                        {(interests as unknown as Array<Interest>).map((interest) => (
                             <SelectionButton
                                 key={interest.id}
                                 isSelected={formData.interests?.includes(interest.id)}
                                 onClick={() => onInterestSelect(interest.id)}
                             >
-                                {interest.name.split(/(?=[A-Z])/).join(' ')}
+                                {interest.displayName ? interest.displayName : interest.name.split(/(?=[A-Z])/).join(' ')}
                             </SelectionButton>
                         ))}
                     </div>

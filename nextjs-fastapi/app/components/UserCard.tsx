@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserArtistWithArtist } from '@/types/Artists';
 import { UserInterestWithInterest } from '@/types/Interest';
+import UserArtistDisplay from './UserArtistDisplay';
 
 const UserCardSkeleton = () => {
   return (
@@ -42,7 +43,13 @@ const UserCardSkeleton = () => {
   );
 };
 
-const UserCard = ({ data, active, removeCard }: UserCardProps) => {
+const UserCard = ({ 
+  data, 
+  active, 
+  removeCard, 
+  disableActions = false,
+  displayMode = 'stack' 
+}: UserCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -131,6 +138,136 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
       console.error('Error recording swipe:', error);
     }
   }, []);
+
+  if (displayMode === 'grid') {
+    return (
+      <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+        <Dialog>
+          <DialogTrigger asChild>
+            <div className="relative h-full w-full cursor-pointer group">
+              <Image
+                src={data.imageUrl || '/default-avatar.png'}
+                fill
+                alt={`${data.email}'s profile`}
+                className="object-cover transition-transform group-hover:scale-105"
+                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent p-2">
+                <div className="flex items-end justify-between">
+                  <div>
+                    <h3 className="text-white text-sm font-medium leading-tight">
+                      {data.email.split('@')[0]}
+                    </h3>
+                    <p className="text-white/90 text-xs">
+                      {data.age} years
+                    </p>
+                  </div>
+                  {data.location && (
+                    <div className="flex items-center text-white/90">
+                      <MapPin className="h-3 w-3" />
+                    </div>
+                  )}
+                </div>
+              </div>
+              {data.spotifyConnected && (
+                <div className="absolute top-2 right-2">
+                  <Music className="h-4 w-4 text-white" />
+                </div>
+              )}
+            </div>
+          </DialogTrigger>
+
+          <DialogContent className="p-0 border-none !rounded-2xl overflow-hidden max-w-[95vw] md:max-w-[400px]">
+            <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
+              <div className="relative h-[40vh] md:h-[50vh]">
+                <Image
+                  src={data.imageUrl || '/default-avatar.png'}
+                  fill
+                  alt={`${data.email}'s profile`}
+                  className="object-cover rounded-t-2xl"
+                  priority
+                />
+              </div>
+
+              <div className="space-y-4 p-6 bg-background-white dark:bg-primary rounded-b-2xl">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-semibold">{data.email.split('@')[0]}</h2>
+                  <span className="text-lg">{data.age || '?'} years</span>
+                </div>
+
+                {data.bio && (
+                  <p className="text-primary-medium dark:text-primary-white">
+                    {data.bio}
+                  </p>
+                )}
+
+                {/* Interests */}
+                {data.interests.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {data.interests.map((userInterest: UserInterestWithInterest) => (
+                        <span
+                          key={userInterest.interestId}
+                          className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs"
+                        >
+                          {userInterest.interest.displayName}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Spotify Artists */}
+                {data.artists.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Top Artists</h3>
+                    <UserArtistDisplay artists={data.artists} />
+                  </div>
+                )}
+
+                {/* Additional Profile Info */}
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Hiking Preferences</h3>
+                  <div className="space-y-1 text-sm">
+                    {data.experienceLevel && (
+                      <p>Experience: {data.experienceLevel}</p>
+                    )}
+                    {data.preferredPace && (
+                      <p>Preferred Pace: {data.preferredPace}</p>
+                    )}
+                    {data.preferredDistance && (
+                      <p>Preferred Distance: {data.preferredDistance}</p>
+                    )}
+                    {data.transportation && (
+                      <p>Transportation: {data.transportation}</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {!disableActions && (
+                <div className="flex justify-center gap-4 p-4 border-t">
+                  <button
+                    onClick={() => handleAction('left')}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500/80 text-white transition-transform hover:scale-110"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                  <button
+                    onClick={() => handleAction('right')}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500/80 text-white transition-transform hover:scale-110"
+                  >
+                    <Check className="h-6 w-6" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
 
   return (
     <div className="absolute flex flex-col items-center justify-center">
@@ -254,7 +391,7 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
                             key={userInterest.interestId}
                             className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs"
                           >
-                            {userInterest.interest.name}
+                            {userInterest.interest.displayName}
                           </span>
                         ))}
                       </div>
@@ -265,16 +402,7 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
                   {data.artists.length > 0 && (
                     <div className="space-y-2">
                       <h3 className="text-lg font-medium">Top Artists</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {data.artists.slice(0, 3).map((userArtist: UserArtistWithArtist) => (
-                          <span
-                            key={userArtist.artistId}
-                            className="rounded-full bg-green-100 dark:bg-green-900/30 px-3 py-1 text-xs"
-                          >
-                            {userArtist.artist.name}
-                          </span>
-                        ))}
-                      </div>
+                      <UserArtistDisplay artists={data.artists} />
                     </div>
                   )}
 
@@ -303,7 +431,7 @@ const UserCard = ({ data, active, removeCard }: UserCardProps) => {
         ) : null}
       </motion.div>
 
-      {active && (
+      {active && !disableActions && (
         <div className="pt-6 z-40 flex gap-8">
           <button
             onClick={() => handleAction('left')}

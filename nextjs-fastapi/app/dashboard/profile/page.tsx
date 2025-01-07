@@ -579,7 +579,7 @@ export default function ProfilePage() {
                         key={userInterest.interest.id}
                         className="bg-primary-light text-primary px-3 py-1 rounded-full text-sm"
                       >
-                        {userInterest.interest.name}
+                        {userInterest.interest.displayName? userInterest.interest.displayName : "Name not set"}
                       </span>
                     ))}
                   </div>
