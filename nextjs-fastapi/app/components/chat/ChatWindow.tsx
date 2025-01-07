@@ -20,47 +20,17 @@ export default function ChatWindow({ match }: ChatWindowProps) {
   const otherUser = match.users[0];
   const supabase = createClient();
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [match.chatRoom?.messages]);
-
-  const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  };
-
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || isSending) return;
 
     setIsSending(true);
     const messageContent = message;
-    const timestamp = new Date();
     setMessage(''); // Clear input immediately
 
     try {
-      // Get current user from Supabase
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        console.error('No authenticated user found');
-        return;
-      }
-
-      // Optimistically add message locally
-      const optimisticMessage = {
-        id: `temp-${Date.now()}`,
-        content: messageContent,
-        createdAt: timestamp,
-        senderId: user.id,
-        chatRoomId: match.chatRoom?.id as string,
-      };
-
-      // Update UI immediately
-      if (match.chatRoom) {
-        match.chatRoom.messages = [...match.chatRoom.messages, optimisticMessage];
-      }
+      if (!user) return;
 
       const response = await fetch('/api/chat/messages', {
         method: 'POST',
@@ -72,20 +42,10 @@ export default function ChatWindow({ match }: ChatWindowProps) {
       });
 
       if (!response.ok) throw new Error('Failed to send message');
-      
-      const newMessage = await response.json();
-      console.log('Message sent successfully:', newMessage);
 
     } catch (error) {
       console.error('Error sending message:', error);
       setMessage(messageContent); // Restore message if failed
-      
-      // Remove optimistic message on error
-      if (match.chatRoom) {
-        match.chatRoom.messages = match.chatRoom.messages.filter(
-          msg => msg.id !== `temp-${Date.now()}`
-        );
-      }
     } finally {
       setIsSending(false);
     }

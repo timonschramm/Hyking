@@ -43,6 +43,11 @@ export default function ChatsPage() {
         setMatches(currentMatches => 
           currentMatches.map(match => {
             if (match.chatRoom?.id === newMessage.chatRoomId) {
+              const existingMessageIds = new Set(match.chatRoom.messages.map(m => m.id));
+              if (existingMessageIds.has(newMessage.id) || existingMessageIds.has(`temp-${newMessage.id}`)) {
+                return match;
+              }
+
               return {
                 ...match,
                 chatRoom: {
@@ -57,6 +62,11 @@ export default function ChatsPage() {
 
         setSelectedMatch(current => {
           if (current?.chatRoom?.id === newMessage.chatRoomId) {
+            const existingMessageIds = new Set(current.chatRoom.messages.map(m => m.id));
+            if (existingMessageIds.has(newMessage.id) || existingMessageIds.has(`temp-${newMessage.id}`)) {
+              return current;
+            }
+
             return {
               ...current,
               chatRoom: {
