@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { UserArtistWithArtist } from '@/types/Artists';
 import { UserInterestWithInterest } from '@/types/Interest';
 import UserArtistDisplay from './UserArtistDisplay';
+import { toast } from "sonner";
+import { useRouter } from 'next/navigation';
 
 const UserCardSkeleton = () => {
   return (
@@ -112,6 +114,8 @@ const UserCard = ({
     removeCard(data.id, direction);
   };
 
+  const router = useRouter();
+
   const recordSwipe = useCallback(async (userId: string, action: 'like' | 'dislike') => {
     try {
       const response = await fetch('/api/users/swipes', {
@@ -131,13 +135,18 @@ const UserCard = ({
 
       const result = await response.json();
       if (result.match) {
-        // Handle match (e.g., show a match notification)
-        console.log('It\'s a match!', result.match);
+        toast("It's a Match! 🎉", {
+          description: "You can now start chatting with each other!",
+          action: {
+            label: "Start Chat",
+            onClick: () => router.push('/dashboard/chats')
+          },
+        });
       }
     } catch (error) {
       console.error('Error recording swipe:', error);
     }
-  }, []);
+  }, [router]);
 
   if (displayMode === 'grid') {
     return (

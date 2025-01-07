@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Check if there's a match (other user has already liked current user)
+    // Check if there's a match
     if (action === 'like') {
       const otherUserSwipe = await prisma.userSwipe.findFirst({
         where: {
@@ -37,19 +37,36 @@ export async function POST(request: NextRequest) {
       });
 
       if (otherUserSwipe) {
-        // Create a match
-        const match = await prisma.match.create({
-          data: {
-            users: {
-              connect: [
-                { id: user.id },
-                { id: receiverId }
-              ]
+        // Create a match and a chat room in a transaction
+        const { match, chatRoom } = await prisma.$transaction(async (tx) => {
+          const match = await tx.match.create({
+            data: {
+              users: {
+                connect: [
+                  { id: user.id },
+                  { id: receiverId }
+                ]
+              }
             }
-          }
+          });
+
+          // Create chat room for the match
+          const chatRoom = await tx.chatRoom.create({
+            data: {
+              matchId: match.id,
+              participants: {
+                create: [
+                  { profileId: user.id },
+                  { profileId: receiverId }
+                ]
+              }
+            }
+          });
+
+          return { match, chatRoom };
         });
 
-        return NextResponse.json({ swipe, match });
+        return NextResponse.json({ swipe, match, chatRoom });
       }
     }
 
