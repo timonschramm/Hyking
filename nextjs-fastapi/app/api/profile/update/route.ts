@@ -3,7 +3,7 @@ import { prisma} from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { Artist, UserArtist } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } from '@prisma/client';
+
 type UserArtistWithArtist = Prisma.UserArtistGetPayload<{
   include: {
     artist: true;
@@ -19,13 +19,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-
-
     const formData = await req.formData();
     const imageFile = formData.get('image') as File | null;
     const jsonData = formData.get('data') as string;
     const data = JSON.parse(jsonData);
-    const { interests = [], artists = [] } = data;
+    const { interests = [], artists = [], skills = [] } = data;
 
     // Handle image upload if present
     let imageUrl;
@@ -83,22 +81,18 @@ export async function POST(req: NextRequest) {
       });
     });
     const createdArtists = await Promise.all(artistPromises);
+
     // Convert form data to match Prisma schema
     const profileData = {
       email: user.email,
-      age: data.Age ? parseInt(data.Age) : undefined,
-      gender: data.Gender || undefined,
-      location: data.Location || undefined,
-      experienceLevel: data.experienceLevel,
-      preferredPace: data.preferredPace,
-      preferredDistance: data.preferredDistance,
+      age: data.age ? parseInt(data.age) : undefined,
+      gender: data.gender || undefined,
+      location: data.location || undefined,
       dogFriendly: data.dogFriendly,
-      transportation: data.Transportation ? convertTransportation(data.Transportation) : undefined,
       spotifyConnected: data.spotifyConnected || false,
       onboardingCompleted: data.onboardingCompleted || false,
     };
 
-    console.log("interestsss:", interests);
     const interestsUpdate = interests.length > 0 ? {
       deleteMany: {},
       create: interests.map((interestId: string) => ({
@@ -109,13 +103,26 @@ export async function POST(req: NextRequest) {
       }))
     } : undefined;
 
+    const skillsUpdate = skills.length > 0 ? {
+      deleteMany: {},
+      create: skills.map((skill: { skillId: string, skillLevelId: string }) => ({
+        id: crypto.randomUUID(),
+        skill: {
+          connect: { id: skill.skillId }
+        },
+        skillLevel: {
+          connect: { id: skill.skillLevelId }
+        }
+      }))
+    } : undefined;
+
     const updatedProfile = await prisma.profile.update({
       where: { id: user.id },
       data: {
         ...profileData,
         interests: interestsUpdate,
+        skills: skillsUpdate,
         imageUrl: imageUrl || undefined,
-       
         artists: {
           deleteMany: {},
           create: createdArtists.map((artist) => ({
@@ -136,6 +143,12 @@ export async function POST(req: NextRequest) {
           include: {
             artist: true
           }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true
+          }
         }
       }
     });
@@ -148,45 +161,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-
-// Helper functions to convert form values to database values
-function convertExperienceLevel(level: string): ExperienceLevel | undefined {
-  const mapping: Record<string, ExperienceLevel> = {
-    'Beginner (0-1)': 'BEGINNER',
-    'Intermediate (1-2)': 'INTERMEDIATE',
-    'Advanced (2-3)': 'ADVANCED',
-    'Expert (3)': 'EXPERT'
-  };
-  return mapping[level];
-}
-
-function convertPreferredPace(pace: string): PreferredPace | undefined {
-  const mapping: Record<string, PreferredPace> = {
-    'Leisurely': 'LEISURELY',
-    'Moderate': 'MODERATE',
-    'Fast': 'FAST',
-    'Very Fast': 'VERY_FAST'
-  };
-  return mapping[pace];
-}
-
-function convertPreferredDistance(distance: string): PreferredDistance | undefined {
-  const mapping: Record<string, PreferredDistance> = {
-    '1-5 km': 'SHORT',
-    '5-10 km': 'MEDIUM',
-    '10-20 km': 'LONG',
-    '20+ km': 'VERY_LONG'
-  };
-  return mapping[distance];
-}
-
-function convertTransportation(transport: string): Transportation | undefined {
-  const mapping: Record<string, Transportation> = {
-    'Car': 'CAR',
-    'Public Transport': 'PUBLIC_TRANSPORT',
-    'Both': 'BOTH'
-  };
-  return mapping[transport];
 } 

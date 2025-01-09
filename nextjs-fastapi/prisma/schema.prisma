@@ -36,6 +36,7 @@ model Activity {
   swipes                  ActivitySwipe[]
   images                  Image[]
   seasons                 Season[]
+  matchingGroupSuggestions MatchingGroupSuggestion[] @relation("ActivitySuggestions")
 }
 
 model Category {
@@ -72,10 +73,6 @@ model Profile {
   spotifyAccessToken  String?
   spotifyTokenExpiry  DateTime?
   spotifyRefreshToken String?
-  experienceLevel     ExperienceLevel?
-  preferredPace       PreferredPace?
-  preferredDistance   PreferredDistance?
-  transportation      Transportation?
   bio                 String?
   displayName         String?
   activitySwipes      ActivitySwipe[]
@@ -86,6 +83,8 @@ model Profile {
   matches             Match[]            @relation("UserMatches")
   messages            Message[]
   participants        Participant[]
+  skills              UserSkill[]        @relation("UserSkills")
+  groupSuggestionProfiles ProfileOnGroupSuggestion[]
 }
 
 model UserSwipe {
@@ -140,6 +139,7 @@ model UserArtist {
   @@unique([profileId, artistId])
 }
 
+
 model Interest {
   id          String           @id @default(cuid())
   name        String           @unique
@@ -174,7 +174,39 @@ model ActivitySwipe {
   @@unique([userId, activityId])
 }
 
-enum Month {
+model Skill {
+  id           String       @id @default(cuid())
+  name         String       @unique  // e.g., "EXPERIENCE", "PACE", "STAMINA"
+  displayName  String       // e.g., "Experience Level", "Preferred Pace"
+  skillLevels  SkillLevel[]
+  userSkills   UserSkill[]
+}
+
+model SkillLevel {
+  id           String      @id @default(cuid())
+  skillId      String
+  name         String      // e.g., "BEGINNER", "LEISURELY"
+  displayName  String      // e.g., "Beginner", "Leisurely Pace"
+  numericValue Float       // e.g., 0.5, 2.0
+  skill        Skill       @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  userSkills   UserSkill[]
+
+  @@unique([skillId, name])
+}
+
+model UserSkill {
+  id           String     @id @default(cuid())
+  profileId    String
+  skillId      String
+  skillLevelId String
+  profile      Profile    @relation("UserSkills", fields: [profileId], references: [id], onDelete: Cascade)
+  skill        Skill      @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skillLevel   SkillLevel @relation(fields: [skillLevelId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, skillId])
+}
+
+enum Month { 
   jan
   feb
   mar
@@ -197,32 +229,6 @@ enum InterestCategory {
   STAYING_IN
 }
 
-enum ExperienceLevel {
-  BEGINNER
-  INTERMEDIATE
-  ADVANCED
-  EXPERT
-}
-
-enum PreferredPace {
-  LEISURELY
-  MODERATE
-  FAST
-  VERY_FAST
-}
-
-enum PreferredDistance {
-  SHORT
-  MEDIUM
-  LONG
-  VERY_LONG
-}
-
-enum Transportation {
-  CAR
-  PUBLIC_TRANSPORT
-  BOTH
-}
 
 model ChatRoom {
   id           String       @id @default(cuid())
@@ -233,6 +239,8 @@ model ChatRoom {
   participants Participant[]
   matchId      String       @unique
   match        Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  matchingGroupSuggestion MatchingGroupSuggestion? @relation(fields: [matchingGroupSuggestionId], references: [id])
+  matchingGroupSuggestionId String? @unique
 }
 
 model Message {
@@ -254,4 +262,24 @@ model Participant {
   lastRead   DateTime  @default(now())
 
   @@unique([chatRoomId, profileId])
+}
+
+model MatchingGroupSuggestion {
+  id         String    @id @default(cuid())
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  profiles   ProfileOnGroupSuggestion[]
+  hikeSuggestions Activity[] @relation("ActivitySuggestions")
+  chatRoom   ChatRoom?
+  chatRoomId String? @unique
+}
+
+model ProfileOnGroupSuggestion {
+  profile                Profile                @relation(fields: [profileId], references: [id])
+  profileId              String
+  matchingGroupSuggestion MatchingGroupSuggestion @relation(fields: [matchingGroupSuggestionId], references: [id])
+  matchingGroupSuggestionId String
+  hasAccepted           Boolean                @default(false)
+
+  @@id([profileId, matchingGroupSuggestionId])
 }

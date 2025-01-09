@@ -42,6 +42,12 @@ export async function GET(request: NextRequest) {
           include: {
             interest: true
           }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true
+          }
         }
       },
       take: 10,

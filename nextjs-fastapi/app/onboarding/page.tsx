@@ -22,6 +22,12 @@ type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
         interest: true
       }
     }
+    skills: {
+      include: {
+        skill: true
+        skillLevel: true
+      }
+    }
   }
 }>;
 

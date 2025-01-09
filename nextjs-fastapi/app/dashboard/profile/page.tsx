@@ -8,9 +8,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from 'next/navigation';
 import SpotifyArtistsDisplay from '@/app/components/SpotifyArtistsDisplay';
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Prisma, Interest, InterestCategory, Transportation, ExperienceLevel, PreferredPace, PreferredDistance } from '@prisma/client';
-import InterestOption from '@/app/components/OnboardingStep/StepOptions/InterestsOption';
+import { Prisma, Interest, InterestCategory, Skill, SkillLevel } from '@prisma/client';
 import ImageUpload from '@/app/components/ImageUpload';
+import InterestsOption from '@/app/components/OnboardingStep/StepOptions/InterestsOption';
+import SkillsOption from '@/app/components/OnboardingStep/StepOptions/SkillsOption';
+import { UserInterestWithInterest } from '@/types/Interest';
 
 
 // Use Prisma's utility types for Artist with relations
@@ -30,39 +32,20 @@ type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
         interest: true
       }
     }
+    skills: {
+      include: {
+        skill: true
+        skillLevel: true
+      }
+    }
   }
-
 }>;
 
 
 
 // Helper functions to convert database values to display values
-const experienceLevelMap: Record<ExperienceLevel, string> = {
-  BEGINNER: 'Beginner (0-1)',
-  INTERMEDIATE: 'Intermediate (1-2)',
-  ADVANCED: 'Advanced (2-3)',
-  EXPERT: 'Expert (3)'
-};
 
-const paceMap: Record<PreferredPace, string> = {
-  LEISURELY: 'Leisurely',
-  MODERATE: 'Moderate',
-  FAST: 'Fast',
-  VERY_FAST: 'Very Fast'
-};
 
-const distanceMap: Record<PreferredDistance, string> = {
-  SHORT: '1-5 km',
-  MEDIUM: '5-10 km',
-  LONG: '10-20 km',
-  VERY_LONG: '20+ km'
-};
-
-const transportationMap: Record<Transportation, string> = {
-  CAR: 'Car',
-  PUBLIC_TRANSPORT: 'Public Transport',
-  BOTH: 'Both'
-};
 
 const ProfileSkeleton = () => {
   return (
@@ -106,24 +89,6 @@ const ProfileSkeleton = () => {
               <Skeleton className="h-10 w-full max-w-[300px] bg-gray-200" />
             </div>
 
-            {/* Experience Level Field - Static Label with Skeleton Value */}
-            <div className="space-y-2">
-              <label className="text-sm text-gray-500">Experience Level</label>
-              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
-            </div>
-
-            {/* Preferred Pace Field - Static Label with Skeleton Value */}
-            <div className="space-y-2">
-              <label className="text-sm text-gray-500">Preferred Pace</label>
-              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
-            </div>
-
-            {/* Preferred Distance Field - Static Label with Skeleton Value */}
-            <div className="space-y-2">
-              <label className="text-sm text-gray-500">Preferred Distance</label>
-              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
-            </div>
-
             {/* Hobbies Field - Static Label with Skeleton Value */}
             <div className="space-y-2">
               <label className="text-sm text-gray-500">Hobbies</label>
@@ -137,12 +102,6 @@ const ProfileSkeleton = () => {
                 <Skeleton className="h-6 w-6 rounded-md bg-gray-200 mr-2" />
                 <Skeleton className="h-4 w-32 bg-gray-200" />
               </div>
-            </div>
-
-            {/* Transportation Field - Static Label with Skeleton Value */}
-            <div className="space-y-2">
-              <label className="text-sm text-gray-500">Transportation</label>
-              <Skeleton className="h-10 w-full max-w-[250px] bg-gray-200" />
             </div>
 
             {/* Spotify Section - Static Title with Skeleton Content */}
@@ -159,6 +118,21 @@ const ProfileSkeleton = () => {
                     <Skeleton className="aspect-square w-full rounded-lg bg-gray-200" />
                     <Skeleton className="h-4 w-3/4 bg-gray-200" />
                     <Skeleton className="h-4 w-1/2 bg-gray-200" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Skills Section - Static Title with Skeleton Content */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">Skills & Experience</h2>
+              </div>
+              <div className="grid grid-cols-1 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-6 w-48 bg-gray-200" />
+                    <Skeleton className="h-10 w-full bg-gray-200" />
                   </div>
                 ))}
               </div>
@@ -186,18 +160,28 @@ export default function ProfilePage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
   const [userInterestIds, setUserInterestIds] = useState<string[]>([]);
+  const [availableSkills, setAvailableSkills] = useState<(Skill & { skillLevels: SkillLevel[] })[]>([]);
   const loadProfileData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const response = await fetch(`/api/profile?userId=${user.id}`);
-      if (!response.ok) throw new Error('Failed to fetch profile data');
-      console.log("response:", response)
-      const profileData : ProfileWithArtistsAndInterests = await response.json();
-      console.log("profileData:", profileData)
+      const [profileResponse, skillsResponse] = await Promise.all([
+        fetch(`/api/profile?userId=${user.id}`),
+        fetch('/api/profile/skills')
+      ]);
+
+      if (!profileResponse.ok) throw new Error('Failed to fetch profile data');
+      if (!skillsResponse.ok) throw new Error('Failed to fetch skills data');
+
+      const [profileData, skillsData] = await Promise.all([
+        profileResponse.json(),
+        skillsResponse.json()
+      ]);
+
       setProfileData(profileData);
-      setUserInterestIds(profileData.interests.map(interest => interest.interestId))
+      setAvailableSkills(skillsData);
+      setUserInterestIds(profileData.interests.map((interest: UserInterestWithInterest) => interest.interestId));
     } catch (error) {
       console.error('[Profile] Error loading profile data:', error);
     } finally {
@@ -217,21 +201,30 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !editedData) return;
 
       const formData = new FormData();
       
+      // Prepare the data for submission
+      const submitData = {
+        ...editedData,
+        skills: editedData.skills.map(skill => ({
+          skillId: skill.skillId,
+          skillLevelId: skill.skillLevelId
+        })),
+        interests: userInterestIds
+      };
+      
       // Add profile data
-      formData.append('profileData', JSON.stringify(editedData));
+      formData.append('data', JSON.stringify(submitData));
       
       // Add image if there's a new one
-      if (newImageFile) { // You'll need to track the new image file in state
+      if (newImageFile) {
         formData.append('image', newImageFile);
       }
-      formData.append('interests', JSON.stringify(userInterestIds));
 
-      const response = await fetch(`/api/profile?userId=${user.id}`, {
-        method: 'PUT',
+      const response = await fetch('/api/profile/update', {
+        method: 'POST',
         body: formData,
       });
 
@@ -240,6 +233,7 @@ export default function ProfilePage() {
       const updatedProfile = await response.json();
       setProfileData(updatedProfile);
       setIsEditing(false);
+      router.refresh();
     } catch (error) {
       console.error('Error updating profile:', error);
     }
@@ -333,6 +327,41 @@ export default function ProfilePage() {
     fetchInterests();
   }, []);
 
+  const handleSkillSelect = (skillId: string, skillLevelId: string) => {
+    if (!editedData) return;
+
+    const updatedSkills = [...(editedData.skills || [])];
+    const existingSkillIndex = updatedSkills.findIndex(s => s.skillId === skillId);
+    
+    const selectedSkill = availableSkills.find(s => s.id === skillId);
+    const selectedSkillLevel = selectedSkill?.skillLevels.find(l => l.id === skillLevelId);
+    
+    if (!selectedSkill || !selectedSkillLevel) return;
+
+    if (existingSkillIndex !== -1) {
+      // Update existing skill
+      updatedSkills[existingSkillIndex] = {
+        ...updatedSkills[existingSkillIndex],
+        skillLevelId: skillLevelId,
+        skillLevel: selectedSkillLevel,
+      };
+    } else {
+      // Add new skill
+      updatedSkills.push({
+        id: crypto.randomUUID(),
+        skillId: skillId,
+        skillLevelId: skillLevelId,
+        profileId: editedData.id,
+        skill: selectedSkill,
+        skillLevel: selectedSkillLevel
+      });
+    }
+
+    setEditedData(prev => prev ? {
+      ...prev,
+      skills: updatedSkills
+    } : null);
+  };
 
   if (isLoading) return <ProfileSkeleton />;
 
@@ -432,75 +461,6 @@ export default function ProfilePage() {
                 )}
               </div>
 
-              {/* Experience Level Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Experience Level</label>
-                {isEditing ? (
-                  <select
-                    value={editedData?.experienceLevel || ''}
-                    onChange={(e) => setEditedData({
-                      ...editedData!,
-                      experienceLevel: e.target.value as ExperienceLevel
-                    })}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    {Object.entries(experienceLevelMap).map(([key, value]) => (
-                      <option key={key} value={key}>{value}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-lg">
-                    {experienceLevelMap[profileData.experienceLevel || 'BEGINNER']}
-                  </p>
-                )}
-              </div>
-
-              {/* Preferred Pace Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Preferred Pace</label>
-                {isEditing ? (
-                  <select
-                    value={editedData?.preferredPace || ''}
-                    onChange={(e) => setEditedData({
-                      ...editedData!,
-                      preferredPace: e.target.value as PreferredPace
-                    })}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    {Object.entries(paceMap).map(([key, value]) => (
-                      <option key={key} value={key}>{value}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-lg">
-                    {paceMap[profileData.preferredPace || 'LEISURELY']}
-                  </p>
-                )}
-              </div>
-
-              {/* Preferred Distance Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Preferred Distance</label>
-                {isEditing ? (
-                  <select
-                    value={editedData?.preferredDistance || ''}
-                    onChange={(e) => setEditedData({
-                      ...editedData!,
-                      preferredDistance: e.target.value as PreferredDistance
-                    })}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    {Object.entries(distanceMap).map(([key, value]) => (
-                      <option key={key} value={key}>{value}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-lg">
-                    {distanceMap[profileData.preferredDistance || 'SHORT']}
-                  </p>
-                )}
-              </div>
-
               {/* Dog Friendly Field */}
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Dog Friendly</label>
@@ -516,29 +476,6 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <p className="text-lg">{profileData.dogFriendly ? 'Yes' : 'No'}</p>
-                )}
-              </div>
-
-              {/* Transportation Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Transportation</label>
-                {isEditing ? (
-                  <select
-                    value={editedData?.transportation || ''}
-                    onChange={(e) => setEditedData({
-                      ...editedData!,
-                      transportation: e.target.value as Transportation
-                    })}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    {Object.entries(transportationMap).map(([key, value]) => (
-                      <option key={key} value={key}>{value}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <p className="text-lg">
-                    {transportationMap[profileData.transportation || 'CAR']}
-                  </p>
                 )}
               </div>
 
@@ -564,7 +501,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <label className="text-sm text-gray-500">Interests</label>
                 {isEditing ? (
-                  <InterestOption
+                  <InterestsOption
                     availableInterests={availableInterests}
                     formData={{
                       interests: userInterestIds || []
@@ -593,6 +530,34 @@ export default function ProfilePage() {
                 isEditable={true}
                 profile={profileData}
               />
+
+              {/* Skills Section */}
+              <div className="space-y-4 mt-6">
+                <div className="flex justify-between items-center">
+                  <h2 className="text-xl font-semibold">Skills & Experience</h2>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {availableSkills.map((skill) => (
+                    <div key={skill.id} className="space-y-2">
+                      {isEditing ? (
+                        <SkillsOption
+                          skillName={skill.name.toLowerCase()}
+                          skill={skill}
+                          selectedLevelId={editedData?.skills.find(s => s.skillId === skill.id)?.skillLevelId || null}
+                          onSelect={(skillId, levelId) => handleSkillSelect(skillId, levelId)}
+                        />
+                      ) : (
+                        <div className="flex flex-col">
+                          <span className="text-sm text-gray-500">{skill.displayName}</span>
+                          <span className="text-base">
+                            {profileData?.skills.find(s => s.skillId === skill.id)?.skillLevel.displayName || 'Not specified'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : (
             <p>No profile data found.</p>

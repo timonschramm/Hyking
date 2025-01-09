@@ -13,15 +13,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'UserId is required' }, { status: 400 });
     }
 
-    const supabase = createClient();
-    const { data: { user } } = await (await supabase).auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const profile = await prisma.profile.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId
+      },
       include: {
         artists: {
           include: {
@@ -36,6 +31,12 @@ export async function GET(request: NextRequest) {
           include: {
             interest: true
           }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true
+          }
         }
       }
     });
@@ -44,21 +45,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    // Transform the data to match the expected format
-    const transformedProfile = {
-      ...profile,
-      topArtists: profile.artists.map(userArtist => ({
-        ...userArtist.artist,
-        hidden: userArtist.hidden,
-        profiles: [{
-          profileId: userId,
-          hidden: userArtist.hidden
-        }]
-      }))
-    };
-
-    // console.log('Raw profile data:', profile);
-    // console.log('Transformed profile data:', transformedProfile);
     return NextResponse.json(profile);
   } catch (error) {
     console.error('Error fetching profile:', error);
@@ -84,17 +70,15 @@ export async function PUT(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     const first_profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
     const interests = formData.get('interests') ? JSON.parse(formData.get('interests') as string) : [];
-    // Extract interests from profileData
-    // console.log("interests:", interests)
-    // console.log("profileData:", first_profileData)
+    const skills = formData.get('skills') ? JSON.parse(formData.get('skills') as string) : [];
+    
     const { artists, topArtists, ...profileData } = first_profileData;
-    // Clean the basic profile data
+    
     let cleanedData = Object.fromEntries(
       Object.entries(profileData)
         .filter(([key, value]) => value !== undefined && key !== 'topArtists')
     );
-    // console.log("cleanedData:", cleanedData)
-    // Handle image upload if present
+
     if (imageFile) {
       // console.log('Processing image upload:', imageFile.name);
       // Delete old image if exists
@@ -152,6 +136,19 @@ export async function PUT(request: NextRequest) {
       }))
     } : undefined;
 
+    const skillsUpdate = skills.length > 0 ? {
+      deleteMany: {},
+      create: skills.map((skill: { skillId: string, skillLevelId: string }) => ({
+        id: crypto.randomUUID(),
+        skill: {
+          connect: { id: skill.skillId }
+        },
+        skillLevel: {
+          connect: { id: skill.skillLevelId }
+        }
+      }))
+    } : undefined;
+
     const artistPromises = artists.map(async (artist: UserArtistWithArtist) => {
       return prisma.artist.upsert({
         where: { spotifyId: artist.artist.spotifyId },
@@ -175,7 +172,8 @@ export async function PUT(request: NextRequest) {
       where: { id: userId },
       data: {
         ...cleanedData,
-        interests: interestsUpdate
+        interests: interestsUpdate,
+        skills: skillsUpdate
       },
       include: {
         artists: {
@@ -190,6 +188,12 @@ export async function PUT(request: NextRequest) {
         interests: {
           include: {
             interest: true
+          }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true
           }
         }
       }
