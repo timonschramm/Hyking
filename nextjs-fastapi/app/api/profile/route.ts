@@ -70,9 +70,14 @@ export async function PUT(request: NextRequest) {
     const imageFile = formData.get('image') as File | null;
     const first_profileData = formData.get('profileData') ? JSON.parse(formData.get('profileData') as string) : {};
     const interests = formData.get('interests') ? JSON.parse(formData.get('interests') as string) : [];
-    const skills = formData.get('skills') ? JSON.parse(formData.get('skills') as string) : [];
     
-    const { artists, topArtists, ...profileData } = first_profileData;
+    // Extract skills from profileData if they exist
+    const skills = first_profileData.skills ? first_profileData.skills.map((skill: any) => ({
+      skillId: skill.skillId,
+      skillLevelId: skill.skillLevelId
+    })) : [];
+    
+    const { artists, topArtists, skills: _, ...profileData } = first_profileData;
     
     let cleanedData = Object.fromEntries(
       Object.entries(profileData)

@@ -201,30 +201,21 @@ export default function ProfilePage() {
   const handleSave = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user || !editedData) return;
+      if (!user) return;
 
       const formData = new FormData();
       
-      // Prepare the data for submission
-      const submitData = {
-        ...editedData,
-        skills: editedData.skills.map(skill => ({
-          skillId: skill.skillId,
-          skillLevelId: skill.skillLevelId
-        })),
-        interests: userInterestIds
-      };
-      
       // Add profile data
-      formData.append('data', JSON.stringify(submitData));
+      formData.append('profileData', JSON.stringify(editedData));
       
       // Add image if there's a new one
-      if (newImageFile) {
+      if (newImageFile) { // You'll need to track the new image file in state
         formData.append('image', newImageFile);
       }
+      formData.append('interests', JSON.stringify(userInterestIds));
 
-      const response = await fetch('/api/profile/update', {
-        method: 'POST',
+      const response = await fetch(`/api/profile?userId=${user.id}`, {
+        method: 'PUT',
         body: formData,
       });
 
@@ -233,7 +224,6 @@ export default function ProfilePage() {
       const updatedProfile = await response.json();
       setProfileData(updatedProfile);
       setIsEditing(false);
-      router.refresh();
     } catch (error) {
       console.error('Error updating profile:', error);
     }
@@ -330,37 +320,20 @@ export default function ProfilePage() {
   const handleSkillSelect = (skillId: string, skillLevelId: string) => {
     if (!editedData) return;
 
-    const updatedSkills = [...(editedData.skills || [])];
-    const existingSkillIndex = updatedSkills.findIndex(s => s.skillId === skillId);
-    
-    const selectedSkill = availableSkills.find(s => s.id === skillId);
-    const selectedSkillLevel = selectedSkill?.skillLevels.find(l => l.id === skillLevelId);
-    
-    if (!selectedSkill || !selectedSkillLevel) return;
+    const updatedSkills = editedData.skills.filter(s => s.skillId !== skillId);
+    updatedSkills.push({
+      id: crypto.randomUUID(),
+      skillId,
+      skillLevelId,
+      profileId: editedData.id,
+      skill: availableSkills.find(s => s.id === skillId)!,
+      skillLevel: availableSkills.find(s => s.id === skillId)?.skillLevels.find(l => l.id === skillLevelId)!
+    });
 
-    if (existingSkillIndex !== -1) {
-      // Update existing skill
-      updatedSkills[existingSkillIndex] = {
-        ...updatedSkills[existingSkillIndex],
-        skillLevelId: skillLevelId,
-        skillLevel: selectedSkillLevel,
-      };
-    } else {
-      // Add new skill
-      updatedSkills.push({
-        id: crypto.randomUUID(),
-        skillId: skillId,
-        skillLevelId: skillLevelId,
-        profileId: editedData.id,
-        skill: selectedSkill,
-        skillLevel: selectedSkillLevel
-      });
-    }
-
-    setEditedData(prev => prev ? {
-      ...prev,
+    setEditedData({
+      ...editedData,
       skills: updatedSkills
-    } : null);
+    });
   };
 
   if (isLoading) return <ProfileSkeleton />;
