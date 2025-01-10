@@ -39,12 +39,12 @@ export async function POST(
     const everyoneAccepted = allAccepted.every(match => match.hasAccepted)
 
     if (everyoneAccepted) {
-      // Create a match record first
+      // Create a match record with explicit connections through UsersOnMatch
       const match = await prisma.match.create({
         data: {
           users: {
-            connect: allAccepted.map(match => ({
-              id: match.profileId
+            create: allAccepted.map(match => ({
+              userId: match.profileId
             }))
           }
         }

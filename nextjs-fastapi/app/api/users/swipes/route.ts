@@ -39,13 +39,21 @@ export async function POST(request: NextRequest) {
       if (otherUserSwipe) {
         // Create a match and a chat room in a transaction
         const { match, chatRoom } = await prisma.$transaction(async (tx) => {
+          // Create the match
           const match = await tx.match.create({
             data: {
               users: {
-                connect: [
-                  { id: user.id },
-                  { id: receiverId }
+                create: [
+                  { userId: user.id },
+                  { userId: receiverId }
                 ]
+              }
+            },
+            include: {
+              users: {
+                include: {
+                  user: true
+                }
               }
             }
           });
@@ -59,6 +67,13 @@ export async function POST(request: NextRequest) {
                   { profileId: user.id },
                   { profileId: receiverId }
                 ]
+              }
+            },
+            include: {
+              participants: {
+                include: {
+                  profile: true
+                }
               }
             }
           });

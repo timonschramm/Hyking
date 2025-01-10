@@ -4,6 +4,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MatchWithDetails } from '@/types/chat';
+import { createClient } from '@/utils/supabase/client';
+import { useEffect, useState } from 'react';
 
 type ChatListProps = {
   matches: MatchWithDetails[];
@@ -13,6 +15,19 @@ type ChatListProps = {
 };
 
 export default function ChatList({ matches, selectedMatch, onSelectMatch, isLoading }: ChatListProps) {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
+    };
+    getCurrentUser();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="space-y-3 p-4">
@@ -33,8 +48,12 @@ export default function ChatList({ matches, selectedMatch, onSelectMatch, isLoad
     <ScrollArea className="h-full">
       <div className="p-4 space-y-2">
         {matches.map((match) => {
-          const otherUser = match.users[0];
+          // Find the other user in the match (not the current user)
+          const otherUserMatch = match.users.find(u => u.userId !== currentUserId);
+          const otherUser = otherUserMatch?.user;
           const lastMessage = match.chatRoom?.messages[match.chatRoom.messages.length - 1];
+
+          if (!otherUser) return null;
 
           return (
             <button

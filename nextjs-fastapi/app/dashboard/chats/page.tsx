@@ -1,8 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Prisma } from '@prisma/client';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
+
 import { createClient } from '@/utils/supabase/client';
 import ChatList from '@/app/components/chat/ChatList';
 import ChatWindow from '@/app/components/chat/ChatWindow';
@@ -24,6 +22,7 @@ export default function ChatsPage() {
       const response = await fetch('/api/matches');
       const data = await response.json();
       setMatches(data);
+      console.log('Matches fetched:', data);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching matches:', error);

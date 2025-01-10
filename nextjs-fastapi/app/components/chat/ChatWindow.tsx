@@ -6,18 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { MatchWithDetails } from '@/types/chat';
+import { MatchWithDetails, MessageWithSender } from '@/types/chat';
 import { createClient } from '@/utils/supabase/client';
 
 type ChatWindowProps = {
   match: MatchWithDetails;
+  onNewMessage?: (message: MessageWithSender) => void;
 };
 
-export default function ChatWindow({ match }: ChatWindowProps) {
+export default function ChatWindow({ match, onNewMessage }: ChatWindowProps) {
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const otherUser = match.users[0];
+  const otherUserMatch = match.users.find(userMatch => userMatch.user);
+  const otherUser = otherUserMatch?.user;
   const supabase = createClient();
 
   const scrollToBottom = () => {
@@ -26,7 +28,9 @@ export default function ChatWindow({ match }: ChatWindowProps) {
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
+    if (match.chatRoom?.messages) {
+      scrollToBottom();
+    }
   }, [match.chatRoom?.messages]);
 
   // Listen for real-time messages
@@ -35,7 +39,11 @@ export default function ChatWindow({ match }: ChatWindowProps) {
 
     const channel = supabase
       .channel(`chat_${match.chatRoom.id}`)
-      .on('broadcast', { event: 'new_message' }, () => {
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        // Handle new message
+        if (onNewMessage && payload.message) {
+          onNewMessage(payload.message as MessageWithSender);
+        }
         // Scroll to bottom when receiving new message
         scrollToBottom();
       })
@@ -44,7 +52,7 @@ export default function ChatWindow({ match }: ChatWindowProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [match.chatRoom?.id]);
+  }, [match.chatRoom?.id, onNewMessage]);
 
   const sendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,6 +76,11 @@ export default function ChatWindow({ match }: ChatWindowProps) {
       });
 
       if (!response.ok) throw new Error('Failed to send message');
+      
+      const newMessage = await response.json();
+      if (onNewMessage) {
+        onNewMessage(newMessage);
+      }
       // Scroll to bottom after sending
       scrollToBottom();
 
@@ -78,6 +91,10 @@ export default function ChatWindow({ match }: ChatWindowProps) {
       setIsSending(false);
     }
   };
+
+  if (!otherUser) {
+    return <div>Loading chat...</div>;
+  }
 
   return (
     <div className="flex h-full flex-col">
