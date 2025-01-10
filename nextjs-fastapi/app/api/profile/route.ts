@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
-import { UserArtistWithArtist } from '@/app/types/profile';
+import { UserArtistWithArtist } from '@/types/Artists';
 
 export const dynamic = 'force-dynamic';
 
