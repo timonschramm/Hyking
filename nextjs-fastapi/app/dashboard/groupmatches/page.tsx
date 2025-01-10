@@ -86,7 +86,7 @@ export default function GroupMatchesPage() {
         <div className="text-center py-12">
           <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">No group matches yet</h3>
           <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-            We'll notify you when we find a perfect hiking group for you!
+            We&apos;ll notify you when we find a perfect hiking group for you!
           </p>
         </div>
       </div>
