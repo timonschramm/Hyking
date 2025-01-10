@@ -85,7 +85,7 @@ export default function ChatsPage() {
   return (
     <div className="container mx-auto h-[calc(100vh-5rem)] p-4">
       <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
-        <div className="border rounded-lg overflow-hidden">
+        <div className={`border rounded-lg overflow-hidden ${selectedMatch ? 'hidden md:block' : 'block'}`}>
           <ChatList
             matches={matches}
             selectedMatch={selectedMatch}
@@ -94,9 +94,12 @@ export default function ChatsPage() {
           />
         </div>
         
-        <div className="border rounded-lg overflow-hidden">
+        <div className={`border rounded-lg overflow-hidden ${selectedMatch ? 'block' : 'hidden md:block'}`}>
           {selectedMatch ? (
-            <ChatWindow match={selectedMatch} />
+            <ChatWindow 
+              match={selectedMatch} 
+              onBack={() => setSelectedMatch(null)}
+            />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
               Select a conversation to start chatting
