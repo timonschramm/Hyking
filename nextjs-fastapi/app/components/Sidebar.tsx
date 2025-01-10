@@ -4,7 +4,7 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Home, Search, Bell, Mountain, Star, Heart, MessageCircle } from "lucide-react";
+import { Home, Search, Bell, Mountain, Star, Heart, MessageCircle, Users } from "lucide-react";
 
 const navItems = [
   { name: "Home", href: "/dashboard/", icon: Home },
@@ -12,6 +12,7 @@ const navItems = [
   { name: "Matching", href: "/dashboard/match", icon: Star },
   { name: "Liked Me", href: "/dashboard/likedme", icon: Heart },
   { name: "Chats", href: "/dashboard/chats", icon: MessageCircle },
+  { name: "Group Matches", href: "/dashboard/groupmatches", icon: Users },
 ];
 
 function truncateEmail(email: string) {

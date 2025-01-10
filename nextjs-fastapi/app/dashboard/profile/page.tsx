@@ -13,33 +13,9 @@ import ImageUpload from '@/app/components/ImageUpload';
 import InterestsOption from '@/app/components/OnboardingStep/StepOptions/InterestsOption';
 import SkillsOption from '@/app/components/OnboardingStep/StepOptions/SkillsOption';
 import { UserInterestWithInterest } from '@/types/Interest';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 
 
-// Use Prisma's utility types for Artist with relations
-type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
-  include: {
-    artists: {
-      include: {
-        artist: {
-          include: {
-            genres: true
-          }
-        }
-      }
-    }
-    interests: {
-      include: {
-        interest: true
-      }
-    }
-    skills: {
-      include: {
-        skill: true
-        skillLevel: true
-      }
-    }
-  }
-}>;
 
 
 
@@ -149,10 +125,10 @@ const ProfileSkeleton = () => {
 
 
 export default function ProfilePage() {
-  const [profileData, setProfileData] = useState<ProfileWithArtistsAndInterests | null>(null);
+  const [profileData, setProfileData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedData, setEditedData] = useState<ProfileWithArtistsAndInterests | null>(null);
+  const [editedData, setEditedData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
   const supabase = createClient();
   const router = useRouter();

@@ -2,7 +2,16 @@
 const nextConfig = {
 
   images: {
-    domains: ['images.unsplash.com', 'avatars.githubusercontent.com', 'i.scdn.co', 'img.oastatic.com', 'expertclimbers.com', 'iqpolftsoulpgmfmxobu.supabase.co'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+        pathname: '**',
+      },
+    ],
+  },
+  experimental: {
+    serverActions: true,
   },
 
   //
