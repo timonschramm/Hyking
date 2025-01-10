@@ -83,7 +83,6 @@ export default function ChatsPage() {
   };
 
   return (
-    <div className="container mx-auto h-[calc(100vh-5rem)] p-4">
       <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
         <div className={`border rounded-lg overflow-hidden ${selectedMatch ? 'hidden md:block' : 'block'}`}>
           <ChatList
@@ -107,6 +106,5 @@ export default function ChatsPage() {
           )}
         </div>
       </div>
-    </div>
   );
 } 

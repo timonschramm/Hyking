@@ -4,13 +4,14 @@ import { DropdownMenu, DropdownMenuTrigger } from "@/components/ui/dropdown-menu
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Home, Search, Bell } from "lucide-react";
+import { Home, Mountain, Star, Heart, MessageCircle } from "lucide-react";
 
 const navItems = [
   { name: "Home", href: "/dashboard/", icon: Home },
-  { name: "Search", href: "/dashboard/search", icon: Search },
-  { name: "Matching", href: "/dashboard/match", icon: Search },
-  { name: "Liked Me", href: "/dashboard/likedme", icon: Search },
+  { name: "Search", href: "/dashboard/search", icon: Mountain },
+  { name: "Matching", href: "/dashboard/match", icon: Star },
+  { name: "Liked Me", href: "/dashboard/likedme", icon: Heart },
+  { name: "Chats", href: "/dashboard/chats", icon: MessageCircle },
 ];
 
 export default function NavigationBottomBar({ user, dropdownContent }: { user: any; dropdownContent: any }) {
