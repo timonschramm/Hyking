@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { ProfileWithArtistsAndInterestsAndSkills } from '@/app/types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { UserCard } from '@/app/components/UserCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 

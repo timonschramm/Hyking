@@ -3,7 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { UserCard, UserCardSkeleton } from '@/app/components/UserCard';
-import { ProfileWithArtistsAndInterestsAndSkills } from '@/app/types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 export default function Match() {
   const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
   const [rightSwipe, setRightSwipe] = useState(0);

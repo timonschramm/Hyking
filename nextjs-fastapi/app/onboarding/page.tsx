@@ -5,34 +5,11 @@ import OnboardingFlow from '../components/OnboardingFlow';
 import { createClient } from '@/utils/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Prisma } from '@prisma/client';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 
-type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
-  include: {
-    artists: {
-      include: {
-        artist: {
-          include: {
-            genres: true
-          }
-        }
-      }
-    }
-    interests: {
-      include: {
-        interest: true
-      }
-    }
-    skills: {
-      include: {
-        skill: true
-        skillLevel: true
-      }
-    }
-  }
-}>;
 
 export default function OnboardingPage() {
-  const [initialData, setInitialData] = useState<ProfileWithArtistsAndInterests  | null>(null);
+  const [initialData, setInitialData] = useState<ProfileWithArtistsAndInterestsAndSkills  | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();

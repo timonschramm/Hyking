@@ -7,7 +7,7 @@ import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
 import { BasicInformationStep } from './OnboardingStep/Steps/BasicInformationStep';
 import PreferencesStep from './OnboardingStep/Steps/PreferencesStep';
 import { InterestsStep } from './OnboardingStep/Steps/InterestsStep';
-import { ProfileWithArtistsAndInterestsAndSkills } from '../types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProfilePhotoOption from './OnboardingStep/StepOptions/ProfilePhotoOption';
