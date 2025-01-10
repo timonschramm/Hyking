@@ -34,7 +34,7 @@ export function GroupMatchCard({ groupMatch, onAccept }: GroupMatchCardProps) {
           {hasCurrentUserAccepted && (
             <Badge variant="default" className="bg-green-500/10 text-green-500 border-green-500/20">
               <Check className="w-3 h-3 mr-1" />
-              You've Joined
+              You&apos;ve Joined
             </Badge>
           )}
         </div>
