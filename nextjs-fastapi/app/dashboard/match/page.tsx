@@ -41,7 +41,7 @@ export default function Match() {
   };
 
   return (
-    <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
+    <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
       <div className="absolute inset-0 flex items-center justify-center">
         {isLoading ? (
           <UserCardSkeleton />
