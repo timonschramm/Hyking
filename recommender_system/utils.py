@@ -262,18 +262,18 @@ def calc_overall_similarity(user_id_a:int, user_id_b:int, hike_desc_a:str, hike_
     """
     return (0.45 * calc_skill_similarity(user_id_a, user_id_b) 
             + 0.35 * calc_interest_similarity(user_id_a, user_id_b) 
-            + 0.2 * calc_hike_description_similarity(hike_desc_a, hike_desc_b))
+            + 0.2 * calc_hike_description_similarity(hike_desc_a, hike_desc_b)) #TODO: Discuss weights
 
-def get_recommendation(user_id:int, hike_desc:str): #TODO: Implement
+def get_recommendations(user_id:int, hike_desc:str): #TODO: Implement
     """
-    Calculates a recommendation for the user based on skill, interests and given hike description
+    Calculates a list of recommendations for the user based on skill, interests and given hike description
 
     Parameters:
     - user_id: ID of the user
     - hike_desc: Description of the hike
 
     Returns:
-    - int: ID of a recommended user
+    - list of int: IDs of recommended users
     """
 
     url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
@@ -283,13 +283,37 @@ def get_recommendation(user_id:int, hike_desc:str): #TODO: Implement
     response = supabase.from_("Profile").select("id").neq("id", user_id).execute().data
     all_ids = [item["id"] for item in response]
 
+    response = supabase.from_("UserSwipe").select("receiverId").eq("senderId", user_id).execute().data
+    swiped_users = [item["receiverId"] for item in response]
+
+    ids = [id for id in all_ids if id not in swiped_users]
     sim_list = []
-    for id in all_ids:
+    for id in ids:
         sim = calc_interest_similarity(user_id, id) #TODO: Change to overall similarity
         sim_list.append((id, sim))
 
     sim_list.sort(key=lambda x: x[1], reverse=True)
 
-    return [tuple[0] for tuple in sim_list] 
+    return [tuple[0] for tuple in sim_list[:3]] #TODO: Change to 10
 
-print(get_recommendation("121f5b6f-6673-4b70-8434-4d9060ed2910", "Hike in the mountains"))
+def calc_intermediate_similarity(user_id_a:str, user_id_b:str):
+    """
+    Calculates the intermediate similarity between the user and all other users
+    
+    Parameters:
+    - user_id_a: ID of the first user
+    - user_id_b: ID of the second user
+    
+    Returns:
+    - float: Intermediate similarity between the user and all other users
+    """
+
+    url:str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    supabase: Client = create_client(url, key)
+
+    interest_sim = calc_interest_similarity(user_id_a, user_id_b)
+    skill_sim = calc_skill_similarity(user_id_a, user_id_b)
+    intermediate_similarity = 0.35 * interest_sim + 0.45 * skill_sim #TODO: Discuss weights
+
+    return intermediate_similarity

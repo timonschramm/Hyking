@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const fastapiResponse = await fetch(`http://127.0.0.1:8000/api/recommendations?userID=${params.userId}`);
+    const fastapiResponse = await fetch(`http://127.0.0.1:3000/api/py/recommendations?userID=${params.userId}`);
 
     
     if (!fastapiResponse.ok) {
@@ -24,19 +24,34 @@ export async function GET(
     }
 
     const response = await fastapiResponse.json();
-    const recommendedUserId = response.recommendedUserID;
+    const recommendedUserIds: string[] = response.recommendedUserIDs;
 
-    console.log("recommendedUserId: " + recommendedUserId)
-    const recommendedProfile = await prisma.profile.findUnique({
-      where: { id: recommendedUserId },
-      
+    const recommendedProfiles = await prisma.profile.findMany({
+      where: { 
+        id: {in: recommendedUserIds},
+      },
+      include: {
+        activitySwipes: true,
+        artists: true,
+        interests: {
+          include: {
+            interest: true
+          }
+        },
+        receivedSwipes: true,
+        sentSwipes: true,
+        matches: true,
+      }
     });
 
-    if (!recommendedProfile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    if (!recommendedProfiles) {
+      return NextResponse.json({ error: 'Profiles not found' }, { status: 404 });
     }
 
-    return NextResponse.json(recommendedUserId);
+    const sortedProfiles = recommendedUserIds.map((id) => {
+      return recommendedProfiles.find((profile) => profile.id === id);
+    });
+    return NextResponse.json(sortedProfiles);
   } catch (error) {
     console.error('Error fetching recommendation:', error);
     return NextResponse.json({ error: 'Failed to process recommendation' }, { status: 500 });
