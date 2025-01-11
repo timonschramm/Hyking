@@ -68,7 +68,7 @@ const Testimonials = () => {
               </div>
               
               <p className="text-text-light leading-relaxed text-sm sm:text-base">
-                "{testimonial.content}"
+                &ldquo;{testimonial.content}&rdquo;
               </p>
             </div>
           ))}
