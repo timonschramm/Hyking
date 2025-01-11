@@ -16,5 +16,4 @@ async def get_recommendation(userID: str): #TODO: Add hike_desc
     # For now, we'll just return the userID
 
     rec_ids = get_recommendations(userID, "") #Change
-    print("rec_ids: ", rec_ids)
     return {"recommendedUserIDs": rec_ids} 

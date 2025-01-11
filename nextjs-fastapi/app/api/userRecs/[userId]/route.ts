@@ -31,16 +31,23 @@ export async function GET(
         id: {in: recommendedUserIds},
       },
       include: {
-        activitySwipes: true,
-        artists: true,
-        interests: {
-          include: {
-            interest: true
+        interests:{
+          include:{
+            interest: true,
           }
         },
-        receivedSwipes: true,
-        sentSwipes: true,
-        matches: true,
+        artists: {
+          include: {
+            artist: true,
+          }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true,
+          }
+        }
+
       }
     });
 

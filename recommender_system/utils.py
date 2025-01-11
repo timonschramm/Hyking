@@ -294,7 +294,7 @@ def get_recommendations(user_id:int, hike_desc:str): #TODO: Implement
 
     sim_list.sort(key=lambda x: x[1], reverse=True)
 
-    return [tuple[0] for tuple in sim_list[:3]] #TODO: Change to 10
+    return [tuple[0] for tuple in sim_list[:7]] #TODO: Change to 10
 
 def calc_intermediate_similarity(user_id_a:str, user_id_b:str):
     """
