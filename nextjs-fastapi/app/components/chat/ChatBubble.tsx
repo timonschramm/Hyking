@@ -11,20 +11,20 @@ interface ChatBubbleProps {
 export const ChatBubble = ({ content, timestamp, isOwn, status = 'sent' }: ChatBubbleProps) => {
   return (
     <div className={cn(
-      "flex w-full",
+      "flex w-full ",
       isOwn ? "justify-end" : "justify-start"
     )}>
       <div className={cn(
-        "relative max-w-[75%] rounded-lg px-4 py-2",
+        "relative max-w-[75%] rounded-2xl px-4 py-2",
         isOwn ? "bg-[#DCF8C6] text-black" : "bg-white text-black",
-        "shadow-sm"
+        "shadow-md"
       )}>
         <div className="mb-1 break-words">{content}</div>
         <div className="flex items-center justify-end gap-1">
           <span className="text-[0.65rem] text-neutral-500">
             {format(timestamp, 'HH:mm')}
           </span>
-          {isOwn && (
+          {/* {isOwn && (
             <span className="text-[0.65rem] text-neutral-500">
               {status === 'read' && (
                 <svg className="h-3 w-4 text-blue-500" viewBox="0 0 16 11" fill="currentColor">
@@ -43,7 +43,7 @@ export const ChatBubble = ({ content, timestamp, isOwn, status = 'sent' }: ChatB
                 </svg>
               )}
             </span>
-          )}
+          )} */}
         </div>
         
         {/* Triangle for chat bubble */}
@@ -52,8 +52,8 @@ export const ChatBubble = ({ content, timestamp, isOwn, status = 'sent' }: ChatB
           isOwn ? "-right-2" : "-left-2"
         )}>
           <div className={cn(
-            "absolute w-2 h-2 transform rotate-45",
-            isOwn ? "bg-[#DCF8C6] -left-1 top-1" : "bg-white -right-1 top-1"
+            "absolute w-3 h-3 transform rotate-45",
+            isOwn ? "bg-[#DCF8C6] -left-1.5 top-1" : "bg-white -right-1.5 top-1"
           )} />
         </div>
       </div>
