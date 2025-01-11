@@ -1,55 +1,57 @@
-import { ChatRoom, Message, Participant, Prisma, Profile } from '@prisma/client';
+import { Prisma } from '@prisma/client'
 
-export type MessageWithSender = Prisma.MessageGetPayload<{
-  include: { sender: true }
-}>;
-
-export type ChatRoomWithMessagesAndParticipants = Prisma.ChatRoomGetPayload<{
+export type ChatRoomWithDetails = Prisma.ChatRoomGetPayload<{
   include: {
+    match: {
+      include: {
+        users: {
+          include: {
+            user: true
+          }
+        }
+      }
+    }
+    groupMatch: {
+      include: {
+        profiles: {
+          include: {
+            profile: true
+          }
+        }
+        hikeSuggestions: true
+      }
+    }
     messages: {
       include: {
         sender: true
       }
-    };
+    }
     participants: {
       include: {
         profile: true
       }
     }
   }
-}>;
+}>
 
-type UsersOnMatch = {
-  user: Profile;
-  userId: string;
-  matchId: string;
-};
+export type MessageWithSender = Prisma.MessageGetPayload<{
+  include: {
+    sender: true
+  }
+}>
 
-export type MatchWithDetails = {
-  id: string;
-  users: UsersOnMatch[];
-  chatRoom?: ChatRoomWithMessagesAndParticipants;
-  createdAt: Date;
-  lastActivity: Date;
-  isActive: boolean;
-};
+export interface RealtimeMessage extends MessageWithSender {
+  chatRoomId: string
+}
 
-// Type for realtime message payload
-export type RealtimeMessage = MessageWithSender;
+export interface ChatListProps {
+  chatRooms: ChatRoomWithDetails[]
+  selectedChat: ChatRoomWithDetails | null
+  onSelectChat: (chat: ChatRoomWithDetails) => void
+  isLoading: boolean
+}
 
-// Helper function to ensure type consistency when updating messages
-export const updateMatchWithNewMessage = (
-  currentMatch: MatchWithDetails,
-  newMessage: RealtimeMessage
-): MatchWithDetails => {
-  if (!currentMatch.chatRoom) return currentMatch;
-
-  return {
-    ...currentMatch,
-    chatRoom: {
-      ...currentMatch.chatRoom,
-      messages: [...currentMatch.chatRoom.messages, newMessage],
-      lastMessage: new Date()
-    }
-  };
-}; 
+export interface ChatWindowProps {
+  chatRoom: ChatRoomWithDetails
+  onBack: () => void
+} 

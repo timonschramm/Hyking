@@ -247,10 +247,10 @@ model ChatRoom {
   lastMessage  DateTime?
   messages     Message[]
   participants Participant[]
-  matchId      String       @unique
-  match        Match        @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  groupMatch GroupMatch? @relation(fields: [groupMatchId], references: [id])
-  groupMatchId String? @unique
+  matchId      String?      @unique
+  match        Match?       @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  groupMatch   GroupMatch?  @relation(fields: [groupMatchId], references: [id])
+  groupMatchId String?      @unique
 }
 
 model Message {
@@ -275,14 +275,13 @@ model Participant {
 }
 
 model GroupMatch {
-  id         String    @id @default(cuid())
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  profiles   ProfileOnGroupSuggestion[]
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  profiles     ProfileOnGroupSuggestion[]
   hikeSuggestions Activity[] @relation("ActivitySuggestions")
-  chatRoom   ChatRoom?
-  chatRoomId String? @unique
-  description String
+  chatRoom     ChatRoom?
+  description  String
 }
 
 model ProfileOnGroupSuggestion {

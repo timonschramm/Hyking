@@ -1,145 +1,127 @@
-import { Prisma } from '@prisma/client';
-import { format, formatDistanceToNow, isToday, isYesterday, isThisWeek, isThisYear } from 'date-fns';
-import { MatchWithDetails } from '@/types/chat';
+import { format } from 'date-fns';
+import Image from 'next/image';
+import { Users } from 'lucide-react';
+import { ChatListProps } from '@/types/chat';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
-import { cn } from "@/lib/utils";
+import { isToday, isThisWeek } from 'date-fns';
 
-type ChatListProps = {
-  matches: MatchWithDetails[];
-  selectedMatch: MatchWithDetails | null;
-  onSelectMatch: (match: MatchWithDetails) => void;
-  isLoading: boolean;
-};
-
-const formatMessageDate = (date: Date) => {
-  if (isToday(date)) {
-    return format(date, 'HH:mm');
+function formatMessageDate(date: Date | string) {
+  const messageDate = new Date(date);
+  if (isToday(messageDate)) {
+    return 'Today';
   }
-  if (isYesterday(date)) {
-    return 'Yesterday';
+  if (isThisWeek(messageDate)) {
+    return format(messageDate, 'EEEE'); // Monday, Tuesday, etc.
   }
-  if (isThisWeek(date)) {
-    return format(date, 'EEEE'); // Monday, Tuesday, etc.
-  }
-  if (isThisYear(date)) {
-    return format(date, 'd MMM'); // 15 Jan
-  }
-  return format(date, 'd MMM yyyy'); // 15 Jan 2023
-};
+  return format(messageDate, 'MMM d, yyyy');
+}
 
-const groupMatchesByDate = (matches: MatchWithDetails[]) => {
-  const groups: { [key: string]: MatchWithDetails[] } = {};
-  
-  matches.forEach(match => {
-    const lastMessage = match.chatRoom?.messages[match.chatRoom.messages.length - 1];
-    if (!lastMessage) {
-      if (!groups['No messages']) {
-        groups['No messages'] = [];
-      }
-      groups['No messages'].push(match);
-      return;
-    }
+function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
+  chat: ChatListProps['chatRooms'][0],
+  isSelected: boolean,
+  currentUserId: string | null,
+  onClick: () => void
+}) {
+  const lastMessage = chat.messages[chat.messages.length - 1];
+  // const messagePreview = lastMessage ? `${lastMessage.sender.email.split('@')[0]}: ${lastMessage.content}` : 'No messages yet';
+  const messagePreview = lastMessage ? `${lastMessage.sender?.email?.split('@')[0] ?? 'Unknown'}: ${lastMessage.content}` : 'No messages yet';
+  const messageTime = lastMessage ? format(new Date(lastMessage.createdAt), 'HH:mm') : '';
+  const messageDate = lastMessage ? formatMessageDate(lastMessage.createdAt) : 'No messages';
 
-    const date = new Date(lastMessage.createdAt);
-    let groupKey: string;
+  // For group chats
+  if (chat.groupMatch) {
+    const activity = chat.groupMatch.hikeSuggestions[0];
+    const acceptedCount = chat.groupMatch.profiles.filter(p => p.hasAccepted).length;
+    const totalCount = chat.groupMatch.profiles.length;
 
-    if (isToday(date)) {
-      groupKey = 'Today';
-    } else if (isYesterday(date)) {
-      groupKey = 'Yesterday';
-    } else if (isThisWeek(date)) {
-      groupKey = 'This Week';
-    } else if (isThisYear(date)) {
-      groupKey = format(date, 'MMMM yyyy');
-    } else {
-      groupKey = format(date, 'yyyy');
-    }
-
-    if (!groups[groupKey]) {
-      groups[groupKey] = [];
-    }
-    groups[groupKey].push(match);
-  });
-
-  // Sort matches within each group by last message date
-  Object.keys(groups).forEach(key => {
-    groups[key].sort((a, b) => {
-      const dateA = a.chatRoom?.messages[a.chatRoom.messages.length - 1]?.createdAt || '';
-      const dateB = b.chatRoom?.messages[b.chatRoom.messages.length - 1]?.createdAt || '';
-      return new Date(dateB).getTime() - new Date(dateA).getTime();
-    });
-  });
-
-  return groups;
-};
-
-const ChatListItem = ({ 
-  match, 
-  isSelected, 
-  currentUserId, 
-  onClick 
-}: { 
-  match: MatchWithDetails; 
-  isSelected: boolean; 
-  currentUserId: string | null;
-  onClick: () => void;
-}) => {
-  const otherUserMatch = match.users.find(u => u.userId !== currentUserId);
-  const otherUser = otherUserMatch?.user;
-  const lastMessage = match.chatRoom?.messages[match.chatRoom.messages.length - 1];
-
-  if (!otherUser) return null;
-
-  return (
-    <div
-      onClick={onClick}
-      className={cn(
-        "group flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-md px-3 py-3 hover:bg-neutral-50 active:bg-neutral-100",
-        isSelected && "bg-brand-100 hover:bg-brand-100 active:bg-brand-50"
-      )}
-    >
-      <div className="relative h-12 w-12 flex-shrink-0">
-        <div className="relative h-full w-full overflow-hidden rounded-full">
-          {otherUser.imageUrl ? (
-            <img
-              src={otherUser.imageUrl}
-              alt={otherUser.displayName || "User"}
-              className="h-full w-full object-cover"
+    return (
+      <div>
+        <div className="px-4 py-1 text-xs font-medium text-neutral-500">
+          {messageDate}
+        </div>
+        <button
+          onClick={onClick}
+          className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
+            isSelected ? 'bg-neutral-100' : ''
+          }`}
+        >
+          <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+            <Image
+              src={`https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`}
+              alt={activity.title}
+              fill
+              className="object-cover"
             />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center bg-neutral-200 text-neutral-600">
-              {otherUser.email?.charAt(0).toUpperCase()}
+            <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
+              <Users className="w-3 h-3 inline-block mr-1" />
+              {acceptedCount}/{totalCount}
             </div>
-          )}
-        </div>
-      </div>
-
-      <div className="flex grow flex-col items-start min-w-0">
-        <div className="flex w-full items-center gap-2 justify-between">
-          <span className="text-sm font-semibold text-neutral-900 truncate">
-            {otherUser.displayName || otherUser.email?.split('@')[0]}
-          </span>
-          {lastMessage && (
-            <span className="text-xs text-neutral-500 whitespace-nowrap">
-              {formatMessageDate(new Date(lastMessage.createdAt))}
-            </span>
-          )}
-        </div>
-        
-        {lastMessage && (
-          <div className="flex w-full items-center gap-2">
-            <span className="text-sm text-neutral-500 truncate">
-              {lastMessage.content}
-            </span>
           </div>
-        )}
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <h3 className="font-medium truncate">{activity.title}</h3>
+              {messageTime && (
+                <span className="text-xs text-neutral-500 flex-shrink-0">
+                  {messageTime}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-500 truncate">
+              {messagePreview}
+            </p>
+          </div>
+        </button>
       </div>
-    </div>
-  );
-};
+    );
+  }
 
-export default function ChatList({ matches, selectedMatch, onSelectMatch, isLoading }: ChatListProps) {
+  // For single chats
+  if (chat.match) {
+    const otherUser = chat.match.users[0]?.user;
+    if (!otherUser) return null;
+
+    return (
+      <div>
+        <div className="px-4 py-1 text-xs font-medium text-neutral-500">
+          {messageDate}
+        </div>
+        <button
+          onClick={onClick}
+          className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
+            isSelected ? 'bg-neutral-100' : ''
+          }`}
+        >
+          <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+            <Image
+              src={otherUser.imageUrl || '/default-avatar.jpg'}
+              alt={otherUser.email}
+              fill
+              className="object-cover"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex justify-between items-start">
+              <h3 className="font-medium truncate">{otherUser.email.split('@')[0]}</h3>
+              {messageTime && (
+                <span className="text-xs text-neutral-500 flex-shrink-0">
+                  {messageTime}
+                </span>
+              )}
+            </div>
+            <p className="text-sm text-neutral-500 truncate">
+              {messagePreview}
+            </p>
+          </div>
+        </button>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export default function ChatList({ chatRooms, selectedChat, onSelectChat, isLoading }: ChatListProps) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createClient();
 
@@ -169,29 +151,25 @@ export default function ChatList({ matches, selectedMatch, onSelectMatch, isLoad
     );
   }
 
-  const groupedMatches = groupMatchesByDate(matches);
+  // Sort chats by last message date
+  const sortedChats = [...chatRooms].sort((a, b) => {
+    if (!a.lastMessage) return 1;
+    if (!b.lastMessage) return -1;
+    return new Date(b.lastMessage).getTime() - new Date(a.lastMessage).getTime();
+  });
 
   return (
     <div className="h-full border-r border-neutral-200">
       <div className="h-[calc(100vh-4rem)] overflow-y-auto">
         <div className="flex flex-col gap-1">
-          {Object.entries(groupedMatches).map(([date, dateMatches]) => (
-            <div key={date} className="flex flex-col">
-              <div className="sticky top-0 bg-neutral-100 px-4 py-2 text-xs font-medium text-neutral-500">
-                {date}
-              </div>
-              <div className="p-2">
-                {dateMatches.map((match) => (
-                  <ChatListItem
-                    key={match.id}
-                    match={match}
-                    isSelected={selectedMatch?.id === match.id}
-                    currentUserId={currentUserId}
-                    onClick={() => onSelectMatch(match)}
-                  />
-                ))}
-              </div>
-            </div>
+          {sortedChats.map((chat) => (
+            <ChatListItem
+              key={chat.id}
+              chat={chat}
+              isSelected={selectedChat?.id === chat.id}
+              currentUserId={currentUserId}
+              onClick={() => onSelectChat(chat)}
+            />
           ))}
         </div>
       </div>

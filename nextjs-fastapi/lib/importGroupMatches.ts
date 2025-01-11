@@ -4,6 +4,7 @@ const prisma = new PrismaClient()
 
 async function createGroupMatch(profiles: any[], activity: any) {
   try {
+    // Create the GroupMatch with chat room
     const groupMatch = await prisma.groupMatch.create({
       data: {
         description: `Group hiking suggestion for ${activity.title}`,
@@ -14,12 +15,61 @@ async function createGroupMatch(profiles: any[], activity: any) {
           create: profiles.map(profile => ({
             profileId: profile.id,
           }))
+        },
+        chatRoom: {
+          create: {
+            participants: {
+              create: profiles.map(profile => ({
+                profileId: profile.id,
+              }))
+            }
+          }
+        }
+      },
+      include: {
+        chatRoom: true,
+        profiles: {
+          include: {
+            profile: true
+          }
         }
       }
     })
+
+    console.log(`Created group match: ${groupMatch.id} with chat room: ${groupMatch.chatRoom?.id}`)
     return groupMatch
   } catch (error) {
     console.error('Error creating group match:', error)
+    return null
+  }
+}
+
+// Function to create a chat room for a regular match
+async function createChatRoomForMatch(matchId: string, profileIds: string[]) {
+  try {
+    // Create chat room without any relations first
+    const chatRoom = await prisma.chatRoom.create({
+      data: {
+        participants: {
+          create: profileIds.map(profileId => ({
+            profileId,
+          }))
+        }
+      }
+    })
+    
+    // Then update it with the match connection
+    const updatedChatRoom = await prisma.chatRoom.update({
+      where: { id: chatRoom.id },
+      data: {
+        matchId
+      }
+    })
+    
+    console.log(`Created chat room: ${updatedChatRoom.id} for match: ${matchId}`)
+    return updatedChatRoom
+  } catch (error) {
+    console.error('Error creating chat room:', error)
     return null
   }
 }

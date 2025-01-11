@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
           content: message.content,
           chatRoomId: message.chatRoomId,
           senderId: message.senderId,
+          sender: message.sender,
           createdAt: message.createdAt
         }
       }));
