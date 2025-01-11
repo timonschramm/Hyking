@@ -5,7 +5,7 @@ from .auth import (
     verify_password, create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 )
 from datetime import timedelta
-
+from .getRecs import router as recs_router
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
 
 # Add CORS middleware
@@ -16,6 +16,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Registriere den Router von getRecs.py
+app.include_router(recs_router, prefix="/api/py", tags=["recommendations"])
+
 
 @app.post("/api/py/signup")
 async def signup(user: UserCreate):
@@ -46,3 +50,5 @@ async def login(user: UserCreate):
 @app.get("/api/py/helloFastApi")
 def hello_fast_api():
     return {"message": "Hello from FastAPI"}
+
+
