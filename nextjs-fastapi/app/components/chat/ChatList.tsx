@@ -4,17 +4,20 @@ import { Users } from 'lucide-react';
 import { ChatListProps } from '@/types/chat';
 import { createClient } from '@/utils/supabase/client';
 import { useEffect, useState } from 'react';
-import { isToday, isThisWeek } from 'date-fns';
+import { isToday, isYesterday, isThisWeek } from 'date-fns';
 
 function formatMessageDate(date: Date | string) {
   const messageDate = new Date(date);
   if (isToday(messageDate)) {
-    return 'Today';
+    return format(messageDate, 'HH:mm');
+  }
+  if (isYesterday(messageDate)) {
+    return 'Yesterday';
   }
   if (isThisWeek(messageDate)) {
     return format(messageDate, 'EEEE'); // Monday, Tuesday, etc.
   }
-  return format(messageDate, 'MMM d, yyyy');
+  return format(messageDate, 'dd/MM/yyyy');
 }
 
 function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
@@ -24,10 +27,8 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
   onClick: () => void
 }) {
   const lastMessage = chat.messages[chat.messages.length - 1];
-  // const messagePreview = lastMessage ? `${lastMessage.sender.email.split('@')[0]}: ${lastMessage.content}` : 'No messages yet';
   const messagePreview = lastMessage ? `${lastMessage.sender?.email?.split('@')[0] ?? 'Unknown'}: ${lastMessage.content}` : 'No messages yet';
-  const messageTime = lastMessage ? format(new Date(lastMessage.createdAt), 'HH:mm') : '';
-  const messageDate = lastMessage ? formatMessageDate(lastMessage.createdAt) : 'No messages';
+  const messageTime = lastMessage ? formatMessageDate(lastMessage.createdAt) : '';
 
   // For group chats
   if (chat.groupMatch) {
@@ -36,43 +37,38 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
     const totalCount = chat.groupMatch.profiles.length;
 
     return (
-      <div>
-        <div className="px-4 py-1 text-xs font-medium text-neutral-500">
-          {messageDate}
+      <button
+        onClick={onClick}
+        className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
+          isSelected ? 'bg-neutral-100' : ''
+        }`}
+      >
+        <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+          <Image
+            src={`https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`}
+            alt={activity.title}
+            fill
+            className="object-cover"
+          />
+          <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
+            <Users className="w-3 h-3 inline-block mr-1" />
+            {acceptedCount}/{totalCount}
+          </div>
         </div>
-        <button
-          onClick={onClick}
-          className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
-            isSelected ? 'bg-neutral-100' : ''
-          }`}
-        >
-          <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-            <Image
-              src={`https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`}
-              alt={activity.title}
-              fill
-              className="object-cover"
-            />
-            <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
-              <Users className="w-3 h-3 inline-block mr-1" />
-              {acceptedCount}/{totalCount}
-            </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start">
+            <h3 className="font-medium truncate">{activity.title}</h3>
+            {messageTime && (
+              <span className="text-xs text-neutral-500 flex-shrink-0">
+                {messageTime}
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-              <h3 className="font-medium truncate">{activity.title}</h3>
-              {messageTime && (
-                <span className="text-xs text-neutral-500 flex-shrink-0">
-                  {messageTime}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-neutral-500 truncate">
-              {messagePreview}
-            </p>
-          </div>
-        </button>
-      </div>
+          <p className="text-sm text-neutral-500 truncate">
+            {messagePreview}
+          </p>
+        </div>
+      </button>
     );
   }
 
@@ -82,39 +78,34 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
     if (!otherUser) return null;
 
     return (
-      <div>
-        <div className="px-4 py-1 text-xs font-medium text-neutral-500">
-          {messageDate}
+      <button
+        onClick={onClick}
+        className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
+          isSelected ? 'bg-neutral-100' : ''
+        }`}
+      >
+        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
+          <Image
+            src={otherUser.imageUrl || '/default-avatar.jpg'}
+            alt={otherUser.email}
+            fill
+            className="object-cover"
+          />
         </div>
-        <button
-          onClick={onClick}
-          className={`w-full p-3 flex items-center gap-3 hover:bg-neutral-50 transition-colors ${
-            isSelected ? 'bg-neutral-100' : ''
-          }`}
-        >
-          <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
-            <Image
-              src={otherUser.imageUrl || '/default-avatar.jpg'}
-              alt={otherUser.email}
-              fill
-              className="object-cover"
-            />
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start">
+            <h3 className="font-medium truncate">{otherUser.email.split('@')[0]}</h3>
+            {messageTime && (
+              <span className="text-xs text-neutral-500 flex-shrink-0">
+                {messageTime}
+              </span>
+            )}
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-              <h3 className="font-medium truncate">{otherUser.email.split('@')[0]}</h3>
-              {messageTime && (
-                <span className="text-xs text-neutral-500 flex-shrink-0">
-                  {messageTime}
-                </span>
-              )}
-            </div>
-            <p className="text-sm text-neutral-500 truncate">
-              {messagePreview}
-            </p>
-          </div>
-        </button>
-      </div>
+          <p className="text-sm text-neutral-500 truncate">
+            {messagePreview}
+          </p>
+        </div>
+      </button>
     );
   }
 
@@ -161,7 +152,7 @@ export default function ChatList({ chatRooms, selectedChat, onSelectChat, isLoad
   return (
     <div className="h-full border-r border-neutral-200">
       <div className="h-[calc(100vh-4rem)] overflow-y-auto">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           {sortedChats.map((chat) => (
             <ChatListItem
               key={chat.id}
