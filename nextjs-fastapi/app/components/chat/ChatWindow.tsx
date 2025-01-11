@@ -167,12 +167,12 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-full border bg-neutral-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="flex-1 rounded-full border bg-primary-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
           <button
             type="submit"
             disabled={!message.trim()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-500 text-white disabled:opacity-50"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white disabled:opacity-50"
           >
             <Send className="h-5 w-5" />
           </button>
