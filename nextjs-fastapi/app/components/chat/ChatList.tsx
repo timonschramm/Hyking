@@ -64,7 +64,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
               </span>
             )}
           </div>
-          <p className="text-sm text-neutral-500 truncate">
+          <p className="text-left text-sm text-neutral-500 truncate">
             {messagePreview}
           </p>
         </div>
@@ -101,7 +101,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
               </span>
             )}
           </div>
-          <p className="text-sm text-neutral-500 truncate">
+          <p className=" text-left text-sm text-neutral-500 truncate">
             {messagePreview}
           </p>
         </div>
