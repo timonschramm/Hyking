@@ -4,26 +4,26 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Hero = () => {
   return (
-    <section className="bg-background-light">
-      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-16 lg:gap-20 px-8 py-12 lg:py-24">
-        <div className="flex flex-col gap-8 lg:gap-10 items-center justify-center text-center lg:text-left lg:items-start lg:w-1/2">
+    <section className="bg-background-light min-h-[90vh] md:min-h-0 flex items-center">
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-20 px-4 sm:px-8 py-12 lg:py-24">
+        <div className="flex flex-col gap-6 lg:gap-10 items-center justify-center text-center lg:text-left lg:items-start lg:w-1/2">
           <div className="space-y-4">
-            <h1 className="font-extrabold text-4xl lg:text-6xl tracking-tight text-text">
+            <h1 className="font-extrabold text-3xl sm:text-4xl lg:text-6xl tracking-tight text-text">
               Find Your Perfect 
-              <span className="text-primary"> Hiking Buddy</span>
+              <span className="text-primary block sm:inline"> Hiking Buddy</span>
             </h1>
-            <p className="text-lg leading-relaxed text-text-light max-w-xl">
+            <p className="text-base sm:text-lg leading-relaxed text-text-light max-w-xl">
               Connect with fellow hikers who share your interests, music taste, and adventure spirit. Plan group hikes and make lasting friendships on the trail.
             </p>
           </div>
-          <div className="flex gap-4">
-            <Link href="/signup">
-              <button className="px-8 py-3 rounded-lg font-medium transition-colors bg-primary hover:bg-primary-hover text-primary-white">
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <Link href="/signup" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-8 py-3 rounded-lg font-medium transition-colors bg-primary hover:bg-primary-hover text-primary-white">
                 Get Started Free
               </button>
             </Link>
-            <Link href="#how-it-works">
-              <button className="px-8 py-3 rounded-lg font-medium transition-colors border-2 border-primary text-primary hover:bg-primary-light">
+            <Link href="#how-it-works" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-8 py-3 rounded-lg font-medium transition-colors border-2 border-primary text-primary hover:bg-primary-light">
                 Learn More
               </button>
             </Link>
@@ -48,16 +48,16 @@ const Hero = () => {
             <p>Join 20+ hikers already connected</p>
           </div>
         </div>
-        <div className="lg:w-1/2">
+        <div className="lg:w-1/2 w-full max-w-md lg:max-w-none px-4 sm:px-0">
           <div className="relative">
             <div className="absolute -inset-4 bg-primary/10 rounded-xl blur-xl" />
             <Image
-            src="https://images.unsplash.com/photo-1464207687429-7505649dae38?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Z3JvdXAlMjBoaWtpbmd8ZW58MHx8MHx8fDA%3D"
-            alt="Product Demo"
-            className="w-full rounded-lg shadow-lg"
+              src="https://images.unsplash.com/photo-1464207687429-7505649dae38?w=900&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8Z3JvdXAlMjBoaWtpbmd8ZW58MHx8MHx8fDA%3D"
+              alt="Product Demo"
+              className="relative w-full rounded-lg shadow-lg"
               priority={true}
-            width={600}
-            height={400}
+              width={600}
+              height={400}
             />
           </div>
         </div>
