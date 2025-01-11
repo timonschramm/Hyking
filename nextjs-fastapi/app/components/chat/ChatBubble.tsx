@@ -1,30 +1,59 @@
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
+import Image from 'next/image';
 
 interface ChatBubbleProps {
   content: string;
   timestamp: Date;
   isOwn: boolean;
   status?: 'sent' | 'delivered' | 'read';
+  isGroupChat?: boolean;
+  senderProfile?: {
+    imageUrl: string | null;
+    email: string;
+  } | null;
 }
 
-export const ChatBubble = ({ content, timestamp, isOwn, status = 'sent' }: ChatBubbleProps) => {
+export const ChatBubble = ({ 
+  content, 
+  timestamp, 
+  isOwn, 
+  status = 'sent',
+  isGroupChat = false,
+  senderProfile
+}: ChatBubbleProps) => {
   return (
     <div className={cn(
-      "flex w-full ",
-      isOwn ? "justify-end" : "justify-start"
+      "flex items-end gap-2",
+      isOwn ? "flex-row-reverse" : "flex-row",
+      "w-full"
     )}>
+      {isGroupChat && !isOwn && senderProfile && (
+        <div className="flex flex-col items-center gap-1">
+          <div className="relative h-8 w-8 flex-shrink-0">
+            <Image
+              src={senderProfile.imageUrl || '/default-avatar.jpg'}
+              alt={senderProfile.email}
+              fill
+              className="rounded-full object-cover"
+            />
+          </div>
+          <span className="text-[10px] text-neutral-500 whitespace-nowrap">
+            {senderProfile.email.split('@')[0]}
+          </span>
+        </div>
+      )}
       <div className={cn(
-        "relative max-w-[75%] rounded-2xl px-4 py-2",
-        isOwn ? "bg-[#DCF8C6] text-black" : "bg-white text-black",
-        "shadow-md"
+        "relative rounded-2xl px-3 py-2 max-w-[75%]",
+        isOwn ? "bg-[#DCF8C6]" : "bg-white",
+        "shadow-sm"
       )}>
-        <div className="mb-1 break-words">{content}</div>
+        <div className="mb-1 break-words text-sm">{content}</div>
         <div className="flex items-center justify-end gap-1">
           <span className="text-[0.65rem] text-neutral-500">
             {format(timestamp, 'HH:mm')}
           </span>
-          {/* {isOwn && (
+          {isOwn && (
             <span className="text-[0.65rem] text-neutral-500">
               {status === 'read' && (
                 <svg className="h-3 w-4 text-blue-500" viewBox="0 0 16 11" fill="currentColor">
@@ -43,7 +72,7 @@ export const ChatBubble = ({ content, timestamp, isOwn, status = 'sent' }: ChatB
                 </svg>
               )}
             </span>
-          )} */}
+          )}
         </div>
         
         {/* Triangle for chat bubble */}

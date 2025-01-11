@@ -5,6 +5,8 @@ import { createClient } from '@/utils/supabase/client';
 import { Send, ChevronLeft, Users } from 'lucide-react';
 import Image from 'next/image';
 import { ChatWindowProps } from '@/types/chat';
+import { ChatBubble } from './ChatBubble';
+import { cn } from '@/lib/utils';
 
 export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
   const [message, setMessage] = useState('');
@@ -30,22 +32,8 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
     e.preventDefault();
     if (!message.trim() || !currentUserId) return;
 
-    const tempId = `temp-${Date.now()}`;
-    const tempMessage = {
-      id: tempId,
-      content: message,
-      createdAt: new Date().toISOString(),
-      chatRoomId: chatRoom.id,
-      senderId: currentUserId,
-      sender: {
-        id: currentUserId,
-        email: 'Sending...',
-        imageUrl: null
-      }
-    };
-
     try {
-      const response = await fetch('/api/chat/messages', {
+      const response = await fetch('/api/chats/message', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -57,16 +45,8 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
       });
 
       if (!response.ok) throw new Error('Failed to send message');
-
-      const { message: sentMessage } = await response.json();
       
-      // Broadcast the message to all participants
-      await supabase.channel('messages').send({
-        type: 'broadcast',
-        event: 'new_message',
-        payload: sentMessage,
-      });
-
+      // Clear the message input after successful send
       setMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
@@ -87,7 +67,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
     const otherUser = chatRoom.match.users[0]?.user;
     if (otherUser) {
       chatTitle = otherUser.email.split('@')[0];
-      chatImage = otherUser.imageUrl || '/default-avatar.jpg';
+      chatImage = otherUser.imageUrl || '/default-avatar.png';
     }
   }
 
@@ -116,44 +96,22 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 bg-neutral-50">
         <div className="space-y-4">
           {chatRoom.messages.map((msg) => {
             const isSender = msg.senderId === currentUserId;
+            const senderProfile = chatRoom.participants.find(p => p.profileId === msg.senderId)?.profile;
+            
             return (
-              <div
-                key={msg.id}
-                className={`flex items-end gap-2 ${isSender ? 'flex-row-reverse' : ''}`}
-              >
-                <div className="relative h-6 w-6 flex-shrink-0">
-                  <Image
-                    src={msg.sender.imageUrl || '/default-avatar.jpg'}
-                    alt={msg.sender.email}
-                    fill
-                    className="rounded-full object-cover"
-                  />
-                </div>
-                <div
-                  className={`group relative max-w-[75%] rounded-2xl px-4 py-2 ${
-                    isSender
-                      ? 'bg-brand-500 text-white'
-                      : 'bg-neutral-100 text-neutral-900'
-                  }`}
-                >
-                  {!isSender && (
-                    <div className="mb-1 text-xs font-medium">
-                      {msg.sender.email.split('@')[0]}
-                    </div>
-                  )}
-                  <p className="text-sm">{msg.content}</p>
-                  <div
-                    className={`absolute bottom-0 text-[10px] leading-4 text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 ${
-                      isSender ? 'right-4' : 'left-4'
-                    }`}
-                  >
-                    {format(new Date(msg.createdAt), 'HH:mm')}
-                  </div>
-                </div>
+              <div key={msg.id}>
+                <ChatBubble
+                  content={msg.content}
+                  timestamp={new Date(msg.createdAt)}
+                  isOwn={isSender}
+                  status="sent"
+                  isGroupChat={!!chatRoom.groupMatch}
+                  senderProfile={senderProfile}
+                />
               </div>
             );
           })}
