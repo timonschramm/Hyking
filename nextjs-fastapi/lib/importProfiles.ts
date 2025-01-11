@@ -1,10 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
 import {
-  ExperienceLevel,
-  PreferredPace,
-  PreferredDistance,
-  Transportation,
+
   InterestCategory
 } from '@prisma/client'
 import path from 'path'
@@ -12,7 +9,7 @@ import path from 'path'
 const prisma = new PrismaClient()
 
 // Constants
-const PROFILES_TO_GENERATE = 50
+const PROFILES_TO_GENERATE = 10
 const MIN_INTERESTS_PER_USER = 3
 const MAX_INTERESTS_PER_USER = 8
 const MIN_ARTISTS_PER_USER = 2
@@ -117,11 +114,7 @@ async function createRandomProfile(availableArtists: any[]) {
       imageUrl: await getRandomProfileImage(gender),
       gender: gender,
       location: faker.location.city(),
-      experienceLevel: faker.helpers.arrayElement(Object.values(ExperienceLevel)),
-      preferredPace: faker.helpers.arrayElement(Object.values(PreferredPace)),
-      preferredDistance: faker.helpers.arrayElement(Object.values(PreferredDistance)),
       dogFriendly: faker.datatype.boolean(),
-      transportation: faker.helpers.arrayElement(Object.values(Transportation)),
       onboardingCompleted: true,
       bio: faker.lorem.paragraph(),
       spotifyConnected: faker.datatype.boolean()

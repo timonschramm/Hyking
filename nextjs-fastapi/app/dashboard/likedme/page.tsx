@@ -1,12 +1,12 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { ProfileWithArtistsAndInterests } from '@/app/types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { UserCard } from '@/app/components/UserCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 
 export default function LikedMe() {
-  const [receivedLikes, setReceivedLikes] = useState<ProfileWithArtistsAndInterests[]>([]);
-  const [sentLikes, setSentLikes] = useState<ProfileWithArtistsAndInterests[]>([]);
+  const [receivedLikes, setReceivedLikes] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
+  const [sentLikes, setSentLikes] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {

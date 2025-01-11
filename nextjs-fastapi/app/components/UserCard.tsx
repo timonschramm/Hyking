@@ -239,18 +239,11 @@ const UserCard = ({
                 <div className="space-y-2">
                   <h3 className="text-lg font-medium">Hiking Preferences</h3>
                   <div className="space-y-1 text-sm">
-                    {data.experienceLevel && (
-                      <p>Experience: {data.experienceLevel}</p>
-                    )}
-                    {data.preferredPace && (
-                      <p>Preferred Pace: {data.preferredPace}</p>
-                    )}
-                    {data.preferredDistance && (
-                      <p>Preferred Distance: {data.preferredDistance}</p>
-                    )}
-                    {data.transportation && (
-                      <p>Transportation: {data.transportation}</p>
-                    )}
+                    {data.skills.map((userSkill) => (
+                      <p key={userSkill.id}>
+                        {userSkill.skill.displayName}: {userSkill.skillLevel.displayName}
+                      </p>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -419,18 +412,11 @@ const UserCard = ({
                   <div className="space-y-2">
                     <h3 className="text-lg font-medium">Hiking Preferences</h3>
                     <div className="space-y-1 text-sm">
-                      {data.experienceLevel && (
-                        <p>Experience: {data.experienceLevel}</p>
-                      )}
-                      {data.preferredPace && (
-                        <p>Preferred Pace: {data.preferredPace}</p>
-                      )}
-                      {data.preferredDistance && (
-                        <p>Preferred Distance: {data.preferredDistance}</p>
-                      )}
-                      {data.transportation && (
-                        <p>Transportation: {data.transportation}</p>
-                      )}
+                      {data.skills.map((userSkill) => (
+                        <p key={userSkill.id}>
+                          {userSkill.skill.displayName}: {userSkill.skillLevel.displayName}
+                        </p>
+                      ))}
                     </div>
                   </div>
                 </div>

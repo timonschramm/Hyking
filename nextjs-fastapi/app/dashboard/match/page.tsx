@@ -3,15 +3,16 @@ import { AnimatePresence } from 'framer-motion';
 import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { UserCard, UserCardSkeleton } from '@/app/components/UserCard';
-import { ProfileWithArtistsAndInterests } from '@/app/types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { createClient } from '@/utils/supabase/client';
 
 
 export default function Match() {
-  const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterests[]>([]);
+  const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
   const [rightSwipe, setRightSwipe] = useState(0);
   const [leftSwipe, setLeftSwipe] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
 
   const fetchProfiles = async () => {
     try {
@@ -23,25 +24,29 @@ export default function Match() {
         throw new Error('Failed to fetch profiles');
       }
       const data = await response.json();
+
+ 
       setProfiles(prev => [...prev, ...data]);
+   
     } catch (error) {
       console.error('Failed to fetch profiles:', error);
     } finally {
       setIsLoading(false);
+      console.log("fetchProfiles called");
     }
   };
 
+
+
   useEffect(() => {
-    fetchProfiles();
+      fetchProfiles();
+
   }, []);
 
-  useEffect(() => {
-    if (profiles.length <= 2 && !isLoading) {
-      fetchProfiles();
-    }
-  }, [profiles.length, isLoading]);
 
   const activeIndex = profiles.length - 1;
+  console.log("activeIndex:", activeIndex);
+
   
   const removeCard = (id: string, action: 'right' | 'left') => {
     setProfiles((prev) => prev.filter((profile) => profile.id !== id));

@@ -6,7 +6,7 @@ export type UserArtistWithArtist = Prisma.UserArtistGetPayload<{
   }
 }>;
 
-export type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
+export type ProfileWithArtistsAndInterestsAndSkills = Prisma.ProfileGetPayload<{
   include: {
     artists: {
       include: {
@@ -20,6 +20,12 @@ export type ProfileWithArtistsAndInterests = Prisma.ProfileGetPayload<{
     interests: {
       include: {
         interest: true
+      }
+    }
+    skills: {
+      include: {
+        skill: true
+        skillLevel: true
       }
     }
   }

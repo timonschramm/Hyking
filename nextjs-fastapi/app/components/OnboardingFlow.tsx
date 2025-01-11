@@ -5,44 +5,17 @@ import { Button } from "@/components/ui/button";
 import { toast } from 'sonner';
 import SpotifyArtistsDisplay from './SpotifyArtistsDisplay';
 import { BasicInformationStep } from './OnboardingStep/Steps/BasicInformationStep';
-import { PreferencesStep } from './OnboardingStep/Steps/PreferencesStep';
+import PreferencesStep from './OnboardingStep/Steps/PreferencesStep';
 import { InterestsStep } from './OnboardingStep/Steps/InterestsStep';
-import { ExperienceLevel, PreferredPace, PreferredDistance, Transportation } from '@prisma/client';
-import { ProfileWithArtistsAndInterests } from '../types/profile';
+import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import ProfilePhotoOption from './OnboardingStep/StepOptions/ProfilePhotoOption';
 
-// Type-safe mappings
-const EXPERIENCE_LEVEL_MAP: Record<ExperienceLevel, string> = {
-  BEGINNER: 'Beginner',
-  INTERMEDIATE: 'Intermediate',
-  ADVANCED: 'Advanced',
-  EXPERT: 'Expert'
-};
-
-const PREFERRED_PACE_MAP: Record<PreferredPace, string> = {
-  LEISURELY: 'Leisurely',
-  MODERATE: 'Moderate',
-  FAST: 'Fast',
-  VERY_FAST: 'Very Fast'
-};
-
-const PREFERRED_DISTANCE_MAP: Record<PreferredDistance, string> = {
-  SHORT: '1-5 km',
-  MEDIUM: '5-10 km',
-  LONG: '10-20 km',
-  VERY_LONG: '20+ km'
-};
-
-const TRANSPORTATION_MAP: Record<Transportation, string> = {
-  CAR: 'Car',
-  PUBLIC_TRANSPORT: 'Public Transport',
-  BOTH: 'Both'
-};
+// Type-s
 
 interface OnboardingFlowProps {
-  initialData: ProfileWithArtistsAndInterests;
+  initialData: ProfileWithArtistsAndInterestsAndSkills;
 }
 
 // First, define an interface for the step structure
@@ -65,27 +38,15 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     age: initialData.age?.toString() || '',
     gender: initialData.gender || '',
     location: initialData.location || '',
-    experienceLevel: initialData.experienceLevel 
-      ? [EXPERIENCE_LEVEL_MAP[initialData.experienceLevel]]
-      : [],
-    preferredPace: initialData.preferredPace 
-      ? [PREFERRED_PACE_MAP[initialData.preferredPace]]
-      : [],
-    preferredDistance: initialData.preferredDistance 
-      ? [PREFERRED_DISTANCE_MAP[initialData.preferredDistance]]
-      : [],
     interests: initialData.interests?.map(ui => ui.interest.id) || [],
     dogFriendly: initialData.dogFriendly || false,
-    transportation: initialData.transportation 
-      ? TRANSPORTATION_MAP[initialData.transportation] 
-      : ''
+    skills: initialData.skills || []
   }));
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Define steps with proper syntax
   const steps: OnboardingStep[] = [
-  
     {
       id: 'spotify',
       title: 'Connect Your Music',
@@ -117,9 +78,9 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       subtitle: 'Help us match you with compatible hiking partners',
       validate: function() {
         const newErrors: Record<string, string> = {};
-        if (!formData.experienceLevel?.length) newErrors.experienceLevel = 'Experience level is required';
-        if (!formData.preferredPace?.length) newErrors.preferredPace = 'Preferred pace is required';
-        if (!formData.preferredDistance?.length) newErrors.preferredDistance = 'Preferred distance is required';
+        if (!formData.skills?.length) {
+          newErrors.skills = 'Please select all preferences';
+        }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
       }
@@ -131,7 +92,6 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       validate: function() {
         const newErrors: Record<string, string> = {};
         if (!formData.interests?.length) newErrors.interests = 'Please select at least one interest';
-        if (!formData.transportation) newErrors.transportation = 'Transportation preference is required';
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
       }
@@ -191,26 +151,19 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
         age: parseInt(formData.age),
         gender: formData.gender,
         location: formData.location,
-        experienceLevel: Object.entries(EXPERIENCE_LEVEL_MAP)
-          .find(([_, value]) => value === formData.experienceLevel?.[0])?.[0],
-        preferredPace: Object.entries(PREFERRED_PACE_MAP)
-          .find(([_, value]) => value === formData.preferredPace?.[0])?.[0],
-        preferredDistance: Object.entries(PREFERRED_DISTANCE_MAP)
-          .find(([_, value]) => value === formData.preferredDistance?.[0])?.[0],
-        transportation: Object.entries(TRANSPORTATION_MAP)
-          .find(([_, value]) => value === formData.transportation)?.[0],
         dogFriendly: formData.dogFriendly,
         interests: formData.interests,
         onboardingCompleted: true,
         artists: formData.artists,
-        spotifyConnected: spotifyConnected
+        spotifyConnected: spotifyConnected,
+        skills: formData.skills
       };
 
       submitFormData.append('data', JSON.stringify(transformedData));
 
       const response = await fetch('/api/profile/update', {
         method: 'POST',
-        body: submitFormData, // Send as FormData instead of JSON
+        body: submitFormData,
       });
 
       if (!response.ok) throw new Error('Failed to update profile');
@@ -262,9 +215,10 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       case 'preferences':
         return (
           <PreferencesStep
-            formData={formData}
-            errors={errors}
-            onChange={updateFormData}
+            onNext={handleNext}
+            onBack={handleBack}
+            initialData={formData}
+            onDataChange={(data) => updateFormData('skills', data.skills)}
           />
         );
 
