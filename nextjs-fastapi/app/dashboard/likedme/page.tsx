@@ -64,7 +64,7 @@ export default function LikedMe() {
     <div className="container max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-primary">Your Likes</h1>
-        <p className="text-muted-foreground mt-1">Manage your connections and see who's interested in you</p>
+        <p className="text-muted-foreground mt-1">Manage your connections and see who&apos;s interested in you</p>
       </div>
 
       <Tabs defaultValue="received" className="w-full">
