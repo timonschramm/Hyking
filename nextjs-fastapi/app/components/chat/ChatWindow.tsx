@@ -127,7 +127,11 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
         <div className="space-y-4">
           {chatRoom.messages.map((msg, index) => {
             const isSender = msg.senderId === currentUserId;
-            const senderProfile = chatRoom.participants.find(p => p.profileId === msg.senderId)?.profile;
+            const senderProfile = msg.sender ? {
+              imageUrl: msg.sender.imageUrl || '/default-avatar.jpg',
+              email: msg.sender.email
+            } : null;
+            console.log("senderProfile", senderProfile);
             const prevMsg = index > 0 ? chatRoom.messages[index - 1] : null;
             const showDateSeparator = shouldShowDateSeparator(msg, prevMsg);
             
@@ -140,6 +144,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
                     </div>
                   </div>
                 )}
+               
                 <ChatBubble
                   content={msg.content}
                   timestamp={new Date(msg.createdAt)}
