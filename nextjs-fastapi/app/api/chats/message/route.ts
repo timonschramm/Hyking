@@ -4,8 +4,8 @@ import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient();
-    const { data: { user } } = await (await supabase).auth.getUser();
+    const supabaseClient = await createClient();
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -46,28 +46,27 @@ export async function POST(request: NextRequest) {
     console.log('Created message in database:', message);
 
     // Broadcast through Supabase Realtime
-    const resp = (await (await supabase).channel('messages')
-      .send({
-        type: 'broadcast',
-        event: 'new_message',
-        payload: {
-          id: message.id,
-          content: message.content,
-          chatRoomId: message.chatRoomId,
-          senderId: message.senderId,
-          createdAt: message.createdAt
-        }
-      }));
+    const channel = supabaseClient.channel('messages');
+    const resp = await channel.send({
+      type: 'broadcast',
+      event: 'new_message',
+      payload: {
+        id: message.id,
+        content: message.content,
+        chatRoomId: message.chatRoomId,
+        senderId: message.senderId,
+        sender: message.sender,
+        createdAt: message.createdAt
+      }
+    });
 
     if (resp === 'error') {
-      console.error('Error broadcasting to Supabase:');
-    } else if (resp === 'ok') {
-      console.log('Successfully broadcast message');
+      console.error('Error broadcasting message');
     } else {
-      console.error('Unknown response from Supabase:', resp);
+      console.log('Successfully broadcast message');
     }
 
-    return NextResponse.json(message);
+    return NextResponse.json({ message });
   } catch (error) {
     console.error('Error handling message:', error);
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 });

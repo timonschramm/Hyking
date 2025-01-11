@@ -1,145 +1,181 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Send } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { MatchWithDetails } from '@/types/chat';
+import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
+import { Send, ChevronLeft, Users } from 'lucide-react';
+import Image from 'next/image';
+import { ChatWindowProps } from '@/types/chat';
+import { ChatBubble } from './ChatBubble';
+import { cn } from '@/lib/utils';
 
-type ChatWindowProps = {
-  match: MatchWithDetails;
-};
+function formatMessageDate(date: Date | string) {
+  const messageDate = new Date(date);
+  if (isToday(messageDate)) {
+    return 'Today';
+  }
+  if (isYesterday(messageDate)) {
+    return 'Yesterday';
+  }
+  if (isThisWeek(messageDate)) {
+    return format(messageDate, 'EEEE'); // Monday, Tuesday, etc.
+  }
+  return format(messageDate, 'MMMM d, yyyy');
+}
 
-export default function ChatWindow({ match }: ChatWindowProps) {
+function shouldShowDateSeparator(currentMsg: any, prevMsg: any) {
+  if (!prevMsg) return true; // Always show for first message
+  
+  const currentDate = new Date(currentMsg.createdAt);
+  const prevDate = new Date(prevMsg.createdAt);
+  
+  return (
+    currentDate.getDate() !== prevDate.getDate() ||
+    currentDate.getMonth() !== prevDate.getMonth() ||
+    currentDate.getFullYear() !== prevDate.getFullYear()
+  );
+}
+
+export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
   const [message, setMessage] = useState('');
-  const [isSending, setIsSending] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const otherUser = match.users[0];
   const supabase = createClient();
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [match.chatRoom?.messages]);
-
-  // Listen for real-time messages
-  useEffect(() => {
-    if (!match.chatRoom?.id) return;
-
-    const channel = supabase
-      .channel(`chat_${match.chatRoom.id}`)
-      .on('broadcast', { event: 'new_message' }, () => {
-        // Scroll to bottom when receiving new message
-        scrollToBottom();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+    const getCurrentUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setCurrentUserId(user.id);
+      }
     };
-  }, [match.chatRoom?.id]);
+    getCurrentUser();
+  }, []);
 
-  const sendMessage = async (e: React.FormEvent) => {
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatRoom.messages]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() || isSending) return;
-
-    setIsSending(true);
-    const messageContent = message;
-    setMessage(''); // Clear input immediately
+    if (!message.trim() || !currentUserId) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const response = await fetch('/api/chat/messages', {
+      const response = await fetch('/api/chats/message', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
-          content: messageContent,
-          chatRoomId: match.chatRoom?.id,
+          content: message,
+          chatRoomId: chatRoom.id,
         }),
       });
 
       if (!response.ok) throw new Error('Failed to send message');
-      // Scroll to bottom after sending
-      scrollToBottom();
-
+      
+      // Clear the message input after successful send
+      setMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessage(messageContent); // Restore message if failed
-    } finally {
-      setIsSending(false);
     }
   };
 
+  // Get chat title and image
+  let chatTitle = '';
+  let chatImage = '';
+  let memberCount = 0;
+
+  if (chatRoom.groupMatch) {
+    const activity = chatRoom.groupMatch.hikeSuggestions[0];
+    chatTitle = activity.title;
+    chatImage = `https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`;
+    memberCount = chatRoom.groupMatch.profiles.length;
+  } else if (chatRoom.match) {
+    const otherUser = chatRoom.match.users[0]?.user;
+    if (otherUser) {
+      chatTitle = otherUser.email.split('@')[0];
+      chatImage = otherUser.imageUrl || '/default-avatar.png';
+    }
+  }
+
   return (
     <div className="flex h-full flex-col">
-      <div className="border-b p-4">
-        <div className="flex items-center space-x-4">
-          <Avatar>
-            <AvatarImage src={otherUser.imageUrl || undefined} />
-            <AvatarFallback>
-              {otherUser.email?.charAt(0).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h2 className="font-semibold">
-              {otherUser.displayName || otherUser.email?.split('@')[0]}
-            </h2>
-            {otherUser.location && (
-              <p className="text-sm text-muted-foreground">
-                {otherUser.location}
-              </p>
-            )}
-          </div>
+      <div className="flex items-center gap-3 border-b p-3">
+        <button onClick={onBack} className="md:hidden">
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+        <div className="relative h-10 w-10 flex-shrink-0">
+          <Image
+            src={chatImage}
+            alt={chatTitle}
+            fill
+            className={`object-cover ${chatRoom.groupMatch ? 'rounded-lg' : 'rounded-full'}`}
+          />
         </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-4">
-          {match.chatRoom?.messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${
-                msg.senderId === otherUser.id ? 'justify-start' : 'justify-end'
-              }`}
-            >
-              <div
-                className={`rounded-lg px-4 py-2 max-w-[70%] ${
-                  msg.senderId === otherUser.id
-                    ? 'bg-secondary text-foreground'
-                    : 'bg-primary/10 text-foreground'
-                }`}
-              >
-                <p>{msg.content}</p>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true })}
-                </span>
-              </div>
+        <div className="flex-1">
+          <h2 className="font-semibold">{chatTitle}</h2>
+          {chatRoom.groupMatch && (
+            <div className="flex items-center gap-1 text-sm text-neutral-500">
+              <Users className="h-4 w-4" />
+              <span>{memberCount} members</span>
             </div>
-          ))}
-          <div ref={messagesEndRef} /> {/* Scroll anchor */}
+          )}
         </div>
       </div>
 
-      <form onSubmit={sendMessage} className="border-t p-4">
-        <div className="flex space-x-2">
-          <Input
+      <div className="flex-1 overflow-y-auto p-4 bg-neutral-50">
+        <div className="space-y-4">
+          {chatRoom.messages.map((msg, index) => {
+            const isSender = msg.senderId === currentUserId;
+            const senderProfile = msg.sender ? {
+              imageUrl: msg.sender.imageUrl || '/default-avatar.jpg',
+              email: msg.sender.email
+            } : null;
+            console.log("senderProfile", senderProfile);
+            const prevMsg = index > 0 ? chatRoom.messages[index - 1] : null;
+            const showDateSeparator = shouldShowDateSeparator(msg, prevMsg);
+            
+            return (
+              <div key={msg.id}>
+                {showDateSeparator && (
+                  <div className="flex items-center justify-center my-4">
+                    <div className="bg-neutral-200 text-neutral-600 text-xs px-3 py-1 rounded-full">
+                      {formatMessageDate(msg.createdAt)}
+                    </div>
+                  </div>
+                )}
+               
+                <ChatBubble
+                  content={msg.content}
+                  timestamp={new Date(msg.createdAt)}
+                  isOwn={isSender}
+                  status="sent"
+                  isGroupChat={!!chatRoom.groupMatch}
+                  senderProfile={senderProfile}
+                />
+              </div>
+            );
+          })}
+          <div ref={messagesEndRef} />
+        </div>
+      </div>
+
+      <form onSubmit={handleSendMessage} className="border-t p-4">
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
-            disabled={isSending}
+            className="flex-1 rounded-full border bg-primary-50 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
-          <Button type="submit" disabled={isSending}>
-            <Send className="h-4 w-4" />
-          </Button>
+          <button
+            type="submit"
+            disabled={!message.trim()}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white disabled:opacity-50"
+          >
+            <Send className="h-5 w-5" />
+          </button>
         </div>
       </form>
     </div>

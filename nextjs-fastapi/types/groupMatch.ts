@@ -45,6 +45,7 @@ export interface GroupMatchCardProps {
     currentUserId: string | null
   }
   onAccept: (groupMatchId: string) => void
+  onViewChat?: (chatRoomId: string) => void
 }
 
 // Helper type for profile with group suggestion

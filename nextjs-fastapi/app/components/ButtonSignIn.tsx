@@ -67,30 +67,30 @@ const ButtonSignin = ({ text = "Get started", extraStyle }: ButtonSigninProps) =
     return (
       <Link
         href={config.auth.callbackUrl}
-        className={`btn ${extraStyle ? extraStyle : ""}`}
+        className={`!rounded-full inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary-medium))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary-light))] focus:ring-offset-2 ${extraStyle ? extraStyle : ""}`}
       >
         {user.image ? (
           <img
             src={user.image}
             alt={user.name || "Account"}
-            className="w-6 h-6 rounded-full shrink-0"
+            className="w-6 h-6 rounded-full shrink-0 border-2 border-white/10"
             referrerPolicy="no-referrer"
             width={24}
             height={24}
           />
         ) : (
-          <span className="w-6 h-6 bg-base-300 flex justify-center items-center rounded-full shrink-0">
+          <span className="w-6 h-6 bg-[hsl(var(--primary-medium))] text-white flex justify-center items-center rounded-full shrink-0 text-sm font-medium">
             {user.name?.charAt(0) || user.email?.charAt(0)}
           </span>
         )}
-        {user.name || user.email || "Account"}
+        <span>{user.name || user.email || "Account"}</span>
       </Link>
     );
   }
 
   return (
     <button
-      className={`btn ${extraStyle ? extraStyle : ""}`}
+      className={`inline-flex items-center justify-center px-4 py-2 text-sm font-medium transition-all duration-200 bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary-medium))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary-light))] focus:ring-offset-2 rounded-full ${extraStyle ? extraStyle : ""}`}
       onClick={handleClick}
     >
       {text}

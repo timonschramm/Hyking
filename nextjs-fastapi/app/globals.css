@@ -8,8 +8,8 @@
     --foreground: 82 100% 8%;     /* #142800 */
     
     --primary: 82 100% 8%;        /* #142800 */
-    --primary-medium: 82 99% 17%; /* #2C5601 */
-    --primary-light: 134 64% 57%; /* #5DE372 */
+    --primary-medium: 82 45% 25%; /* #3D4A2D - more muted olive green */
+    --primary-light: 82 30% 87%;  /* #E5E8E2 - very subtle light sage */
     
     --secondary-gray: 0 0% 76%;   /* #C1C1C1 */
     --secondary-blue: 222 100% 84%; /* #ACC3FF */

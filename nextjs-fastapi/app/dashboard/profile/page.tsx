@@ -25,7 +25,7 @@ import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 
 const ProfileSkeleton = () => {
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="md:max-w-4xl md:mx-auto md:p-6">
       <div className="bg-white rounded-lg shadow">
         {/* Profile Header */}
         <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-lg">
@@ -315,7 +315,7 @@ export default function ProfilePage() {
   if (isLoading) return <ProfileSkeleton />;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="md:max-w-4xl md:mx-auto md:p-6">
       <div className="bg-white rounded-lg shadow">
         {/* Profile Header */}
         <div className="relative h-48 bg-gradient-to-r from-blue-500 to-purple-500 rounded-t-lg">

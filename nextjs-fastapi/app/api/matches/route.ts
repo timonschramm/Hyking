@@ -16,15 +16,18 @@ export async function GET(request: NextRequest) {
       where: {
         users: {
           some: {
-            id: user.id
+            userId: user.id
           }
         },
         isActive: true
       },
       include: {
         users: {
+          include: {
+            user: true
+          },
           where: {
-            id: {
+            userId: {
               not: user.id
             }
           }
@@ -32,8 +35,16 @@ export async function GET(request: NextRequest) {
         chatRoom: {
           include: {
             messages: {
+              include: {
+                sender: true
+              },
               orderBy: {
                 createdAt: 'asc'
+              }
+            },
+            participants: {
+              include: {
+                profile: true
               }
             }
           }

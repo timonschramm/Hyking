@@ -1,28 +1,57 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client'
 
-export type MessageWithSender = Prisma.MessageGetPayload<{
-  include: { sender: true }
-}>;
-
-export type ChatRoomWithMessages = Prisma.ChatRoomGetPayload<{
+export type ChatRoomWithDetails = Prisma.ChatRoomGetPayload<{
   include: {
-    messages: true;
-  }
-}>;
-
-export type MatchWithDetails = Prisma.MatchGetPayload<{
-  include: {
-    users: true;
-    chatRoom: {
+    match: {
       include: {
-        messages: true;
+        users: {
+          include: {
+            user: true
+          }
+        }
+      }
+    }
+    groupMatch: {
+      include: {
+        profiles: {
+          include: {
+            profile: true
+          }
+        }
+        hikeSuggestions: true
+      }
+    }
+    messages: {
+      include: {
+        sender: true
+      }
+    }
+    participants: {
+      include: {
+        profile: true
       }
     }
   }
-}>;
+}>
 
-// Type for realtime message payload
-export type RealtimeMessage = Pick<
-  Prisma.MessageGetPayload<{}>, 
-  'id' | 'content' | 'chatRoomId' | 'senderId' | 'createdAt'
->; 
+export type MessageWithSender = Prisma.MessageGetPayload<{
+  include: {
+    sender: true
+  }
+}>
+
+export interface RealtimeMessage extends MessageWithSender {
+  chatRoomId: string
+}
+
+export interface ChatListProps {
+  chatRooms: ChatRoomWithDetails[]
+  selectedChat: ChatRoomWithDetails | null
+  onSelectChat: (chat: ChatRoomWithDetails) => void
+  isLoading: boolean
+}
+
+export interface ChatWindowProps {
+  chatRoom: ChatRoomWithDetails
+  onBack: () => void
+} 

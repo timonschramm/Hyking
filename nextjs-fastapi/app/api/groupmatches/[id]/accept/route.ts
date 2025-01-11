@@ -16,8 +16,18 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Get the group match with its chat room
+    const groupMatch = await prisma.groupMatch.findUnique({
+      where: { id: params.id },
+      include: { chatRoom: true }
+    })
+
+    if (!groupMatch) {
+      return NextResponse.json({ error: 'Group match not found' }, { status: 404 })
+    }
+
     // Update the user's acceptance status
-    const groupMatch = await prisma.profileOnGroupSuggestion.update({
+    await prisma.profileOnGroupSuggestion.update({
       where: {
         profileId_groupMatchId: {
           profileId: user.id,
@@ -29,47 +39,9 @@ export async function POST(
       }
     })
 
-    // Check if all users have accepted
-    const allAccepted = await prisma.profileOnGroupSuggestion.findMany({
-      where: {
-        groupMatchId: params.id
-      }
-    })
-
-    const everyoneAccepted = allAccepted.every(match => match.hasAccepted)
-
-    if (everyoneAccepted) {
-      // Create a match record first
-      const match = await prisma.match.create({
-        data: {
-          users: {
-            connect: allAccepted.map(match => ({
-              id: match.profileId
-            }))
-          }
-        }
-      })
-
-      // Create a chat room for the group
-      const chatRoom = await prisma.chatRoom.create({
-        data: {
-          matchId: match.id,
-          groupMatchId: params.id,
-          participants: {
-            create: allAccepted.map(match => ({
-              profileId: match.profileId
-            }))
-          }
-        }
-      })
-
-      // Update the group match with the chat room
-      await prisma.groupMatch.update({
-        where: { id: params.id },
-        data: { chatRoomId: chatRoom.id }
-      })
-
-      return NextResponse.json({ chatRoomId: chatRoom.id })
+    // Return the chat room ID if it exists
+    if (groupMatch.chatRoom) {
+      return NextResponse.json({ chatRoomId: groupMatch.chatRoom.id })
     }
 
     return NextResponse.json({ message: 'Acceptance recorded' })

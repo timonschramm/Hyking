@@ -155,7 +155,7 @@ const UserCard = ({
           <DialogTrigger asChild>
             <div className="relative h-full w-full cursor-pointer group">
               <Image
-                src={data.imageUrl || '/default-avatar.png'}
+                src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
                 fill
                 alt={`${data.email}'s profile`}
                 className="object-cover transition-transform group-hover:scale-105"
@@ -190,7 +190,7 @@ const UserCard = ({
             <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
               <div className="relative h-[40vh] md:h-[50vh]">
                 <Image
-                  src={data.imageUrl || '/default-avatar.png'}
+                  src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
                   fill
                   alt={`${data.email}'s profile`}
                   className="object-cover rounded-t-2xl"
@@ -326,7 +326,7 @@ const UserCard = ({
 
                   <div className="relative h-full w-full">
                     <Image
-                      src={data.imageUrl || '/default-avatar.png'}
+                      src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
                       fill
                       alt={`${data.email}'s profile`}
                       className="object-cover"
@@ -363,7 +363,7 @@ const UserCard = ({
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
-                    src={data.imageUrl || '/default-avatar.png'}
+                    src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
                     fill
                     alt={`${data.email}'s profile`}
                     className="object-cover rounded-t-2xl"
