@@ -196,7 +196,7 @@ export default function SpotifyArtistsDisplay({
 
   const deleteArtist = async (spotifyId: string) => {
     try {
-      const response = await fetch(`/api/profile/artists/${spotifyId}`, {
+      const response = await fetch(`/api/profile/artists?artistId=${spotifyId}`, {
         method: 'DELETE',
       });
 
@@ -214,17 +214,12 @@ export default function SpotifyArtistsDisplay({
   };
 
   const toggleArtistVisibility = async (spotifyId: string) => {
-
     try {
       const artistToUpdate = profile.artists.find(a => a.artist.spotifyId === spotifyId);
       if (!artistToUpdate) return;
 
-      const response = await fetch(`/api/profile/artists/${spotifyId}`, {
+      const response = await fetch(`/api/profile/artists?artistId=${artistToUpdate.artistId}&hidden=${!artistToUpdate.hidden}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          hidden: !artistToUpdate.hidden 
-        })
       });
 
       if (!response.ok) throw new Error('Failed to update artist visibility');
@@ -326,7 +321,7 @@ export default function SpotifyArtistsDisplay({
                     )}
                   </button>
                   <button
-                    onClick={() => deleteArtist(artist.spotifyId)}
+                    onClick={() => deleteArtist(artist.id)}
                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 
                     transition-colors active:scale-95 transform"
                     aria-label="Delete artist"

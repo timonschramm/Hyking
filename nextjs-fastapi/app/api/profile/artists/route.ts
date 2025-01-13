@@ -158,7 +158,14 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { artistId, hidden } = await request.json();
+    // Parse parameters from URL query
+    const url = new URL(request.url);
+    const artistId = url.searchParams.get('artistId');
+    const hidden = url.searchParams.get('hidden') === 'true';
+
+    if (!artistId) {
+      return NextResponse.json({ error: 'Artist ID is required' }, { status: 400 });
+    }
 
     const updatedUserArtist = await prisma.userArtist.update({
       where: {
@@ -194,6 +201,7 @@ export async function PATCH(request: Request) {
 
 // Add DELETE endpoint for removing artist association
 export async function DELETE(request: Request) {
+  console.log("DELETE request received");
   try {
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
@@ -201,22 +209,31 @@ export async function DELETE(request: Request) {
     if (!user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+    
+    // Parse artistId from URL query parameters
+    const url = new URL(request.url);
+    const artistId = url.searchParams.get('artistId');
+    
+    if (!artistId) {
+      return NextResponse.json({ error: 'Artist ID is required' }, { status: 400 });
+    }
 
-    const { artistId } = await request.json();
-
+    console.log("artistId in delete:", artistId)
     await prisma.userArtist.delete({
       where: {
         profileId_artistId: {
           profileId: user.id,
-          artistId
+          artistId: artistId
         }
       }
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.log("error in delete:", error)
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
+        console.log("artist not found in delete")
         return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
       }
     }
