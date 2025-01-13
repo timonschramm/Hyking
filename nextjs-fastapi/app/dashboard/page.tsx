@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 </span>
               </div>
               <p className="text-sm mb-2 text-primary">
-                <span className="font-medium">Elevation gain:</span> {trail.ascent} ft
+                <span className="font-medium">Elevation gain:</span> {trail.ascent} m
               </p>
               <p className="text-primary">{trail.teaserText}</p>
             </div>
