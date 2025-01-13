@@ -94,7 +94,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
     const otherUser = chatRoom.match.users[0]?.user;
     if (otherUser) {
       chatTitle = otherUser.email.split('@')[0];
-      chatImage = otherUser.imageUrl || '/default-avatar.png';
+      chatImage = otherUser.imageUrl || '/default-avatar.jpg';
     }
   }
 
