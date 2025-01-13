@@ -23,7 +23,7 @@ const UserCardSkeleton = () => {
       <div className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px] dark:bg-primary dark:text-primary-white">
         <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
           <Skeleton className="absolute inset-0 bg-gray-200" />
-          
+
           <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
             <Skeleton className="h-7 w-3/4 bg-gray-200/80 mb-2" />
             <div className="flex items-center gap-2">
@@ -45,12 +45,12 @@ const UserCardSkeleton = () => {
   );
 };
 
-const UserCard = ({ 
-  data, 
-  active, 
-  removeCard, 
+const UserCard = ({
+  data,
+  active,
+  removeCard,
   disableActions = false,
-  displayMode = 'stack' 
+  displayMode = 'stack'
 }: UserCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
@@ -59,7 +59,7 @@ const UserCard = ({
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
   const opacity = useTransform(x, [-200, -125, 0, 125, 200], [0, 1, 1, 1, 0]);
-  
+
   const leftIndicatorOpacity = useTransform(
     x,
     [-150, -25, 0],
@@ -155,7 +155,7 @@ const UserCard = ({
           <DialogTrigger asChild>
             <div className="relative h-full w-full cursor-pointer group">
               <Image
-                src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
+                src={data.imageUrl || `/default-avatar.jpg`}
                 fill
                 alt={`${data.email}'s profile`}
                 className="object-cover transition-transform group-hover:scale-105"
@@ -190,7 +190,9 @@ const UserCard = ({
             <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
               <div className="relative h-[40vh] md:h-[50vh]">
                 <Image
-                  src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
+                  // src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
+                  src={data.imageUrl || `/default-avatar.jpg`}
+
                   fill
                   alt={`${data.email}'s profile`}
                   className="object-cover rounded-t-2xl"
@@ -300,10 +302,10 @@ const UserCard = ({
                 <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center z-50"
-                    style={{ 
-                      opacity: rightIndicatorOpacity, 
+                    style={{
+                      opacity: rightIndicatorOpacity,
                       scale: indicatorScale,
-                      x: rightIndicatorX 
+                      x: rightIndicatorX
                     }}
                   >
                     <div className="rounded-full bg-green-500/90 p-4">
@@ -313,10 +315,10 @@ const UserCard = ({
 
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center z-50"
-                    style={{ 
-                      opacity: leftIndicatorOpacity, 
+                    style={{
+                      opacity: leftIndicatorOpacity,
                       scale: indicatorScale,
-                      x: leftIndicatorX 
+                      x: leftIndicatorX
                     }}
                   >
                     <div className="rounded-full bg-red-500/90 p-4">
@@ -326,21 +328,22 @@ const UserCard = ({
 
                   <div className="relative h-full w-full">
                     <Image
-                      src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
+                      src={data.imageUrl || `/default-avatar.jpg`}
+
                       fill
                       alt={`${data.email}'s profile`}
                       className="object-cover"
                       priority
                     />
                   </div>
-                  
+
                   <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
                     <div className="flex items-center gap-2 mb-2">
                       <h2 className="text-xl font-semibold">{data.email.split('@')[0]}</h2>
                       <span className="text-sm">•</span>
                       <span className="text-sm">{data.age || '?'}</span>
                     </div>
-                    
+
                     {data.location && (
                       <div className="flex items-center gap-1 text-sm">
                         <MapPin className="h-4 w-4" />
@@ -363,7 +366,7 @@ const UserCard = ({
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
-                    src={data.imageUrl || `/dummyprofileimages/${Math.floor(Math.random() * 13) + 1}.jpg`}
+                    src={data.imageUrl || `/default-avatar.jpg`}
                     fill
                     alt={`${data.email}'s profile`}
                     className="object-cover rounded-t-2xl"
