@@ -43,17 +43,17 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
           isSelected ? 'bg-neutral-100' : ''
         }`}
       >
-        <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+        <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
           <Image
             src={`https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`}
             alt={activity.title}
             fill
             className="object-cover"
           />
-          <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
+          {/* <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
             <Users className="w-3 h-3 inline-block mr-1" />
             {acceptedCount}/{totalCount}
-          </div>
+          </div> */}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
