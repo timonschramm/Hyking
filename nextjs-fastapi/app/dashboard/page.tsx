@@ -138,7 +138,7 @@ export default function DashboardPage() {
                   <span className="font-medium">Difficulty:</span> {trail.difficulty}
                 </span>
                 <span className="text-sm text-primary">
-                  <span className="font-medium">Length:</span> {trail.length} miles
+                  <span className="font-medium">Length:</span> {trail.length} m
                 </span>
               </div>
               <p className="text-sm mb-2 text-primary">
