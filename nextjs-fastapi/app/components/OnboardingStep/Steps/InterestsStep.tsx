@@ -77,28 +77,6 @@ export function InterestsStep({ formData, errors, onChange }: InterestsStepProps
         </div>
       </div>
 
-      <div className="space-y-4">
-        <Label>Transportation</Label>
-        <Select
-          value={formData.transportation}
-          onValueChange={(value) => onChange('transportation', value)}
-        >
-          <SelectTrigger className={cn(
-            "w-full rounded-full h-10",
-            errors.transportation ? 'border-red-500' : ''
-          )}>
-            <SelectValue placeholder="Select your transportation preference" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Car">Car</SelectItem>
-            <SelectItem value="Public Transport">Public Transport</SelectItem>
-            <SelectItem value="Both">Both</SelectItem>
-          </SelectContent>
-        </Select>
-        {errors.transportation && (
-          <p className="text-sm text-red-500">{errors.transportation}</p>
-        )}
-      </div>
     </div>
   );
 } 
