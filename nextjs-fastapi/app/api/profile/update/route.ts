@@ -3,6 +3,7 @@ import { prisma} from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { Artist, UserArtist } from '@prisma/client';
 import { Prisma } from '@prisma/client';
+export const maxDuration = 25;
 
 type UserArtistWithArtist = Prisma.UserArtistGetPayload<{
   include: {
