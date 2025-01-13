@@ -13,7 +13,7 @@ const testimonials = [
     name: "Michael R.",
     role: "Trail Runner",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400",
-    content: "The music matching feature is genius! It&apos;s so much fun hiking with people who share my playlist.",
+    content: "The music matching feature is genius! It is so much fun hiking with people who share my playlist.",
     rating: 5
   },
   {
@@ -34,7 +34,7 @@ const Testimonials = () => {
             Loved by Hikers Everywhere
           </h2>
           <p className="text-text-light max-w-2xl mx-auto text-sm sm:text-base">
-            Join thousands of happy hikers who&apos;ve found their perfect trail companions through our platform.
+            Join our community of happy hikers who&apos;ve found their perfect trail companions through our platform.
           </p>
         </div>
 

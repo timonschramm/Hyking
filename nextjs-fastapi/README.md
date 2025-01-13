@@ -1,6 +1,8 @@
-# Tools 
-Run the project 
-- npm run dev
+
+Run the project with:
+npm run dev
+
+This returns the following, scroll up to see the address
 [0]   - Local:        http://localhost:3000
 [1] INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 
@@ -17,6 +19,8 @@ Run the project
     - dotenv -f .env.local run -- npx tsx lib/importdata.ts -->
 
 
+For migrations with prisma
+
 dotenv -f .env.local run -- npx prisma migrate status
 dotenv -f .env.local run -- npx prisma generate  
 dotenv -f .env.local run -- npx prisma migrate dev --name name
@@ -26,9 +30,5 @@ dotenv -f .env.local run -- npx prisma db push
 Mass create new with
 dotenv -f .env.local run -- npx tsx lib/importdata.ts 
 
-- Supabase
 
-- FastAPI
-  
-
-  TODO: after onboarding to dashboard
+Open ToDos 
