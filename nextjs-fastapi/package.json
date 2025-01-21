@@ -3,9 +3,10 @@
   "version": "0.2.0",
   "private": true,
   "scripts": {
-    "fastapi-dev": "pip3 install -r requirements.txt && python3 -m uvicorn api.index:app --reload",
+    "fastapi-dev": "pip install -r requirements.txt && python -m uvicorn api.index:app --reload",
     "next-dev": "next dev",
-    "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
+    "flask-dev": "cd api/chatBot && python app.py",
+    "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\" \"npm run flask-dev\"",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
@@ -35,7 +36,6 @@
     "@types/react-dom": "18.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "concurrently": "^9.0.1",
     "cookie": "^1.0.2",
     "date-fns": "^4.1.0",
     "dotenv-cli": "^7.4.4",
@@ -57,6 +57,7 @@
   "devDependencies": {
     "@types/node": "^22.10.1",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.2",
     "daisyui": "^4.12.14",
     "postcss": "^8.4.49",
     "prisma": "^6.0.1",

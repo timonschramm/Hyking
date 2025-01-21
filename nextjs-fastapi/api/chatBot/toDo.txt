@@ -1,0 +1,5 @@
+Now have some stuff working. Hikes are now fetched from supabase
+
+check if supabase hike fetch works
+
+work on hikes being shown as interactable widgets in chat
