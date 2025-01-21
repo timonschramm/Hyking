@@ -40,58 +40,65 @@ def handle_general_chat(user_input):
 
 def handle_hike_recommendation(user_input):
     """
-    Handles hike recommendations using user filters and integrates with getHike.
+    Handles hike recommendations dynamically and prioritizes matches across all text fields.
     """
     memory = chatbot.get_session_memory()
     user_filters = memory["conversation_state"]["user_filters"]
 
-    # Add user input to history for GPT processing
-    memory["history"].append({"role": "user", "content": user_input})
-
     try:
-        # Ask GPT to extract filters from the user input
+        # Extract filters dynamically
         system_prompt = chatbot._build_system_prompt("recommendation", user_input)
         gpt_response = chatbot._call_gpt(user_input, system_prompt)
 
-        # Update user filters based on GPT response (only use JSON parts)
         try:
-            new_filters = json.loads(gpt_response)  # Parse JSON from GPT
-            user_filters.update(new_filters)  # Update the filters with new ones
+            new_filters = json.loads(gpt_response)
+            user_filters.update(new_filters)
+
+            # Automatically ignore location if not provided
+            if not user_filters.get("region"):
+                user_filters.pop("region", None)
         except json.JSONDecodeError:
             print(f"❌ GPT Response was not valid JSON: {gpt_response}")
             return {"response": "I couldn't process your request. Could you provide more details?"}
 
-        # Check if required filters are still missing
-        required_filters = ['region', 'difficulty', 'max_length']
-        missing_filters = [key for key in required_filters if not user_filters.get(key)]
-
-        if missing_filters:
-            clarification_prompt = chatbot._build_system_prompt("clarification", f"Missing filters: {', '.join(missing_filters)}.")
-            clarification_response = chatbot._call_gpt(f"Missing filters: {', '.join(missing_filters)}", clarification_prompt)
-            return {"response": clarification_response}
-
-        # Fetch recommendations once all required filters are provided
+        # Fetch recommendations
         recommendations_df = main.getHike(user_filters)
 
-        # Debugging: Print columns to ensure required fields are present
-        print("Columns in recommendations_df:", recommendations_df.columns)
-
         if not recommendations_df.empty:
-            # Safeguard against missing fields in the DataFrame
-            recommendations = recommendations_df.to_dict(orient='records')
-            for recommendation in recommendations:
-                recommendation['description_long'] = recommendation.get('description_long', "No detailed description available.")
-                recommendation['title'] = recommendation.get('title', "Untitled Hike")
-                recommendation['difficulty'] = recommendation.get('difficulty', "Unknown")
-                recommendation['length'] = recommendation.get('length', 0)
+            # Ensure all text fields exist and fill missing values
+            text_fields = ["title", "teaserText", "descriptionShort", "descriptionLong"]
+            for field in text_fields:
+                if field not in recommendations_df.columns:
+                    recommendations_df[field] = ""
 
+            # Sort recommendations by final_score
+            recommendations_df = recommendations_df.sort_values(by="final_score", ascending=False).reset_index(drop=True)
+
+            # Debugging output
+            print("Sorted Recommendations Sent to Frontend:\n", recommendations_df[["id", "title", "final_score"]].head())
+
+            # Convert to dict for frontend
+            recommendations = recommendations_df.to_dict(orient="records")
             return {"response": "Here are some hikes you might like.", "hikes": recommendations}
+
+        # No results found: Provide alternatives
         else:
-            return {"response": "No hikes match your preferences. Try adjusting your filters."}
+            alternative_filters = {
+                "difficulty": user_filters.get("difficulty", 2),  # Default to medium
+                "length": user_filters.get("max_length", 10000),  # Default max length
+            }
+            return {
+                "response": "No hikes matched your filters. Filters like difficulty or keywords might have been too restrictive.",
+                "alternatives": alternative_filters,
+            }
 
     except Exception as e:
         print(f"❌ Error in handle_hike_recommendation: {e}")
         return {"response": "An error occurred while processing your request. Please try again later."}
+
+
+
+
 
 
 

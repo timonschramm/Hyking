@@ -55,48 +55,21 @@ except Exception as e:
 
 def getHike(user_filters):
     """
-    Processes user filters, fetches recommended hikes, and integrates image data.
+    Processes user filters, scores hikes, and returns top recommendations.
     """
-    print("🛠️ User filters received:", user_filters)
     location_scoring = LocationScoring(user_filters)
 
-    # Step 1: Filter hikes based on location scoring
-    hikes_with_location_scores = location_scoring.filter_hikes_by_location(hikes_df)
+    # Step 1: Apply location-based scoring
+    hikes_with_scores = location_scoring.filter_and_score_hikes(hikes_df)
 
-    # Step 2: Create FinalRecommender object
-    final_recommender = FinalRecommender(user_filters, hikes_with_location_scores)
+    # Step 2: Calculate final scores
+    final_recommender = FinalRecommender(user_filters, hikes_with_scores)
+    top_hikes = final_recommender.get_recommendations()
 
-    # Step 3: Get the final recommendations based on all factors
-    final_recommended_hikes = final_recommender.get_recommendations()
+    # Step 3: Return top recommendations
+    print("Top Recommended Hikes:\n", top_hikes[["id", "title", "final_score"]])
+    return top_hikes
 
-    # Step 4: Display columns in the recommended DataFrame
-    print("Columns in final_recommended_hikes:", final_recommended_hikes.columns)
-
-    # Step 5: Query the Supabase Image table for image IDs
-    try:
-        # Fetch image data from the Image table
-        response = supabase.table("Image").select("*").filter("activityId", "in", final_recommended_hikes['id'].tolist()).execute()
-        if not response.data:
-            print("No image data found for the recommended hikes.")
-            image_data = pd.DataFrame()  # Empty DataFrame if no images are found
-        else:
-            image_data = pd.DataFrame(response.data)
-    except Exception as e:
-        print(f"❌ Error fetching image data: {e}")
-        image_data = pd.DataFrame()  # Return an empty DataFrame on failure
-
-    # Step 6: Merge the image data with the recommended hikes
-    if not final_recommended_hikes.empty:
-        if not image_data.empty:
-            final_recommended_hikes = final_recommended_hikes.merge(image_data, left_on="id", right_on="activityId", how="left")
-        print("Final recommendations with images:", final_recommended_hikes)
-        if 'description_long' not in final_recommended_hikes.columns:
-            final_recommended_hikes['description_long'] = "No detailed description available."
-
-        return final_recommended_hikes
-    else:
-        print("No matching hike recommendations found.")
-        return pd.DataFrame()
 
 
 

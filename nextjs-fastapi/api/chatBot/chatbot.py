@@ -71,6 +71,7 @@ class Chatbot:
                 - group_size (string, one of 'small', 'medium', 'large')
                 - is_pet_friendly (boolean, true or false)
                 - facilities (array of strings)
+                - description_match array of all words derived from input that could be important, such as ['beautiful views', 'challenging', 'easy', 'waterfall'])
 
                 Your response must:
                 - ONLY contain a valid JSON object.
@@ -126,15 +127,19 @@ class Chatbot:
 
     def send_recommendation_request(self, user_input):
         """
-        Handle the recommendation process and return filtered results.
+        Handle the recommendation process dynamically and prioritize description matches.
         """
         system_prompt = self._build_system_prompt("recommendation", user_input)
         gpt_response = self._call_gpt(user_input, system_prompt)
 
-        # Parse and validate the JSON response
         try:
             filters = json.loads(gpt_response)
             session_memory = self.get_session_memory()
+
+            # Automatically ignore location if not provided
+            if not filters.get("region"):
+                filters.pop("region", None)
+
             session_memory["conversation_state"]["user_filters"].update(filters)
             return filters
         except json.JSONDecodeError:
