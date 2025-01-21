@@ -8,3 +8,4 @@
 /Database/updatedBavaria.json
 /Database/updatedBavaria.jsonl
 .DS_Store
+/nextjs-fastapi/api/chatBot/constants.py

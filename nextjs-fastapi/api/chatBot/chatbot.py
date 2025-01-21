@@ -74,6 +74,8 @@ class Chatbot:
                 - description_match array of all words derived from input that could be important, such as ['beautiful views', 'challenging', 'easy', 'waterfall'])
 
                 Your response must:
+                -The user may use words like "about," "approximately," or "around" for numerical values.
+                If such words are detected for length or altitude, apply a ±20% range around the specified value and set both min and max values.   
                 - ONLY contain a valid JSON object.
                 - NOT include any explanations or text outside the JSON.
                 - If no information for filter is provided fill in 'None'

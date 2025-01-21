@@ -5,13 +5,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/locationScoring.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/locationScoring.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/toDo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/toDo.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,7 +80,7 @@
       <workItem from="1737328591109" duration="2959000" />
       <workItem from="1737385762378" duration="4197000" />
       <workItem from="1737412328066" duration="5400000" />
-      <workItem from="1737491091244" duration="3615000" />
+      <workItem from="1737491091244" duration="4694000" />
     </task>
     <servers />
   </component>
