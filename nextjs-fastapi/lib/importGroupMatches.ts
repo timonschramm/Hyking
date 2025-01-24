@@ -1,3 +1,4 @@
+import { as } from '@faker-js/faker/dist/airline-BnpeTvY9'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -113,8 +114,8 @@ async function findCompatibleProfiles(profiles: any[]) {
       groups.push(compatibleGroup)
     }
   }
-
   return groups
+    
 }
 
 async function checkSkillCompatibility(profile1: any, profile2: any) {
@@ -179,21 +180,19 @@ async function findSuitableActivity(group: any[]) {
   const avgExperience = 0;
 
   // Find a suitable activity based on group's average experience
-  const activity = await prisma.activity.findFirst({
+  const activities = await prisma.activity.findMany({
     where: {
-      difficulty: {
-        gte: Math.floor(avgExperience),
-        lte: Math.ceil(avgExperience) + 10
-      },
       // Ensure it's not closed and suitable for the current season
       isClosed: false,
     },
     orderBy: {
       id: 'asc' // Just to ensure consistent results
     }
-  })
+  });
 
-  return activity
+  
+  const closestActivities = activities.sort((a, b) => Math.abs(a.experienceRating - avgExperience) - Math.abs(b.experienceRating - avgExperience)).slice(0, 10); 
+  return closestActivities[Math.floor(Math.random() * closestActivities.length)]
 }
 
 async function importGroupMatches() {
@@ -260,3 +259,68 @@ async function importGroupMatches() {
 // Execute the import
 importGroupMatches()
   .catch(console.error) 
+
+async function findMatchChain(){
+  const matches = await prisma.usersOnMatch.findMany(
+    {
+      select:{
+        matchId: true,
+        userId: true,
+      }
+    }
+  );
+  const connectionMap = new Map<string, Set<string>>();
+
+matches.forEach(match => {
+  if (!connectionMap.has(match.userId)) {
+    connectionMap.set(match.userId, new Set());
+  }
+});
+
+const matchGroups = matches.reduce((groups, match) => {
+  if (!groups[match.matchId]) groups[match.matchId] = [];
+  groups[match.matchId].push(match.userId);
+  return groups;
+}, {} as Record<string, string[]>);
+
+Object.values(matchGroups).forEach(users => {
+  if (users.length === 2) {
+    connectionMap.get(users[0])?.add(users[1]);
+    connectionMap.get(users[1])?.add(users[0]);
+  }
+});
+
+function findChainOfFive(
+  currentUser: string,
+  visited: Set<string>,
+  chain: string[]
+): string[] | null {
+  chain.push(currentUser);
+  visited.add(currentUser);
+
+  if (chain.length === 5) {
+    return chain;
+  }
+
+  const connections = Array.from(connectionMap.get(currentUser) || new Set()) as string[];
+  for (let i = 0; i < connections.length; i++) {
+    const nextUser = connections[i];
+    if (!visited.has(nextUser)) {
+      const result = findChainOfFive(nextUser, visited, [...chain]);
+      if (result) return result;
+    }
+  }
+
+  return null;
+}
+
+const userIds = Array.from(connectionMap.keys());
+for (let i = 0; i < userIds.length; i++) {
+  const chain = findChainOfFive(userIds[i], new Set(), []);
+  if (chain) {
+    return chain;
+  }
+}
+
+return [];
+}
