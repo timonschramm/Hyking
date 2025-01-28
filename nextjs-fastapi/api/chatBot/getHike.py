@@ -3,10 +3,10 @@ import os
 import pandas as pd
 from dotenv import load_dotenv
 
-import db
+from . import db
 import supabase
-from finalRecommender import FinalRecommender
-from locationScoring import LocationScoring
+from .finalRecommender import FinalRecommender
+from .locationScoring import LocationScoring
 from tabulate import tabulate
 
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))

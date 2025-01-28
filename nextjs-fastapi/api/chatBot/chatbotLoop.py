@@ -1,7 +1,7 @@
 import json
-from chatbot import Chatbot
-import main
-import finalRecommender
+from .chatbot import Chatbot
+from . import getHike
+from . import finalRecommender
 
 # Initialize chatbot
 chatbot = Chatbot()
@@ -62,7 +62,7 @@ def handle_hike_recommendation(user_input):
             return {"response": "I couldn't process your request. Could you provide more details?"}
 
         # Fetch recommendations
-        recommendations_df = main.getHike(user_filters)
+        recommendations_df = getHike.getHike(user_filters)
 
         if not recommendations_df.empty:
             # Ensure all text fields exist and fill missing values

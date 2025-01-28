@@ -1,9 +1,9 @@
 import openai
 import json
-import constants
+from .constants import OpenAPIKey
 
 # Ensure the API key is set
-openai.api_key = constants.OpenAPIKey
+openai.api_key = OpenAPIKey
 client = openai.Client(api_key=openai.api_key)
 
 

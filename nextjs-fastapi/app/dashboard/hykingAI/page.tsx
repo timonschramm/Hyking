@@ -61,10 +61,10 @@ export default function HykingAIPage() {
     setMessages((prev) => [...prev, userMessage]);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_input: message.trim() }),
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/py/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ user_input: message.trim() }),
       });
 
       if (!response.ok) throw new Error('Failed to fetch response from backend');
