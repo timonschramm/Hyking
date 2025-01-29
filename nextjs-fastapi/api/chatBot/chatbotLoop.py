@@ -7,9 +7,9 @@ from . import finalRecommender
 chatbot = Chatbot()
 
 
-def chatbot_loop_api(user_input):
+def chatbot_loop_api(user_input, user_id):
     """
-    Main API wrapper for chatbot interactions.
+    Main API wrapper for chatbot interactions with user-specific memory.
     """
     if not user_input:
         return {"error": "No input provided"}
@@ -18,31 +18,31 @@ def chatbot_loop_api(user_input):
     intent = chatbot.categorize_intent(user_input)
 
     if intent == "other":
-        return handle_general_chat(user_input)
+        return handle_general_chat(user_input, user_id)
 
     if intent == "general_chat":
-        return handle_general_chat(user_input)
+        return handle_general_chat(user_input, user_id)
     elif intent == "hike_recommendation":
-        return handle_hike_recommendation(user_input)
+        return handle_hike_recommendation(user_input, user_id)
     elif intent == "clarification":
-        return handle_clarification(user_input)
+        return handle_clarification(user_input, user_id)
     else:
         return {"response": "🤖 Sorry, I didn't understand that."}
 
 
-def handle_general_chat(user_input):
+def handle_general_chat(user_input, user_id):
     """
-    Handles general conversation with the chatbot.
+    Handles general conversation with the chatbot for a specific user.
     """
-    response = chatbot.send_message(user_input, mode="general_chat")
+    response = chatbot.send_message(user_input, mode="general_chat", user_id=user_id)
     return {"response": response}
 
 
-def handle_hike_recommendation(user_input):
+def handle_hike_recommendation(user_input, user_id):
     """
-    Handles hike recommendations dynamically and prioritizes matches across all text fields.
+    Handles hike recommendations dynamically and prioritizes matches across all text fields for a specific user.
     """
-    memory = chatbot.get_session_memory()
+    memory = chatbot.get_session_memory(user_id)
     user_filters = memory["conversation_state"]["user_filters"]
 
     try:
@@ -97,25 +97,12 @@ def handle_hike_recommendation(user_input):
         return {"response": "An error occurred while processing your request. Please try again later."}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-def handle_clarification(user_input):
+def handle_clarification(user_input, user_id):
     """
-    Handles clarification requests dynamically.
+    Handles clarification requests dynamically for a specific user.
     """
     # Clarify dynamically using the chatbot's conversation memory
-    filters = chatbot.get_session_memory()["conversation_state"].get("user_filters", {})
+    filters = chatbot.get_session_memory(user_id)["conversation_state"].get("user_filters", {})
     required_filters = ['region', 'difficulty', 'max_length']
     missing_filters = [key for key in required_filters if not filters.get(key)]
 
@@ -124,5 +111,4 @@ def handle_clarification(user_input):
         return {"response": f"I need more details about '{missing_filter}'. Can you clarify?"}
 
     # If no missing filters, treat it as general chat
-    return {"response": chatbot.send_message(user_input)}
-
+    return {"response": chatbot.send_message(user_input, user_id=user_id)}

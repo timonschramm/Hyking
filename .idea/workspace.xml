@@ -5,16 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/aTemp/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/getHike.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/index.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/index.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +109,7 @@
       <workItem from="1738066920693" duration="1230000" />
       <workItem from="1738068190415" duration="1227000" />
       <workItem from="1738105951288" duration="591000" />
-      <workItem from="1738106563180" duration="1209000" />
+      <workItem from="1738106563180" duration="2427000" />
     </task>
     <servers />
   </component>

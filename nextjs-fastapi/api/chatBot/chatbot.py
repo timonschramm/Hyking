@@ -10,34 +10,47 @@ client = openai.Client(api_key=openai.api_key)
 class Chatbot:
     """
     A chatbot class using OpenAI API with memory and recommendation functionality.
+    Supports user-specific memory using user_id.
     """
 
     def __init__(self):
-        self.memory = {  # Memory to store conversation state and history
-            "conversation_state": {"user_filters": {}, "last_context": None},
-            "history": [],
-        }
-        print("Chatbot initialized without GPT calls")
+        # User-specific memory storage
+        self.user_memory = {}
+        print("Chatbot initialized with support for user-specific memory")
 
-    def get_session_memory(self):
-        """Retrieve the global memory."""
-        return self.memory
+    def get_session_memory(self, user_id):
+        """
+        Retrieve memory for a specific user.
+        If no memory exists for the user, initialize it.
+        """
+        if user_id not in self.user_memory:
+            self.user_memory[user_id] = {
+                "conversation_state": {"user_filters": {}, "last_context": None},
+                "history": [],
+            }
+        return self.user_memory[user_id]
 
-    def update_session_memory(self, key, value):
-        """Update a specific part of the memory."""
-        self.memory[key] = value
+    def update_session_memory(self, user_id, key, value):
+        """
+        Update a specific part of the memory for a user.
+        """
+        memory = self.get_session_memory(user_id)
+        memory[key] = value
 
-    def clear_session_memory(self):
-        """Clear all memory."""
-        self.memory = {"conversation_state": {"user_filters": {}, "last_context": None}, "history": []}
+    def clear_session_memory(self, user_id):
+        """
+        Clear all memory for a specific user.
+        """
+        if user_id in self.user_memory:
+            self.user_memory[user_id] = {
+                "conversation_state": {"user_filters": {}, "last_context": None},
+                "history": [],
+            }
 
     def _build_system_prompt(self, mode, user_input=None):
         """
         Build the system prompt dynamically based on mode and user context.
         """
-        conversation_state = self.get_session_memory()["conversation_state"]
-        user_filters = conversation_state.get("user_filters", {})
-
         prompts = {
             "default": "You are a friendly chatbot in a hiking app. Answer user questions casually and helpfully.",
             "categorization": """
@@ -74,7 +87,7 @@ class Chatbot:
                 - description_match array of all words derived from input that could be important, such as ['beautiful views', 'challenging', 'easy', 'waterfall'])
 
                 Your response must:
-                -The user may use words like "about," "approximately," or "around" for numerical values.
+                - The user may use words like "about," "approximately," or "around" for numerical values.
                 If such words are detected for length or altitude, apply a ±20% range around the specified value and set both min and max values.   
                 - ONLY contain a valid JSON object.
                 - NOT include any explanations or text outside the JSON.
@@ -83,32 +96,23 @@ class Chatbot:
                 - Avoid trailing commas.
 
                 User Input: {user_input}
-                Current Filters: {json.dumps(user_filters, indent=2)}
-
-                Example valid JSON:
-                {{
-                    "region": "Alps",
-                    "difficulty": 2,
-                    "max_length": 15000,
-                    "is_winter": true,
-                    "scenery": ["mountains", "lakes"],
-                    "facilities": ["water sources"]
-                }}
             """,
         }
-
         return prompts.get(mode, prompts["default"])
 
-    def _call_gpt(self, user_input, system_prompt):
+    def _call_gpt(self, user_input, system_prompt, user_id):
         """
         Unified method for interacting with GPT API.
-        Sends the full conversation history along with the system prompt.
+        Sends the full conversation history along with the system prompt for a specific user.
         """
+        # Get user-specific memory
+        memory = self.get_session_memory(user_id)
+
         # Add user input to history
-        self.memory.setdefault("history", []).append({"role": "user", "content": user_input})
+        memory.setdefault("history", []).append({"role": "user", "content": user_input})
 
         # Construct messages with system prompt and full conversation history
-        messages = [{"role": "system", "content": system_prompt}] + self.memory["history"]
+        messages = [{"role": "system", "content": system_prompt}] + memory["history"]
 
         try:
             response = client.chat.completions.create(
@@ -120,45 +124,26 @@ class Chatbot:
             reply = response.choices[0].message.content.strip()
 
             # Add assistant's response to history
-            self.memory["history"].append({"role": "assistant", "content": reply})
+            memory["history"].append({"role": "assistant", "content": reply})
             print("GPT Raw Response:", reply)  # Debug print
             return reply
         except Exception as e:
             print("❌ GPT API Error:", e)
             return "Sorry, I encountered an issue while generating a response. 🛠️"
 
-    def send_recommendation_request(self, user_input):
-        """
-        Handle the recommendation process dynamically and prioritize description matches.
-        """
-        system_prompt = self._build_system_prompt("recommendation", user_input)
-        gpt_response = self._call_gpt(user_input, system_prompt)
-
-        try:
-            filters = json.loads(gpt_response)
-            session_memory = self.get_session_memory()
-
-            # Automatically ignore location if not provided
-            if not filters.get("region"):
-                filters.pop("region", None)
-
-            session_memory["conversation_state"]["user_filters"].update(filters)
-            return filters
-        except json.JSONDecodeError:
-            print(f"❌ Invalid JSON response: {gpt_response}")
-            return {"error": "The recommendation system encountered an issue. Please try again."}
-
-    def categorize_intent(self, user_input):
+    def categorize_intent(self, user_input, user_id):
         """
         Determine the intent of the user's message dynamically using history.
         """
+        memory = self.get_session_memory(user_id)
+
         # Add the current user input to history temporarily for context
-        self.memory["history"].append({"role": "user", "content": user_input})
+        memory["history"].append({"role": "user", "content": user_input})
 
         # Build the categorization prompt with history
         messages = [
-                       {"role": "system", "content": self._build_system_prompt("categorization")}
-                   ] + self.memory["history"]
+            {"role": "system", "content": self._build_system_prompt("categorization")}
+        ] + memory["history"]
 
         try:
             # Call GPT to determine intent
@@ -171,7 +156,7 @@ class Chatbot:
             intent = response.choices[0].message.content.strip().lower()
 
             # Validate the response and remove temporary history
-            self.memory["history"].pop()
+            memory["history"].pop()
             valid_intents = ["general_chat", "hike_recommendation", "clarification", "other"]
             if intent in valid_intents:
                 print(f"🧠 Detected intent: {intent}")
@@ -183,21 +168,5 @@ class Chatbot:
         except Exception as e:
             print(f"❌ GPT API Error in categorize_intent: {e}")
             # Rollback history in case of error
-            self.memory["history"].pop()
+            memory["history"].pop()
             return "general_chat"
-
-    def send_message(self, user_input, mode="general_chat"):
-        """
-        Send a message to GPT and return the response.
-        """
-        system_prompt = self._build_system_prompt(mode)
-        try:
-            gpt_response = self._call_gpt(user_input, system_prompt)
-            if gpt_response:
-                return gpt_response.strip()
-            else:
-                return "I'm sorry, I couldn't process your request. Could you please try again? 🌲"
-        except Exception as e:
-            print(f"❌ Error in send_message: {e}")
-            return "Something went wrong on my end. Please try again later! 🚨"
-

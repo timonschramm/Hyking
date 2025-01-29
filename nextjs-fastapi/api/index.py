@@ -34,21 +34,23 @@ print("Hikes loaded successfully!")
 
 # Request models
 class ChatRequest(BaseModel):
+    user_id: str
     user_input: str
 
 
 @app.post("/api/py/chat")
 async def chat(request: ChatRequest):
     """
-    Handle chat requests via chatbot loop.
+    Handle chat requests via chatbot loop with user-specific memory.
     """
     try:
+        user_id = request.user_id
         user_input = request.user_input.strip()
         if not user_input:
             raise HTTPException(status_code=400, detail="No input provided")
 
-        # Call chatbot logic
-        raw_response = chatbot_loop_api(user_input)
+        # Call chatbot logic with user_id
+        raw_response = chatbot_loop_api(user_input, user_id)
 
         if isinstance(raw_response, dict) and raw_response.get("intent") == "hike_recommendation":
             # Process hike recommendations

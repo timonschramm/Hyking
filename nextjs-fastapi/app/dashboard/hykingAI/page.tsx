@@ -5,7 +5,13 @@ import { Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Hike } from '../../components/chatBot/types';
 import HikeCard from '../../components/HikeCard';
-import Modal from '../../components/Modal'; // Import a Modal component if available
+import Modal from '../../components/Modal';
+
+// Utility function to get or create a unique user ID
+const getUserId = () => {
+  return `user_${Date.now()}`; // Generates a new ID every time
+};
+
 
 type Message = {
   id: string;
@@ -16,6 +22,7 @@ type Message = {
 };
 
 export default function HykingAIPage() {
+  const [userId, setUserId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -26,15 +33,21 @@ export default function HykingAIPage() {
   ]);
   const [message, setMessage] = useState('');
   const [allHikes, setAllHikes] = useState<Hike[]>([]);
-  const [selectedHike, setSelectedHike] = useState<Hike | null>(null); // State to store the selected hike
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal visibility
+  const [selectedHike, setSelectedHike] = useState<Hike | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+useEffect(() => {
+  const newUserId = getUserId();
+  setUserId(newUserId);
+}, []);
+
 
   useEffect(() => {
+    // Set user ID on mount
+    const storedUserId = getUserId();
+    setUserId(storedUserId);
+
     const fetchHikes = async () => {
       try {
         const response = await fetch('/api/hikes');
@@ -50,7 +63,7 @@ export default function HykingAIPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !userId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -62,9 +75,9 @@ export default function HykingAIPage() {
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/py/chat`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ user_input: message.trim() }),
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, user_input: message.trim() }),
       });
 
       if (!response.ok) throw new Error('Failed to fetch response from backend');
@@ -99,12 +112,12 @@ export default function HykingAIPage() {
   // Handle hike click to open a modal
   const handleHikeClick = (hike: Hike) => {
     setSelectedHike(hike);
-    setIsModalOpen(true); // Show the modal
+    setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setSelectedHike(null);
-    setIsModalOpen(false); // Hide the modal
+    setIsModalOpen(false);
   };
 
   return (
