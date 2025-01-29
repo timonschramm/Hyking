@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { promises as fs } from 'fs'
 import path from 'path'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 async function importActivities() {
     try {

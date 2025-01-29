@@ -1,12 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-import {
-
-  InterestCategory
-} from '@prisma/client'
-import path from 'path'
-
-const prisma = new PrismaClient()
+import { InterestCategory } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 // Constants
 const PROFILES_TO_GENERATE = 10
@@ -59,8 +53,8 @@ async function seedArtists() {
   for (const artistData of PREDEFINED_ARTISTS) {
     // First ensure the genre exists
     const genre = await prisma.genre.upsert({
-      where: { 
-        name: artistData.genre 
+      where: {
+        name: artistData.genre
       },
       update: {},
       create: {
@@ -73,7 +67,7 @@ async function seedArtists() {
 
     // Create or update the artist with proper genre relation
     const artist = await prisma.artist.upsert({
-      where: { 
+      where: {
         spotifyId: spotifyId
       },
       update: {
@@ -123,13 +117,13 @@ async function createRandomProfile(availableArtists: any[]) {
 
   // Add interests (unchanged)
   const interests = await prisma.interest.findMany()
-  const numInterests = faker.number.int({ 
-    min: MIN_INTERESTS_PER_USER, 
-    max: MAX_INTERESTS_PER_USER 
+  const numInterests = faker.number.int({
+    min: MIN_INTERESTS_PER_USER,
+    max: MAX_INTERESTS_PER_USER
   })
-  
+
   const selectedInterests = faker.helpers.arrayElements(interests, numInterests)
-  
+
   for (const interest of selectedInterests) {
     await prisma.userInterest.create({
       data: {
@@ -140,13 +134,13 @@ async function createRandomProfile(availableArtists: any[]) {
   }
 
   // Add artists from our pre-created list
-  const numArtists = faker.number.int({ 
-    min: MIN_ARTISTS_PER_USER, 
-    max: MAX_ARTISTS_PER_USER 
+  const numArtists = faker.number.int({
+    min: MIN_ARTISTS_PER_USER,
+    max: MAX_ARTISTS_PER_USER
   })
 
   const selectedArtists = faker.helpers.arrayElements(availableArtists, numArtists)
-  
+
   for (const artist of selectedArtists) {
     await prisma.userArtist.create({
       data: {
@@ -177,13 +171,13 @@ async function seedInterests() {
 async function generateDummyProfiles() {
   try {
     console.log('🚀 Starting dummy profile generation...')
-    
+
     // First seed interests
     await seedInterests()
-    
+
     // Then create all artists
     const availableArtists = await seedArtists()
-    
+
     let successCount = 0
     let failureCount = 0
 

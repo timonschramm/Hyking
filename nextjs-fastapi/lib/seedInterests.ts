@@ -1,6 +1,5 @@
-import { PrismaClient, InterestCategory } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { InterestCategory } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 async function seedInterests() {
     try {

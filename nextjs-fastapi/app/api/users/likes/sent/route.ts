@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         receiver: {
+          // TODO Remove all these here and only get Image, Username, and maybe some direct attributes.
           include: {
             artists: {
               include: {

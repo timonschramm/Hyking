@@ -29,6 +29,6 @@ dotenv -f .env.local run -- npx prisma db push
 
 Mass create new with
 dotenv -f .env.local run -- npx tsx lib/importdata.ts 
-
+dotenv -f .env.local run -- 
 
 Open ToDos 

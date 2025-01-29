@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
       },
       include: {
         sender: {
+          // TODO Include less as well
           include: {
             artists: {
               include: {
