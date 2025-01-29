@@ -54,14 +54,15 @@ class Chatbot:
         prompts = {
             "default": "You are a friendly chatbot in a hiking app. Answer user questions casually and helpfully.",
             "categorization": """
-                Categorize the following user message into one of the following categories:
-                - 'general_chat': General conversation or casual questions.
-                - 'hike_recommendation': If specifically asking for a hike route. Not if asking for other hike related queries
-                - 'clarification': For refining or clarifying a previous request.
-                - 'other': Anything else unrelated or unclear.
+            Categorize the following user message into one of the following categories:
+            - 'general_chat': General conversation or casual questions.
+            - 'hike_recommendation': If the user is asking for a hike route or adjusting/refining their preferences (e.g., changing difficulty, scenery, etc.).
+            - 'clarification': For refining or clarifying a previous request.
+            - 'adjust_filters': If the user is explicitly updating or changing their filters (e.g., "I don't care about waterfalls, only easy hikes").
+            - 'other': Anything else unrelated or unclear.
 
-                Respond ONLY with the category name, no explanations.
-            """,
+            Respond ONLY with the category name, no explanations.
+        """,
             "recommendation": f"""
                 You are a hiking recommendation assistant.
                 Parse the user's input and return ONLY a valid JSON object with:
@@ -134,6 +135,7 @@ class Chatbot:
     def categorize_intent(self, user_input, user_id):
         """
         Determine the intent of the user's message dynamically using history.
+        Improved to handle cases where the user is adjusting or refining filters.
         """
         memory = self.get_session_memory(user_id)
 
@@ -142,8 +144,9 @@ class Chatbot:
 
         # Build the categorization prompt with history
         messages = [
-            {"role": "system", "content": self._build_system_prompt("categorization")}
-        ] + memory["history"]
+            {"role": "system", "content": self._build_system_prompt("categorization")},
+            {"role": "user", "content": user_input},
+        ]
 
         try:
             # Call GPT to determine intent
@@ -157,10 +160,10 @@ class Chatbot:
 
             # Validate the response and remove temporary history
             memory["history"].pop()
-            valid_intents = ["general_chat", "hike_recommendation", "clarification", "other"]
+            valid_intents = ["general_chat", "hike_recommendation", "clarification", "adjust_filters", "other"]
             if intent in valid_intents:
                 print(f"🧠 Detected intent: {intent}")
-                return "general_chat" if intent == "other" else intent
+                return intent
             else:
                 print(f"⚠️ Unexpected intent response: {intent}")
                 return "general_chat"
