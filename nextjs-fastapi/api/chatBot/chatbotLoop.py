@@ -2,6 +2,8 @@ import json
 from .chatbot import Chatbot
 from . import getHike
 from . import finalRecommender
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
 
 # Initialize chatbot
 chatbot = Chatbot()
@@ -15,7 +17,7 @@ def chatbot_loop_api(user_input, user_id):
         return {"error": "No input provided"}
 
     # Categorize user intent
-    intent = chatbot.categorize_intent(user_input)
+    intent = chatbot.categorize_intent(user_input, user_id)
 
     if intent == "other":
         return handle_general_chat(user_input, user_id)
@@ -27,14 +29,15 @@ def chatbot_loop_api(user_input, user_id):
     elif intent == "clarification":
         return handle_clarification(user_input, user_id)
     else:
-        return {"response": "🤖 Sorry, I didn't understand that."}
+        return {"response": "Sorry, I didn't understand that."}
 
 
 def handle_general_chat(user_input, user_id):
     """
     Handles general conversation with the chatbot for a specific user.
     """
-    response = chatbot.send_message(user_input, mode="general_chat", user_id=user_id)
+    general_prompt = chatbot._build_system_prompt("default", user_input)
+    response = chatbot._call_gpt(user_input,general_prompt ,user_id)
     return {"response": response}
 
 
@@ -48,7 +51,7 @@ def handle_hike_recommendation(user_input, user_id):
     try:
         # Extract filters dynamically
         system_prompt = chatbot._build_system_prompt("recommendation", user_input)
-        gpt_response = chatbot._call_gpt(user_input, system_prompt)
+        gpt_response = chatbot._call_gpt(user_input, system_prompt, user_id)
 
         try:
             new_filters = json.loads(gpt_response)
@@ -58,7 +61,7 @@ def handle_hike_recommendation(user_input, user_id):
             if not user_filters.get("region"):
                 user_filters.pop("region", None)
         except json.JSONDecodeError:
-            print(f"❌ GPT Response was not valid JSON: {gpt_response}")
+            print(f"GPT Response was not valid JSON: {gpt_response}")
             return {"response": "I couldn't process your request. Could you provide more details?"}
 
         # Fetch recommendations
@@ -93,7 +96,7 @@ def handle_hike_recommendation(user_input, user_id):
             }
 
     except Exception as e:
-        print(f"❌ Error in handle_hike_recommendation: {e}")
+        print(f"Error in handle_hike_recommendation: {e}")
         return {"response": "An error occurred while processing your request. Please try again later."}
 
 
@@ -111,4 +114,6 @@ def handle_clarification(user_input, user_id):
         return {"response": f"I need more details about '{missing_filter}'. Can you clarify?"}
 
     # If no missing filters, treat it as general chat
-    return {"response": chatbot.send_message(user_input, user_id=user_id)}
+    general_prompt = chatbot._build_system_prompt("default", user_input)
+    response = chatbot._call_gpt(user_input, general_prompt, user_id)
+    return {"response": response}

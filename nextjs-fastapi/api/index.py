@@ -11,6 +11,9 @@ from .getRecs import router as recs_router
 from .chatBot.chatbotLoop import chatbot_loop_api
 from .chatBot.getHike import getHike
 from .chatBot.db import fetch_hike_data
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 
 # Initialize FastAPI app
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")

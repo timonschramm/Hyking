@@ -33,7 +33,7 @@ def print_filtered_hikes(hikes_df):
 
     # Display top 5 hikes with all columns
     hikes_preview = hikes_df.head(5)
-    print("\n🏞️ **Top Recommended Hikes:**")
+    print("\n **Top Recommended Hikes:**")
     print(tabulate(
         hikes_preview,
         headers='keys',
@@ -46,9 +46,9 @@ def print_filtered_hikes(hikes_df):
 try:
     hikes_df = db.fetch_hike_data()
     print("Columns in hikes_df:", hikes_df.columns)
-    print("✅ Hike data loaded successfully!")
+    print("Hike data loaded successfully!")
 except Exception as e:
-    print(f"❌ Error loading hike data: {e}")
+    print(f"Error loading hike data: {e}")
     hikes_df = None
 
 
