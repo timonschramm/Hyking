@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/weather.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/WeatherWidget.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/components/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/Sidebar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/recommender_system/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/recommender_system/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,6 +34,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Nicolas-P-dev&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/timonschramm/recsysprak.git&quot;,
+    &quot;accountId&quot;: &quot;387f6097-9051-4849-88dd-0f72446c6780&quot;
+  }
+}</component>
   <component name="KubernetesApiPersistence">{}</component>
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
@@ -56,7 +63,7 @@
     &quot;Python.Testing.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;testingChatbot&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;C:/Users/nicol/Documents/GitHub/Team_8/nextjs-fastapi/app/dashboard/hikes&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
@@ -65,7 +72,7 @@
     &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
     &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\nicol\\Documents\\GitHub\\Team_8\\frontend_next\\node_modules\\typescript\\lib&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\PyCharm 2024.3\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -120,6 +127,9 @@
       <workItem from="1738199563971" duration="483000" />
       <workItem from="1738200059779" duration="904000" />
       <workItem from="1738201044455" duration="3077000" />
+      <workItem from="1738244740365" duration="11703000" />
+      <workItem from="1738274695342" duration="1670000" />
+      <workItem from="1738277535899" duration="510000" />
     </task>
     <servers />
   </component>

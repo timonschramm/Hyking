@@ -143,21 +143,20 @@ def cosine_similarity_numpy(vec1, vec2):
     return dot_product / (norm_vec1 * norm_vec2) if norm_vec1 * norm_vec2 != 0 else 0.0
 
 
-def calc_overall_similarity(user_id_a: int, user_id_b: int, hike_desc_a: str, hike_desc_b: str):
+def calc_overall_similarity(user_id_a: int, user_id_b: int):
     """
-    Calculates the overall similarity between two users and the respective hike descriptions
+    Calculates the overall similarity between two users.
 
     Parameters:
     - user_id_a: ID of the first user
     - user_id_b: ID of the second user
-    - hike_desc_a: Description of the first hike
-    - hike_desc_b: Description of the second hike
 
     Returns:
-    - float: Overall similarity between the two users and the respective hikes
+    - float: Overall similarity between the two users
     """
     return (0.66 * calc_skill_similarity(user_id_a, user_id_b)
             + 0.34 * calc_interest_similarity(user_id_a, user_id_b))  # TODO: Discuss weights
+
 
 
 def get_recommendations(user_id: int, hike_desc: str):
