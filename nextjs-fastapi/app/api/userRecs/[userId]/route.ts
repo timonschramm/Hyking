@@ -25,7 +25,7 @@ export async function GET(
 
     const response = await fastapiResponse.json();
     const recommendedUserIds: string[] = response.recommendedUserIDs;
-
+    console.log(recommendedUserIds)
     const recommendedProfiles = await prisma.profile.findMany({
       where: { 
         id: {in: recommendedUserIds},
@@ -52,7 +52,7 @@ export async function GET(
     });
 
     if (!recommendedProfiles) {
-      return NextResponse.json({ error: 'Profiles not found' }, { status: 404 });
+      return NextResponse.json({ error: recommendedUserIds}, { status: 404 });
     }
 
     const sortedProfiles = recommendedUserIds.map((id) => {
