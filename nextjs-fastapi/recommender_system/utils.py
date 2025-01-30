@@ -132,7 +132,7 @@ def cosine_similarity_numpy(vec1, vec2):
 
     # Handle empty vectors (return similarity of 0)
     if vec1.size == 0 or vec2.size == 0:
-        return 0.0
+        return np.array([[0.0]])  # Ensure 2D array return
 
     # Compute dot product and norms
     dot_product = np.dot(vec1, vec2)
@@ -140,7 +140,10 @@ def cosine_similarity_numpy(vec1, vec2):
     norm_vec2 = np.linalg.norm(vec2)
 
     # Handle division by zero
-    return dot_product / (norm_vec1 * norm_vec2) if norm_vec1 * norm_vec2 != 0 else 0.0
+    similarity = dot_product / (norm_vec1 * norm_vec2) if norm_vec1 * norm_vec2 != 0 else 0.0
+
+    return np.array([[similarity]])  # Ensure a 2D array return
+
 
 
 def calc_overall_similarity(user_id_a: int, user_id_b: int):
