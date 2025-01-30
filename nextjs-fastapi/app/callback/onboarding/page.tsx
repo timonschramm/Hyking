@@ -43,11 +43,11 @@ function CallbackContent() {
         try {
           data = JSON.parse(rawResponseText);
         // console.log('Parsed token data:', {
-            access_token: data.access_token ? '✓ Present' : '✗ Missing',
-            token_type: data.token_type,
-            expires_in: data.expires_in,
-            refresh_token: data.refresh_token ? '✓ Present' : '✗ Missing'
-          });
+          //   access_token: data.access_token ? '✓ Present' : '✗ Missing',
+          //   token_type: data.token_type,
+          //   expires_in: data.expires_in,
+          //   refresh_token: data.refresh_token ? '✓ Present' : '✗ Missing'
+          // });
         } catch (parseError) {
           console.error('Failed to parse token response:', parseError);
           throw new Error('Invalid JSON in token response');
