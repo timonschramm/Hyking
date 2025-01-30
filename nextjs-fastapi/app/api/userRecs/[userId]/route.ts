@@ -16,30 +16,52 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profile = await prisma.profile.findUnique({
-      where: { id: params.userId },
+    const fastapiResponse = await fetch(`http://127.0.0.1:3000/api/py/recommendations?userID=${params.userId}`);
+
+    
+    if (!fastapiResponse.ok) {
+      return NextResponse.json({ error: 'Failed to fetch user recommendations' }, { status: fastapiResponse.status });
+    }
+
+    const response = await fastapiResponse.json();
+    const recommendedUserIds: string[] = response.recommendedUserIDs;
+
+    const recommendedProfiles = await prisma.profile.findMany({
+      where: { 
+        id: {in: recommendedUserIds},
+      },
       include: {
+        interests:{
+          include:{
+            interest: true,
+          }
+        },
         artists: {
           include: {
-            artist: {
-              include: {
-                genres: true
-              }
-            }
+            artist: true,
+          }
+        },
+        skills: {
+          include: {
+            skill: true,
+            skillLevel: true,
           }
         }
+
       }
     });
 
-    if (!profile) {
-      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    if (!recommendedProfiles) {
+      return NextResponse.json({ error: 'Profiles not found' }, { status: 404 });
     }
 
-  // console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
-    return NextResponse.json(profile);
+    const sortedProfiles = recommendedUserIds.map((id) => {
+      return recommendedProfiles.find((profile) => profile.id === id);
+    });
+    return NextResponse.json(sortedProfiles);
   } catch (error) {
-    console.error('Error fetching profile:', error);
-    return NextResponse.json({ error: 'Failed to fetch profile' }, { status: 500 });
+    console.error('Error fetching recommendation:', error);
+    return NextResponse.json({ error: 'Failed to process recommendation' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

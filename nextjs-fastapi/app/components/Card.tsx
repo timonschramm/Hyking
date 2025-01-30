@@ -7,7 +7,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import Image from 'next/image';
-import { useState, useCallback, forwardRef } from 'react';
+import { useState, useCallback } from 'react';
 import { Check, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,7 +40,7 @@ const CardSkeleton = () => {
   );
 };
 
-const Card = forwardRef<HTMLDivElement, ActivityCardProps>(({ data, active, removeCard }, ref) => {
+const Card = ({ data, active, removeCard }: ActivityCardProps) => {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -191,7 +191,6 @@ const Card = forwardRef<HTMLDivElement, ActivityCardProps>(({ data, active, remo
                       alt={data.title}
                       className="object-cover"
                       priority
-                      sizes="(max-width: 768px) 90vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   </div>
                   
@@ -221,7 +220,6 @@ const Card = forwardRef<HTMLDivElement, ActivityCardProps>(({ data, active, remo
                     alt={data.title}
                     className="object-cover rounded-t-2xl"
                     priority
-                    sizes="(max-width: 768px) 95vw, (max-width: 1200px) 400px, 400px"
                   />
                 </div>
 
@@ -280,6 +278,6 @@ const Card = forwardRef<HTMLDivElement, ActivityCardProps>(({ data, active, remo
       )}
     </div>
   );
-});
+};
 
 export { Card, CardSkeleton };

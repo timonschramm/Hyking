@@ -1,14 +1,19 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
+import os
+import sys
+from supabase import create_client, Client
+from fastapi import APIRouter
+
+# Add the parent directory to sys.path so Python can find the recommender_system module
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from recommender_system.utils import get_recommendations
 
-app = FastAPI()
+# Erstelle einen Router
+router = APIRouter() 
 
-class UserRequest(BaseModel):
-    userID: str
 
-@app.get("/user/{userID}")
-async def get_user(userID: str):
-    # Here you would typically add logic to fetch user data
+@router.get("/recommendations")
+async def get_recommendation(userID: str): #TODO: Add hike_desc
     # For now, we'll just return the userID
-    return {"userID": userID}
+
+    rec_ids = get_recommendations(userID, "") #Change
+    return {"recommendedUserIDs": rec_ids} 

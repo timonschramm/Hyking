@@ -4,49 +4,80 @@ import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
 import { UserCard } from '@/app/components/UserCard';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
+import { createClient } from '@/utils/supabase/client';
+import { set } from 'react-hook-form';
+
+
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Match() {
   const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
   const [rightSwipe, setRightSwipe] = useState(0);
   const [leftSwipe, setLeftSwipe] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [noMoreProfiles, setNoMoreProfiles] = useState(false);
+
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
 
-  useEffect(() => {
-  
+  const fetchProfiles = async () => {
+    if (isLoading) return;
 
-    const fetchProfiles = async () => {
-      try {
-        const response = await fetch('/api/userRecs');
-        if (!response.ok) {
-          throw new Error('Failed to fetch profiles');
-        }
-        const data = await response.json();
-        setProfiles(data);
-      } catch (error) {
-        console.error('Failed to fetch profiles:', error);
-      } finally {
-        setIsLoading(false);
+    try {
+      setIsLoading(true);
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const response = await fetch(`/api/userRecs/${user.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch profiles');
       }
-    };
+      const data = await response.json();
 
-    fetchProfiles();
-  }, []);
+      if (data.status == 404) {
+        setNoMoreProfiles(true);
+      }
+      else {
+        setProfiles(prev => [...prev, ...data]);
+      }
+    } catch (error) {
+      console.error('Failed to fetch profiles:', error);
+    } finally {
+      setIsLoading(false);
+      console.log("fetchProfiles called");
+    }
+
+  };
+
+  useEffect(() => {
+    if (profiles.length == 0 && !noMoreProfiles) {
+    fetchProfiles();}
+    setProfiles((prev) => prev.slice(0, prev.length/2))
+}, []);
 
 
 
-  const activeIndex = profiles.length - 1;
+  const activeIndex = 0;
+ 
+
   
   const removeCard = (id: string, action: 'right' | 'left') => {
-    setProfiles((prev) => prev.filter((profile) => profile.id !== id));
+    //setProfiles((prev) => prev.filter((profile) => profile.id !== id));
+     setProfiles((prev) => {
+      const uniqueProfiles = prev.filter((profile, index, self) =>
+        index === self.findIndex((p) => p.id === profile.id)
+      );
+    const filteredProfiles = uniqueProfiles.filter((profile) => profile.id !== id);
+    return filteredProfiles;
+  });
     if (action === 'right') {
       setRightSwipe((prev) => prev + 1);
     } else {
       setLeftSwipe((prev) => prev + 1);
     }
+    if (profiles.length < 2 && !noMoreProfiles){
+      fetchProfiles();
+    }
   };
-
   return (
     <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
       <style jsx>{`
