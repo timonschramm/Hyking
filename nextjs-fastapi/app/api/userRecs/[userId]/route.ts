@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const fastapiResponse = await fetch(`http://127.0.0.1:3000/api/py/recommendations?userID=${params.userId}`);
+    const fastapiResponse = await fetch(`/api/py/recommendations?userID=${params.userId}`);
 
     
     if (!fastapiResponse.ok) {
