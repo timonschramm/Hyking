@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     if (!profile?.spotifyRefreshToken) {
       return NextResponse.json({ error: 'No refresh token found' }, { status: 400 });
     }
-    console.log("old refresh token:", profile.spotifyRefreshToken)
+  // console.log("old refresh token:", profile.spotifyRefreshToken)
 
 
     const clientId = process.env.SPOTIFY_CLIENT_ID;
@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     }
 
     const data = await response.json();
-    console.log("new token:", data.access_token)
+  // console.log("new token:", data.access_token)
     // Update tokens in database
     await prisma.profile.update({
       where: { id: user.id },

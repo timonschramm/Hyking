@@ -25,7 +25,7 @@ export default function SpotifyArtists({
   const [artists, setArtists] = useState<Artist[]>(initialArtists);
 
   useEffect(() => {
-    console.log('SpotifyArtists received initialArtists:', initialArtists);
+  // console.log('SpotifyArtists received initialArtists:', initialArtists);
     setArtists(initialArtists);
   }, [initialArtists]);
 

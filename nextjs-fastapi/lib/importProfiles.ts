@@ -1,12 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { faker } from '@faker-js/faker'
-import {
-
-  InterestCategory
-} from '@prisma/client'
-import path from 'path'
-
-const prisma = new PrismaClient()
+import { InterestCategory } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 // Constants
 const PROFILES_TO_GENERATE = 10
@@ -53,14 +47,14 @@ async function getRandomProfileImage(gender: string): Promise<string> {
 
 // First, create all artists and store their IDs
 async function seedArtists() {
-  console.log('🎵 Creating artists...')
+// console.log('🎵 Creating artists...')
   const createdArtists = []
 
   for (const artistData of PREDEFINED_ARTISTS) {
     // First ensure the genre exists
     const genre = await prisma.genre.upsert({
-      where: { 
-        name: artistData.genre 
+      where: {
+        name: artistData.genre
       },
       update: {},
       create: {
@@ -73,7 +67,7 @@ async function seedArtists() {
 
     // Create or update the artist with proper genre relation
     const artist = await prisma.artist.upsert({
-      where: { 
+      where: {
         spotifyId: spotifyId
       },
       update: {
@@ -95,7 +89,7 @@ async function seedArtists() {
       }
     })
     createdArtists.push(artist)
-    console.log(`✅ Created/Updated artist: ${artist.name} (${artist.spotifyId})`)
+  // console.log(`✅ Created/Updated artist: ${artist.name} (${artist.spotifyId})`)
   }
   return createdArtists
 }
@@ -123,13 +117,13 @@ async function createRandomProfile(availableArtists: any[]) {
 
   // Add interests (unchanged)
   const interests = await prisma.interest.findMany()
-  const numInterests = faker.number.int({ 
-    min: MIN_INTERESTS_PER_USER, 
-    max: MAX_INTERESTS_PER_USER 
+  const numInterests = faker.number.int({
+    min: MIN_INTERESTS_PER_USER,
+    max: MAX_INTERESTS_PER_USER
   })
-  
+
   const selectedInterests = faker.helpers.arrayElements(interests, numInterests)
-  
+
   for (const interest of selectedInterests) {
     await prisma.userInterest.create({
       data: {
@@ -140,13 +134,13 @@ async function createRandomProfile(availableArtists: any[]) {
   }
 
   // Add artists from our pre-created list
-  const numArtists = faker.number.int({ 
-    min: MIN_ARTISTS_PER_USER, 
-    max: MAX_ARTISTS_PER_USER 
+  const numArtists = faker.number.int({
+    min: MIN_ARTISTS_PER_USER,
+    max: MAX_ARTISTS_PER_USER
   })
 
   const selectedArtists = faker.helpers.arrayElements(availableArtists, numArtists)
-  
+
   for (const artist of selectedArtists) {
     await prisma.userArtist.create({
       data: {
@@ -176,21 +170,21 @@ async function seedInterests() {
 
 async function generateDummyProfiles() {
   try {
-    console.log('🚀 Starting dummy profile generation...')
-    
+  // console.log('🚀 Starting dummy profile generation...')
+
     // First seed interests
     await seedInterests()
-    
+
     // Then create all artists
     const availableArtists = await seedArtists()
-    
+
     let successCount = 0
     let failureCount = 0
 
     for (let i = 0; i < PROFILES_TO_GENERATE; i++) {
       try {
         const profile = await createRandomProfile(availableArtists)
-        console.log(`✅ Created profile: ${profile.displayName} (ID: ${profile.id})`)
+      // console.log(`✅ Created profile: ${profile.displayName} (ID: ${profile.id})`)
         successCount++
       } catch (error: any) {
         console.error(`❌ Failed to create profile #${i + 1}:`, error.message)
@@ -198,10 +192,10 @@ async function generateDummyProfiles() {
       }
     }
 
-    console.log('\n=== Generation Summary ===')
-    console.log(`✅ Successfully created: ${successCount} profiles`)
-    console.log(`❌ Failed to create: ${failureCount} profiles`)
-    console.log('========================\n')
+  // console.log('\n=== Generation Summary ===')
+  // console.log(`✅ Successfully created: ${successCount} profiles`)
+  // console.log(`❌ Failed to create: ${failureCount} profiles`)
+  // console.log('========================\n')
 
   } catch (error) {
     console.error('Fatal error during profile generation:', error)

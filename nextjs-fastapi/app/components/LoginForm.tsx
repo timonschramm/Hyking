@@ -34,9 +34,9 @@ export default function LoginForm() {
       const formData = new FormData();
       formData.append('provider', provider);
       
-      console.log('Starting OAuth login for:', provider);
+    // console.log('Starting OAuth login for:', provider);
       const result = await login(formData);
-      console.log('OAuth login result:', result);
+    // console.log('OAuth login result:', result);
 
       if (result.error) {
         console.error('OAuth login error:', result.error);

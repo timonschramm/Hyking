@@ -41,7 +41,7 @@ export default function SingleChatPage({
   const setupRealtimeSubscription = () => {
     const channel = supabase.channel('messages')
       .on('broadcast', { event: 'new_message' }, (payload) => {
-        console.log('Received new message:', payload);
+      // console.log('Received new message:', payload);
         const newMessage = payload.payload as RealtimeMessage;
         
         if (newMessage.chatRoomId === params.chatId) {
@@ -64,7 +64,7 @@ export default function SingleChatPage({
         }
       })
       .subscribe((status) => {
-        console.log('Subscription status:', status);
+      // console.log('Subscription status:', status);
       });
 
     return channel;

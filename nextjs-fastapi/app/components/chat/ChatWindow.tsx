@@ -94,7 +94,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
     const otherUser = chatRoom.match.users[0]?.user;
     if (otherUser) {
       chatTitle = otherUser.email.split('@')[0];
-      chatImage = otherUser.imageUrl || '/default-avatar.png';
+      chatImage = otherUser.imageUrl || '/default-avatar.jpg';
     }
   }
 
@@ -109,6 +109,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
             src={chatImage}
             alt={chatTitle}
             fill
+            sizes="(max-width: 768px) 2.5rem, 2.5rem"
             className={`object-cover ${chatRoom.groupMatch ? 'rounded-lg' : 'rounded-full'}`}
           />
         </div>
@@ -131,7 +132,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
               imageUrl: msg.sender.imageUrl || '/default-avatar.jpg',
               email: msg.sender.email
             } : null;
-            console.log("senderProfile", senderProfile);
+          // console.log("senderProfile", senderProfile);
             const prevMsg = index > 0 ? chatRoom.messages[index - 1] : null;
             const showDateSeparator = shouldShowDateSeparator(msg, prevMsg);
             

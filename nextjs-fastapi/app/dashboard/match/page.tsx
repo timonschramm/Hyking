@@ -2,11 +2,13 @@
 import { AnimatePresence } from 'framer-motion';
 import { Profile } from '@prisma/client';
 import { useEffect, useState } from 'react';
-import { UserCard, UserCardSkeleton } from '@/app/components/UserCard';
+import { UserCard } from '@/app/components/UserCard';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { createClient } from '@/utils/supabase/client';
 import { set } from 'react-hook-form';
 
+
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Match() {
   const [profiles, setProfiles] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
@@ -15,6 +17,7 @@ export default function Match() {
   const [isLoading, setIsLoading] = useState(false);
   const [noMoreProfiles, setNoMoreProfiles] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
 
   const fetchProfiles = async () => {
     if (isLoading) return;
@@ -76,11 +79,80 @@ export default function Match() {
     }
   };
   return (
-    <div className="relative flex h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
-       <div className="absolute inset-0 flex items-center justify-center">
-       
+    <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
+      <style jsx>{`
+        @keyframes ripple {
+          0% {
+            transform: scale(1);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(2.5);
+            opacity: 0;
+          }
+        }
+        @keyframes rippleBackground {
+          0% {
+            background: radial-gradient(circle, rgba(255,68,88,0.1) 0%, rgba(255,68,88,0.05) 50%, transparent 70%);
+            transform: scale(1);image.png
+          }
+          100% {
+            background: radial-gradient(circle, rgba(255,68,88,0) 0%, rgba(255,68,88,0) 100%);
+            transform: scale(2.5);
+          }
+        }
+        .ripple-wrapper {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1;
+        }
+        .ripple-container {
+          position: relative;
+          width: 128px;
+          height: 128px;
+          background: rgb(255,68,88);
+          border-radius: 50%;
+        }
+        .ripple-circle {
+          position: absolute;
+          inset: -2px;
+          border: 2px solid rgba(255,68,88,0.3);
+          border-radius: 50%;
+          background: rgba(255,68,88, 0.3);
+        }
+        .ripple-circle:nth-child(1) {
+          animation: ripple 2s linear infinite;
+        }
+        .ripple-circle:nth-child(2) {
+          animation: ripple 2s linear infinite 1s;
+        }
+      `}</style>
+      <div className="absolute inset-0 flex items-center justify-center">
         {isLoading ? (
-          <UserCardSkeleton />
+          <div className="flex flex-col items-center gap-6">
+            <div className="relative">
+              <div className="ripple-wrapper">
+                <div className="ripple-container">
+                  <div className="ripple-circle" />
+                  <div className="ripple-circle" />
+                </div>
+              </div>
+              <Avatar className="w-32 h-32 border-4 border-white relative z-20">
+                <AvatarImage
+                  src={currentUser?.imageUrl || ''}
+                  alt="Your profile"
+                  className="object-cover"
+                />
+                <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
+                  {currentUser?.email?.[0]?.toUpperCase() || '?'}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          
+          </div>
         ) : (
           <AnimatePresence mode="popLayout">
             {profiles.length ? (

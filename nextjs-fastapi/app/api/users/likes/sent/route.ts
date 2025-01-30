@@ -11,35 +11,22 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get users that the current user has liked
+    // Get users that the current user has liked with minimal data
     const sentLikes = await prisma.userSwipe.findMany({
       where: {
         senderId: user.id,
         action: 'like',
       },
-      include: {
+      select: {
+        id: true,
+        timestamp: true,
         receiver: {
-          include: {
-            artists: {
-              include: {
-                artist: {
-                  include: {
-                    genres: true
-                  }
-                }
-              }
-            },
-            interests: {
-              include: {
-                interest: true
-              }
-            },
-            skills: {
-              include: {
-                skill: true,
-                skillLevel: true
-              }
-            }
+          select: {
+            id: true,
+            imageUrl: true,
+            displayName: true,
+            location: true,
+            email: true,
           }
         }
       },

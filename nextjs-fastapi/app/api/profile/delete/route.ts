@@ -14,7 +14,7 @@ export async function DELETE(req: NextRequest) {
     const { error } = await (await supabase).auth.admin.deleteUser(user.id);
     if (error) {
       // If admin delete fails, try user-initiated delete
-      console.log('Admin delete failed, trying user-initiated delete');
+    // console.log('Admin delete failed, trying user-initiated delete');
       const { error: userDeleteError } = await (await supabase).auth.signOut({
         scope: 'local'
       });

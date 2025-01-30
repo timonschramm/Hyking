@@ -7,8 +7,13 @@ import { UserCard } from "@/app/components/UserCard"
 import { Badge } from "@/components/ui/badge"
 import { GroupMatchCardProps, ProfileWithGroupSuggestion } from "@/types/groupMatch"
 import { cn } from "@/lib/utils"
+import { ProfileDetailsDialog } from "./ProfileDetailsDialog"
 
 export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchCardProps) {
+// console.log("groupMatch")
+// console.log(groupMatch)
+// console.log(groupMatch.hikeSuggestions)
+// console.log(groupMatch.hikeSuggestions.length)
   const hikeActivity = groupMatch.hikeSuggestions[0]
   const currentUserProfile = groupMatch.profiles.find(
     (p) => p.profileId === groupMatch.currentUserId
@@ -53,7 +58,7 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
       </div>
       <CardContent className="p-4">
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2">
             <div className="flex gap-4 text-sm">
               <div>
                 <span className="font-medium">Length:</span> {hikeActivity.length}km
@@ -65,19 +70,20 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
                 <span className="font-medium">Difficulty:</span> {hikeActivity.difficulty}/5
               </div>
             </div>
+            <p className="text-sm text-muted-foreground">{hikeActivity.descriptionShort}</p>
           </div>
 
           <div className="space-y-2">
             <h4 className="font-medium text-sm">Group Members</h4>
             <div className="flex -space-x-2 overflow-hidden">
-              {otherProfiles.map((profileMatch: ProfileWithGroupSuggestion) => (
-                <Dialog key={profileMatch.profileId}>
+              {otherProfiles.map((profileMatch) => (
+                <Dialog key={profileMatch.profile.id}>
                   <DialogTrigger asChild>
                     <button className="relative w-10 h-10 rounded-full border-2 border-white hover:z-10 transition-transform hover:scale-105">
                       <Image
                         src={profileMatch.profile.imageUrl || '/default-avatar.jpg'}
                         fill
-                        alt={`${profileMatch.profile.email}'s profile`}
+                        alt={`${profileMatch.profile.displayName || 'User'}'s profile`}
                         className="rounded-full object-cover"
                       />
                       {profileMatch.hasAccepted && (
@@ -86,12 +92,12 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
                     </button>
                   </DialogTrigger>
                   <DialogContent className="p-0 border-none !rounded-2xl overflow-hidden max-w-[95vw] md:max-w-[400px]">
-                    <UserCard
-                      data={profileMatch.profile}
-                      active={true}
-                      removeCard={() => {}}
-                      disableActions={true}
-                      displayMode="grid"
+                    <ProfileDetailsDialog 
+                      profileId={profileMatch.profileId} 
+                      initialData={{
+                        imageUrl: profileMatch.profile.imageUrl,
+                        displayName: profileMatch.profile.displayName
+                      }}
                     />
                   </DialogContent>
                 </Dialog>

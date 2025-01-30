@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { content, chatRoomId } = await request.json();
-    console.log('Received message request:', { content, chatRoomId, userId: user.id });
+  // console.log('Received message request:', { content, chatRoomId, userId: user.id });
 
     if (!chatRoomId) {
       return NextResponse.json({ error: 'ChatRoom ID is required' }, { status: 400 });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       return { message, chatRoom };
     });
 
-    console.log('Created message in database:', message);
+  // console.log('Created message in database:', message);
 
     // Broadcast through Supabase Realtime
     const channel = supabaseClient.channel('messages');
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
     if (resp === 'error') {
       console.error('Error broadcasting message');
     } else {
-      console.log('Successfully broadcast message');
+    // console.log('Successfully broadcast message');
     }
 
     return NextResponse.json({ message });

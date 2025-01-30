@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
 }
 
 datasource db {
@@ -98,6 +98,8 @@ model UserSwipe {
   sender     Profile  @relation("SwipeSender", fields: [senderId], references: [id], onDelete: Cascade)
 
   @@unique([senderId, receiverId])
+  @@index([receiverId, action, timestamp(sort: Desc)])
+  @@index([senderId, action])
 }
 
 model Match {
@@ -147,6 +149,7 @@ model UserArtist {
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, artistId])
+  @@index([profileId, hidden])
 }
 
 
@@ -214,6 +217,7 @@ model UserSkill {
   skillLevel   SkillLevel @relation(fields: [skillLevelId], references: [id], onDelete: Cascade)
 
   @@unique([profileId, skillId])
+  @@index([profileId])
 }
 
 enum Month { 
@@ -272,6 +276,8 @@ model Participant {
   lastRead   DateTime  @default(now())
 
   @@unique([chatRoomId, profileId])
+  @@index([profileId])
+
 }
 
 model GroupMatch {
@@ -293,3 +299,7 @@ model ProfileOnGroupSuggestion {
 
   @@id([profileId, groupMatchId])
 }
+
+
+
+// TODO DOes Indexing Make Sense?

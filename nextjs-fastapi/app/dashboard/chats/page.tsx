@@ -21,7 +21,7 @@ export default function ChatsPage() {
       const response = await fetch('/api/chats');
       const data = await response.json();
       setChatRooms(data);
-      console.log('Chats fetched:', data);
+    // console.log('Chats fetched:', data);
       setIsLoading(false);
     } catch (error) {
       console.error('Error fetching chats:', error);
@@ -30,12 +30,12 @@ export default function ChatsPage() {
   };
 
   const setupRealtimeSubscription = () => {
-    console.log('Setting up realtime subscription...');
+  // console.log('Setting up realtime subscription...');
     
     const channel = supabase
       .channel('messages')
       .on('broadcast', { event: 'new_message' }, (payload) => {
-        console.log('Received realtime message:', payload);
+      // console.log('Received realtime message:', payload);
         const newMessage = payload.payload as RealtimeMessage;
         
         setChatRooms(currentRooms => 

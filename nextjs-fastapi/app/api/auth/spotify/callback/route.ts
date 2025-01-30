@@ -6,16 +6,16 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 25;
 
 export async function GET(request: Request) {
-  console.log('=== Starting Spotify API Callback Handler ===');
+  // console.log('=== Starting Spotify API Callback Handler ===');
   
   try {
     // Log incoming request details
     const url = new URL(request.url);
-    console.log('Incoming request URL:', url.toString());
-    console.log('Query parameters:', Object.fromEntries(url.searchParams));
+  // console.log('Incoming request URL:', url.toString());
+  // console.log('Query parameters:', Object.fromEntries(url.searchParams));
 
     // Initialize Supabase and get user
-    console.log('Initializing Supabase client...');
+  // console.log('Initializing Supabase client...');
     const supabase = await createClient();
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -23,17 +23,17 @@ export async function GET(request: Request) {
       console.error('Supabase auth error:', userError);
       return NextResponse.json({ error: 'Authentication error' }, { status: 401 });
     }
-    console.log('Authenticated user ID:', user?.id);
+  // console.log('Authenticated user ID:', user?.id);
 
     // Get user profile
-    console.log('Fetching user profile...');
+  // console.log('Fetching user profile...');
     const profile = await prisma.profile.findUnique({
       where: { id: user?.id }
     });
-    console.log('Profile found:', {
-      id: profile?.id,
-      onboardingCompleted: profile?.onboardingCompleted
-    });
+  // console.log('Profile found:', {
+    //   id: profile?.id,
+    //   onboardingCompleted: profile?.onboardingCompleted
+    // });
 
     // Parse request parameters
     const onboardingCompleted = profile?.onboardingCompleted;
@@ -42,12 +42,12 @@ export async function GET(request: Request) {
     const code = url.searchParams.get('code');
     const path = onboardingCompleted ? '/profile' : '/onboarding';
     
-    console.log('Request parameters:', {
-      onboardingCompleted,
-      isProfile,
-      path,
-      codePresent: !!code
-    });
+  // console.log('Request parameters:', {
+    //   onboardingCompleted,
+    //   isProfile,
+    //   path,
+    //   codePresent: !!code
+    // });
 
     if (!code) {
       console.error('No authorization code provided');
@@ -64,14 +64,14 @@ export async function GET(request: Request) {
     const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
     const redirectUri = `${process.env.NEXT_PUBLIC_SITE_URL}/callback${path}`;
     
-    console.log('Spotify API configuration:', {
-      clientIdPresent: !!clientId,
-      clientSecretPresent: !!clientSecret,
-      redirectUri
-    });
+  // console.log('Spotify API configuration:', {
+    //   clientIdPresent: !!clientId,
+    //   clientSecretPresent: !!clientSecret,
+    //   redirectUri
+    // });
 
     // Exchange code for token
-    console.log('Initiating token exchange with Spotify...');
+  // console.log('Initiating token exchange with Spotify...');
     const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       }).toString()
     });
 
-    console.log('Token exchange response status:', tokenResponse.status);
+  // console.log('Token exchange response status:', tokenResponse.status);
     
     if (!tokenResponse.ok) {
       const errorData = await tokenResponse.text();
@@ -101,14 +101,14 @@ export async function GET(request: Request) {
     }
 
     const data = await tokenResponse.json();
-    console.log('Token exchange successful:', {
-      access_token: data.access_token ? '✓ Present' : '✗ Missing',
-      refresh_token: data.refresh_token ? '✓ Present' : '✗ Missing',
-      expires_in: data.expires_in
-    });
+  // console.log('Token exchange successful:', {
+    //   access_token: data.access_token ? '✓ Present' : '✗ Missing',
+    //   refresh_token: data.refresh_token ? '✓ Present' : '✗ Missing',
+    //   expires_in: data.expires_in
+    // });
 
     // Fetch top artists
-    console.log('Fetching top artists from Spotify...');
+  // console.log('Fetching top artists from Spotify...');
     const topArtistsResponse = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3&time_range=long_term', {
       headers: {
         'Authorization': `Bearer ${data.access_token}`
@@ -122,10 +122,10 @@ export async function GET(request: Request) {
       });
     } else {
       const topArtistsData = await topArtistsResponse.json();
-      console.log(`Processing ${topArtistsData.items.length} top artists...`);
+    // console.log(`Processing ${topArtistsData.items.length} top artists...`);
 
       for (const artistData of topArtistsData.items) {
-        console.log(`Processing artist: ${artistData.name}`);
+      // console.log(`Processing artist: ${artistData.name}`);
         
         try {
           // Create or update artist
@@ -141,10 +141,10 @@ export async function GET(request: Request) {
               imageUrl: artistData.images[0]?.url || null,
             },
           });
-          console.log(`Artist ${artist.name} upserted successfully`);
+        // console.log(`Artist ${artist.name} upserted successfully`);
 
           // Process genres
-          console.log(`Processing ${artistData.genres.length} genres for ${artist.name}`);
+        // console.log(`Processing ${artistData.genres.length} genres for ${artist.name}`);
           const existingGenres = await prisma.genre.findMany({
             where: {
               name: { in: artistData.genres }
@@ -155,7 +155,7 @@ export async function GET(request: Request) {
           const genresToCreate = artistData.genres.filter((name: string) => !existingGenreNames.has(name));
           
           if (genresToCreate.length > 0) {
-            console.log(`Creating ${genresToCreate.length} new genres`);
+          // console.log(`Creating ${genresToCreate.length} new genres`);
             await prisma.genre.createMany({
               data: genresToCreate.map((name: string) => ({ name })),
               skipDuplicates: true,
@@ -177,7 +177,7 @@ export async function GET(request: Request) {
               }
             }
           });
-          console.log(`Connected ${allGenres.length} genres to ${artist.name}`);
+        // console.log(`Connected ${allGenres.length} genres to ${artist.name}`);
 
           // Create UserArtist connection
           await prisma.userArtist.upsert({
@@ -193,7 +193,7 @@ export async function GET(request: Request) {
               artistId: artist.id,
             },
           });
-          console.log(`User-Artist connection created for ${artist.name}`);
+        // console.log(`User-Artist connection created for ${artist.name}`);
         } catch (artistError) {
           console.error(`Error processing artist ${artistData.name}:`, artistError);
         }
@@ -201,7 +201,7 @@ export async function GET(request: Request) {
     }
 
     // Update profile with tokens
-    console.log('Updating profile with Spotify tokens...');
+  // console.log('Updating profile with Spotify tokens...');
     await prisma.profile.update({
       where: { id: user.id },
       data: {
@@ -211,9 +211,9 @@ export async function GET(request: Request) {
         spotifyConnected: true
       }
     });
-    console.log('Profile updated successfully');
+  // console.log('Profile updated successfully');
 
-    console.log('=== Spotify Callback Completed Successfully ===');
+  // console.log('=== Spotify Callback Completed Successfully ===');
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('=== Spotify Callback Error ===');

@@ -40,7 +40,7 @@ export default function OnboardingPage() {
         // }
 
         setInitialData(data);
-        console.log('initialDatafromonboarding:', data);
+      // console.log('initialDatafromonboarding:', data);
       } catch (error) {
         console.error("Error loading profile data:", error);
         setError(error instanceof Error ? error.message : 'Failed to load profile');

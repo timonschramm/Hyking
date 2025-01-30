@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { config } from '../config';
 import { createClient } from '@/utils/supabase/client';
+import Image from "next/image";
 
 interface ButtonSigninProps {
   text?: string;
@@ -70,7 +71,7 @@ const ButtonSignin = ({ text = "Get started", extraStyle }: ButtonSigninProps) =
         className={`!rounded-full inline-flex items-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary-medium))] focus:outline-none focus:ring-2 focus:ring-[hsl(var(--primary-light))] focus:ring-offset-2 ${extraStyle ? extraStyle : ""}`}
       >
         {user.image ? (
-          <img
+          <Image
             src={user.image}
             alt={user.name || "Account"}
             className="w-6 h-6 rounded-full shrink-0 border-2 border-white/10"

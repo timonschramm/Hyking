@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import { createClient } from '@/utils/supabase/server'
-import { groupMatchInclude } from '@/types/groupMatch'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
+import { groupMatchListView } from '@/types/groupMatch'
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,10 +20,16 @@ export async function GET(req: NextRequest) {
           }
         }
       },
-      include: groupMatchInclude,
+      select: groupMatchListView,
     })
 
-    return NextResponse.json(groupMatches)
+    // Add currentUserId to each group match
+    const groupMatchesWithCurrentUser = groupMatches.map(match => ({
+      ...match,
+      currentUserId: user.id
+    }))
+
+    return NextResponse.json(groupMatchesWithCurrentUser)
   } catch (error) {
     console.error('Error fetching group matches:', error)
     return NextResponse.json({ error: 'Failed to fetch group matches' }, { status: 500 })

@@ -1,6 +1,5 @@
-import { PrismaClient, InterestCategory } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { InterestCategory } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 
 async function seedInterests() {
     try {
@@ -118,7 +117,7 @@ async function seedInterests() {
                     }
                 })
 
-                console.log(`✅ Created/Updated interest: ${createdInterest.name} (Category: ${createdInterest.category})`)
+              // console.log(`✅ Created/Updated interest: ${createdInterest.name} (Category: ${createdInterest.category})`)
                 successCount++
             } catch (error) {
                 console.error(`❌ Failed to create interest: ${interest.name}`, error)
@@ -126,10 +125,10 @@ async function seedInterests() {
             }
         }
 
-        console.log('\n=== Seeding Summary ===')
-        console.log(`✅ Successfully processed: ${successCount} interests`)
-        console.log(`❌ Failed to process: ${failureCount} interests`)
-        console.log('=====================\n')
+      // console.log('\n=== Seeding Summary ===')
+      // console.log(`✅ Successfully processed: ${successCount} interests`)
+      // console.log(`❌ Failed to process: ${failureCount} interests`)
+      // console.log('=====================\n')
 
     } catch (error) {
         console.error('Fatal error during seeding:', error)

@@ -1,8 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import { promises as fs } from 'fs'
 import path from 'path'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 async function importActivities() {
     try {
@@ -82,7 +80,7 @@ async function importActivities() {
                     }
                 })
 
-                console.log(`✅ Imported activity: ${createdActivity.title} (ID: ${createdActivity.id})`)
+              // console.log(`✅ Imported activity: ${createdActivity.title} (ID: ${createdActivity.id})`)
                 successCount++
 
             } catch (innerError: any) {
@@ -91,10 +89,10 @@ async function importActivities() {
             }
         }
 
-        console.log('\n=== Import Summary ===')
-        console.log(`✅ Successfully imported: ${successCount} activities`)
-        console.log(`❌ Failed to import: ${failureCount} activities`)
-        console.log('=====================\n')
+      // console.log('\n=== Import Summary ===')
+      // console.log(`✅ Successfully imported: ${successCount} activities`)
+      // console.log(`❌ Failed to import: ${failureCount} activities`)
+      // console.log('=====================\n')
 
     } catch (error) {
         console.error('Fatal error during import:', error)

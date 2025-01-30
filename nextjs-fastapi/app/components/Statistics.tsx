@@ -3,27 +3,27 @@ import { Users, Mountain, Map, Award } from "lucide-react";
 const stats = [
   {
     icon: Users,
-    number: "20K+",
-    label: "Active Hikers",
-    description: "Join our growing community"
+    number: "20+",
+    label: "Local Hikers",
+    description: "Join our Munich community"
   },
   {
     icon: Mountain,
-    number: "500+",
-    label: "Trails Explored",
-    description: "Discover new adventures"
+    number: "15+",
+    label: "Alpine Trails",
+    description: "Around Tegernsee & Munich"
   },
   {
     icon: Map,
-    number: "50+",
-    label: "Cities Covered",
-    description: "Find local hiking groups"
+    number: "5",
+    label: "Key Areas",
+    description: "Munich, Tegernsee, Bad Tölz & more"
   },
   {
     icon: Award,
-    number: "4.8/5",
-    label: "User Rating",
-    description: "Trusted by hikers"
+    number: "4.6/5",
+    label: "Match Success",
+    description: "Happy hiking pairs"
   }
 ];
 
@@ -33,10 +33,10 @@ const Statistics = () => {
       <div className="max-w-7xl mx-auto px-3 sm:px-8">
         <div className="text-center mb-8 sm:mb-16">
           <h2 className="text-xl sm:text-3xl font-bold mb-2 sm:mb-4">
-            Trusted by Hikers 
+            Your Local Hiking Community
           </h2>
           <p className="text-primary-white/80 max-w-2xl mx-auto text-sm sm:text-base">
-            Join our growing community of outdoor enthusiasts and discover your next adventure
+            Connect with fellow hikers in the Munich and Tegernsee region
           </p>
         </div>
 
