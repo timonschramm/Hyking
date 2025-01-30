@@ -146,9 +146,9 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
         const response = await fetch('/api/interests');
         if (response.ok) {
           const interests = await response.json();
-          console.log('API Response:', interests);
-          console.log('Response type:', typeof interests);
-          console.log('Is Array?', Array.isArray(interests));
+        // console.log('API Response:', interests);
+        // console.log('Response type:', typeof interests);
+        // console.log('Is Array?', Array.isArray(interests));
           setAvailableInterests(interests);
         }
       } catch (error) {
@@ -206,7 +206,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
     setFormData(prev => {
       const currentInterests = prev.interests || [];
       const maxSelect = stepData.options.find(opt => opt.label === 'Interests')?.maxSelect || 5;
-      console.log('currentInterests:', currentInterests);
+    // console.log('currentInterests:', currentInterests);
       if (currentInterests.includes(interestId)) {
         // Fix: Create new array to ensure state update
         const newInterests = currentInterests.filter((id: string) => id !== interestId);
@@ -217,7 +217,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
       } else if (currentInterests.length < maxSelect) {
         // Fix: Create new array to ensure state update
         const newInterests = [...currentInterests, interestId];
-        console.log("newInterests:", newInterests)
+      // console.log("newInterests:", newInterests)
         return {
           ...prev,
           interests: newInterests

@@ -11,9 +11,9 @@ function CallbackContent() {
   useEffect(() => {
     if (!searchParams) return;
     const code = searchParams.get('code');
-    console.log('=== Starting Spotify Callback Flow (Onboarding) ===');
-    console.log('Received code:', code);
-    console.log('Full URL:', window.location.href);
+  // console.log('=== Starting Spotify Callback Flow (Onboarding) ===');
+  // console.log('Received code:', code);
+  // console.log('Full URL:', window.location.href);
 
     const processCallback = async () => {
       try {
@@ -22,16 +22,16 @@ function CallbackContent() {
           throw new Error('No code parameter in callback URL');
         }
 
-        console.log('Making token exchange request...');
+      // console.log('Making token exchange request...');
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/onboarding`);
         
-        console.log('Token Response Status:', tokenResponse.status);
-        console.log('Token Response Headers:', Object.fromEntries(tokenResponse.headers.entries()));
+      // console.log('Token Response Status:', tokenResponse.status);
+      // console.log('Token Response Headers:', Object.fromEntries(tokenResponse.headers.entries()));
         
         // Clone the response for logging
         const responseClone = tokenResponse.clone();
         const rawResponseText = await responseClone.text();
-        console.log('Raw Response Body:', rawResponseText);
+      // console.log('Raw Response Body:', rawResponseText);
 
         if (!tokenResponse.ok) {
           console.error('Token exchange failed with status:', tokenResponse.status);
@@ -42,7 +42,7 @@ function CallbackContent() {
         let data;
         try {
           data = JSON.parse(rawResponseText);
-          console.log('Parsed token data:', {
+        // console.log('Parsed token data:', {
             access_token: data.access_token ? '✓ Present' : '✗ Missing',
             token_type: data.token_type,
             expires_in: data.expires_in,
@@ -58,7 +58,7 @@ function CallbackContent() {
           throw new Error('No access token received');
         }
 
-        console.log('Successfully received access token, redirecting...');
+      // console.log('Successfully received access token, redirecting...');
         router.push('/onboarding');
 
       } catch (error: any) {

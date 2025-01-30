@@ -47,7 +47,7 @@ async function getRandomProfileImage(gender: string): Promise<string> {
 
 // First, create all artists and store their IDs
 async function seedArtists() {
-  console.log('🎵 Creating artists...')
+// console.log('🎵 Creating artists...')
   const createdArtists = []
 
   for (const artistData of PREDEFINED_ARTISTS) {
@@ -89,7 +89,7 @@ async function seedArtists() {
       }
     })
     createdArtists.push(artist)
-    console.log(`✅ Created/Updated artist: ${artist.name} (${artist.spotifyId})`)
+  // console.log(`✅ Created/Updated artist: ${artist.name} (${artist.spotifyId})`)
   }
   return createdArtists
 }
@@ -170,7 +170,7 @@ async function seedInterests() {
 
 async function generateDummyProfiles() {
   try {
-    console.log('🚀 Starting dummy profile generation...')
+  // console.log('🚀 Starting dummy profile generation...')
 
     // First seed interests
     await seedInterests()
@@ -184,7 +184,7 @@ async function generateDummyProfiles() {
     for (let i = 0; i < PROFILES_TO_GENERATE; i++) {
       try {
         const profile = await createRandomProfile(availableArtists)
-        console.log(`✅ Created profile: ${profile.displayName} (ID: ${profile.id})`)
+      // console.log(`✅ Created profile: ${profile.displayName} (ID: ${profile.id})`)
         successCount++
       } catch (error: any) {
         console.error(`❌ Failed to create profile #${i + 1}:`, error.message)
@@ -192,10 +192,10 @@ async function generateDummyProfiles() {
       }
     }
 
-    console.log('\n=== Generation Summary ===')
-    console.log(`✅ Successfully created: ${successCount} profiles`)
-    console.log(`❌ Failed to create: ${failureCount} profiles`)
-    console.log('========================\n')
+  // console.log('\n=== Generation Summary ===')
+  // console.log(`✅ Successfully created: ${successCount} profiles`)
+  // console.log(`❌ Failed to create: ${failureCount} profiles`)
+  // console.log('========================\n')
 
   } catch (error) {
     console.error('Fatal error during profile generation:', error)

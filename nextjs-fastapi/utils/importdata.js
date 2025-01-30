@@ -98,7 +98,7 @@ function main() {
                         })];
                 case 3:
                     insertedActivity = _a.sent();
-                    console.log("Inserted activity: ".concat(insertedActivity.id));
+                  // console.log("Inserted activity: ".concat(insertedActivity.id));
                     return [3 /*break*/, 5];
                 case 4:
                     error_1 = _a.sent();

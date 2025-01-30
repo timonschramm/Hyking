@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(hikes);
   } catch (error) {
-    console.log("error: " + error)
+  // console.log("error: " + error)
     return NextResponse.json({ error: 'Failed to fetch hikes, error: ' + error }, { status: 500 });
   } finally {
     await prisma.$disconnect();

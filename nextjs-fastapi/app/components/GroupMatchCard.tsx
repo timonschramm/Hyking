@@ -10,10 +10,10 @@ import { cn } from "@/lib/utils"
 import { ProfileDetailsDialog } from "./ProfileDetailsDialog"
 
 export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchCardProps) {
-  console.log("groupMatch")
-  console.log(groupMatch)
-  console.log(groupMatch.hikeSuggestions)
-  console.log(groupMatch.hikeSuggestions.length)
+// console.log("groupMatch")
+// console.log(groupMatch)
+// console.log(groupMatch.hikeSuggestions)
+// console.log(groupMatch.hikeSuggestions.length)
   const hikeActivity = groupMatch.hikeSuggestions[0]
   const currentUserProfile = groupMatch.profiles.find(
     (p) => p.profileId === groupMatch.currentUserId

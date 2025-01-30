@@ -80,7 +80,7 @@ async function importActivities() {
                     }
                 })
 
-                console.log(`✅ Imported activity: ${createdActivity.title} (ID: ${createdActivity.id})`)
+              // console.log(`✅ Imported activity: ${createdActivity.title} (ID: ${createdActivity.id})`)
                 successCount++
 
             } catch (innerError: any) {
@@ -89,10 +89,10 @@ async function importActivities() {
             }
         }
 
-        console.log('\n=== Import Summary ===')
-        console.log(`✅ Successfully imported: ${successCount} activities`)
-        console.log(`❌ Failed to import: ${failureCount} activities`)
-        console.log('=====================\n')
+      // console.log('\n=== Import Summary ===')
+      // console.log(`✅ Successfully imported: ${successCount} activities`)
+      // console.log(`❌ Failed to import: ${failureCount} activities`)
+      // console.log('=====================\n')
 
     } catch (error) {
         console.error('Fatal error during import:', error)

@@ -201,7 +201,7 @@ export async function PATCH(request: Request) {
 
 // Add DELETE endpoint for removing artist association
 export async function DELETE(request: Request) {
-  console.log("DELETE request received");
+// console.log("DELETE request received");
   try {
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
@@ -218,7 +218,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: 'Artist ID is required' }, { status: 400 });
     }
 
-    console.log("artistId in delete:", artistId)
+  // console.log("artistId in delete:", artistId)
     await prisma.userArtist.delete({
       where: {
         profileId_artistId: {
@@ -230,10 +230,10 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.log("error in delete:", error)
+  // console.log("error in delete:", error)
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2025') {
-        console.log("artist not found in delete")
+      // console.log("artist not found in delete")
         return NextResponse.json({ error: 'Artist not found' }, { status: 404 });
       }
     }

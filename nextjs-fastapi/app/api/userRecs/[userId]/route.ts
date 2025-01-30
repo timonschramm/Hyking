@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
+  // console.log('[GET /api/profile/[userId]] Profile with artists:', JSON.stringify(profile, null, 2));
     return NextResponse.json(profile);
   } catch (error) {
     console.error('Error fetching profile:', error);

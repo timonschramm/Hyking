@@ -131,7 +131,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
               imageUrl: msg.sender.imageUrl || '/default-avatar.jpg',
               email: msg.sender.email
             } : null;
-            console.log("senderProfile", senderProfile);
+          // console.log("senderProfile", senderProfile);
             const prevMsg = index > 0 ? chatRoom.messages[index - 1] : null;
             const showDateSeparator = shouldShowDateSeparator(msg, prevMsg);
             

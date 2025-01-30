@@ -11,7 +11,7 @@ export async function login(formData: FormData) {
   const provider = formData.get('provider') as 'google' | 'apple' | null
   
   if (provider) {
-    console.log('Starting OAuth sign in with provider:', provider);
+  // console.log('Starting OAuth sign in with provider:', provider);
     try {
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: provider,
@@ -20,7 +20,7 @@ export async function login(formData: FormData) {
         },
       })
 
-      console.log('OAuth response:', { data, error });
+    // console.log('OAuth response:', { data, error });
 
       if (error) {
         console.error('Supabase OAuth error:', error);

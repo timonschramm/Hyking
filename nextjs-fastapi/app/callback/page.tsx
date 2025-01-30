@@ -11,9 +11,9 @@ function CallbackContent() {
   const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
 
   const fetchAndUploadArtists = async (token: string) => {
-    console.log('fetchAndUploadArtists: Starting with token:', token);
+  // console.log('fetchAndUploadArtists: Starting with token:', token);
     try {
-      console.log('Fetching artists from Spotify with the bearer token...');
+    // console.log('Fetching artists from Spotify with the bearer token...');
       const response = await fetch('https://api.spotify.com/v1/me/top/artists?limit=3', {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -27,7 +27,7 @@ function CallbackContent() {
       }
 
       const data = await response.json();
-      console.log('Spotify responded with: ', data.items);
+    // console.log('Spotify responded with: ', data.items);
 
       if (!data.items?.length) {
         throw new Error('No artists received from Spotify');
@@ -41,7 +41,7 @@ function CallbackContent() {
         hidden: false
       }));
 
-      console.log('Preparing to POST artists to /api/profile/artists:', artists);
+    // console.log('Preparing to POST artists to /api/profile/artists:', artists);
       const uploadResponse = await fetch('/api/profile/artists', {
         method: 'POST',
         headers: {
@@ -51,13 +51,13 @@ function CallbackContent() {
       });
 
       const responseText = await uploadResponse.text();
-      console.log('artists uploadResponse status:', uploadResponse.status, '| response text:', responseText);
+    // console.log('artists uploadResponse status:', uploadResponse.status, '| response text:', responseText);
 
       if (!uploadResponse.ok) {
         throw new Error(`Failed to upload artists: ${responseText}`);
       }
 
-      console.log('Successfully uploaded artists to DB.');
+    // console.log('Successfully uploaded artists to DB.');
       return JSON.parse(responseText);
 
     } catch (error) {
@@ -70,25 +70,25 @@ function CallbackContent() {
     if (!searchParams) return;
     const code = searchParams.get('code');
     const from = searchParams.get('from') || 'onboarding';
-    console.log('Starting Spotify callback. "from" param is:', from);
-    console.log('Received query param code:', code);
+  // console.log('Starting Spotify callback. "from" param is:', from);
+  // console.log('Received query param code:', code);
 
     const processCallback = async () => {
       try {
         if (!code) {
           throw new Error('No code parameter in callback URL');
         }
-        console.log('Exchanging code for a token now...');
+      // console.log('Exchanging code for a token now...');
 
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}`);
 
-        console.log("Token exchange response:", tokenResponse);
+      // console.log("Token exchange response:", tokenResponse);
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }
 
         const data = await tokenResponse.json();
-        console.log('Token exchange response data in callback:', data);
+      // console.log('Token exchange response data in callback:', data);
 
         if (!data.access_token) {
           throw new Error('No access token received');
@@ -96,10 +96,10 @@ function CallbackContent() {
 
         setSpotifyToken(data.access_token);
 
-        console.log('Attempting auto-upload of artists...');
+      // console.log('Attempting auto-upload of artists...');
         await fetchAndUploadArtists(data.access_token);
 
-        console.log('Setting user as spotifyConnected = true');
+      // console.log('Setting user as spotifyConnected = true');
         await fetch('/api/profile/update', {
           method: 'POST',
           headers: {
@@ -110,7 +110,7 @@ function CallbackContent() {
 
         const isFromOnboarding = (from === 'onboarding');
         const redirectPath = isFromOnboarding ? '/onboarding' : '/dashboard/profile';
-        console.log(`Redirecting user to ${redirectPath}`);
+      // console.log(`Redirecting user to ${redirectPath}`);
         router.push(redirectPath);
 
       } catch (error) {
@@ -130,10 +130,10 @@ function CallbackContent() {
       console.error('No Spotify token available for manual upload!');
       return;
     }
-    console.log('Manual uploading artists with token:', spotifyToken);
+  // console.log('Manual uploading artists with token:', spotifyToken);
     try {
       await fetchAndUploadArtists(spotifyToken);
-      console.log('Manual upload completed successfully.');
+    // console.log('Manual upload completed successfully.');
     } catch (err) {
       console.error('Manual upload failed:', err);
     }

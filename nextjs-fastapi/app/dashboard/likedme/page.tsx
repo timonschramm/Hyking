@@ -3,25 +3,41 @@ import { useEffect, useState } from 'react';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { UserCard } from '@/app/components/UserCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
-import { Heart, Loader2, SendHorizontal } from "lucide-react";
+import { Heart, Loader2, SendHorizontal, MapPin } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ProfileDetailsDialog } from "@/app/components/ProfileDetailsDialog";
+
+interface MinimalProfile {
+  id: string;
+  imageUrl: string | null;
+  displayName: string | null;
+  location: string | null;
+  email: string | null;
+}
+
+interface Like {
+  id: string;
+  timestamp: Date;
+  sender?: MinimalProfile;
+  receiver?: MinimalProfile;
+}
 
 export default function LikedMe() {
-  const [receivedLikes, setReceivedLikes] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
-  const [sentLikes, setSentLikes] = useState<ProfileWithArtistsAndInterestsAndSkills[]>([]);
+  const [receivedLikes, setReceivedLikes] = useState<Like[]>([]);
+  const [sentLikes, setSentLikes] = useState<Like[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchLikes = async () => {
       try {
-        // Fetch received likes
-        const receivedResponse = await fetch('/api/users/likes/received');
-        const receivedData = await receivedResponse.json();
-        setReceivedLikes(receivedData.map((like: any) => like.sender));
-
-        // Fetch sent likes
-        const sentResponse = await fetch('/api/users/likes/sent');
-        const sentData = await sentResponse.json();
-        setSentLikes(sentData.map((like: any) => like.receiver));
+        // Fetch both received and sent likes in parallel
+        const [receivedData, sentData] = await Promise.all([
+          fetch('/api/users/likes/received').then(res => res.json()),
+          fetch('/api/users/likes/sent').then(res => res.json())
+        ]);
+        
+        setReceivedLikes(receivedData);
+        setSentLikes(sentData);
       } catch (error) {
         console.error('Error fetching likes:', error);
       } finally {
@@ -60,6 +76,43 @@ export default function LikedMe() {
     </div>
   );
 
+  const ProfileCard = ({ profile }: { profile: MinimalProfile }) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <div className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-card rounded-xl">
+          <div className="relative w-full h-[280px]">
+            <img
+              src={profile.imageUrl || '/default-avatar.jpg'}
+              alt={profile.displayName || 'User'}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <h3 className="text-xl font-semibold text-white mb-1">
+                {profile.displayName || profile.email?.split('@')[0] || 'Anonymous'}
+              </h3>
+              {profile.location && (
+                <div className="flex items-center gap-1.5 text-white/90">
+                  <MapPin className="h-4 w-4" />
+                  <span className="text-sm">{profile.location}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="p-0 border-none !rounded-2xl overflow-hidden max-w-[95vw] md:max-w-[400px]">
+        <ProfileDetailsDialog 
+          profileId={profile.id}
+          initialData={{
+            imageUrl: profile.imageUrl,
+            displayName: profile.displayName
+          }}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
@@ -88,15 +141,8 @@ export default function LikedMe() {
             <EmptyState type="received" />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {receivedLikes.map((profile) => (
-                <UserCard
-                  key={profile.id}
-                  data={profile}
-                  active={true}
-                  removeCard={() => {}}
-                  disableActions={false}
-                  displayMode="grid"
-                />
+              {receivedLikes.map((like) => (
+                <ProfileCard key={like.id} profile={like.sender!} />
               ))}
             </div>
           )}
@@ -107,15 +153,8 @@ export default function LikedMe() {
             <EmptyState type="sent" />
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {sentLikes.map((profile) => (
-                <UserCard
-                  key={profile.id}
-                  data={profile}
-                  active={true}
-                  removeCard={() => {}}
-                  disableActions={true}
-                  displayMode="grid"
-                />
+              {sentLikes.map((like) => (
+                <ProfileCard key={like.id} profile={like.receiver!} />
               ))}
             </div>
           )}

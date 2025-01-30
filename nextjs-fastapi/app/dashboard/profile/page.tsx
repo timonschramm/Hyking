@@ -212,7 +212,7 @@ export default function ProfilePage() {
     }
 
     const file = event.target.files[0];
-    console.log('Selected file:', file.name);
+  // console.log('Selected file:', file.name);
 
     // Create temporary URL for immediate preview
     const objectUrl = URL.createObjectURL(file);
@@ -260,17 +260,17 @@ export default function ProfilePage() {
   const handleInterestSelect = (interestId: string) => {
     if (!editedData) return;
     const currentInterests = userInterestIds;
-    console.log("currentInterests:", currentInterests)
-    console.log("selcted interestid: ", interestId)
+  // console.log("currentInterests:", currentInterests)
+  // console.log("selcted interestid: ", interestId)
     if (currentInterests.includes(interestId)) {
       // Fix: Create new array to ensure state update
       const newInterests = currentInterests.filter((id: string) => id !== interestId);
-      console.log("newInterests:", newInterests)
+    // console.log("newInterests:", newInterests)
       setUserInterestIds(newInterests);
     } else  {
       // Fix: Create new array to ensure state update
       const newInterests = [...currentInterests, interestId];
-      console.log("newInterests:", newInterests)
+    // console.log("newInterests:", newInterests)
       setUserInterestIds(newInterests);
     }
 

@@ -92,7 +92,7 @@ export default function SpotifyArtistsDisplay({
         isProfile: isEditable ? '1' : '0'
       });
       
-      console.log("Params:", params.toString());
+    // console.log("Params:", params.toString());
       const response = await fetch(`/api/spotify/authorize?${params}`);
 
       if (!response.ok) {
@@ -137,7 +137,7 @@ export default function SpotifyArtistsDisplay({
           }
 
           const { access_token } = await refreshResponse.json();
-          console.log("new token:", access_token)
+        // console.log("new token:", access_token)
           return fetchSpotifyArtists(access_token);
         }
         throw new Error('Failed to fetch artists');
@@ -174,7 +174,7 @@ export default function SpotifyArtistsDisplay({
       if (!newArtists) return;
 
       // Upload to database
-      console.log("newArtists:", newArtists)
+    // console.log("newArtists:", newArtists)
       const response = await fetch('/api/profile/artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

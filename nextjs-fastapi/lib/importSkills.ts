@@ -44,7 +44,7 @@ const skillsData = [
 
 async function importSkills() {
   try {
-    console.log('Starting skills import...')
+  // console.log('Starting skills import...')
     let successCount = 0
     let failureCount = 0
 
@@ -82,7 +82,7 @@ async function importSkills() {
           })
         }
 
-        console.log(`✅ Imported skill: ${skill.displayName}`)
+      // console.log(`✅ Imported skill: ${skill.displayName}`)
         successCount++
       } catch (error: any) {
         console.error(`❌ Error processing skill: ${skillData.name} - ${error.message}`)
@@ -90,10 +90,10 @@ async function importSkills() {
       }
     }
 
-    console.log('\n=== Import Summary ===')
-    console.log(`✅ Successfully imported: ${successCount} skills`)
-    console.log(`❌ Failed to import: ${failureCount} skills`)
-    console.log('=====================\n')
+  // console.log('\n=== Import Summary ===')
+  // console.log(`✅ Successfully imported: ${successCount} skills`)
+  // console.log(`❌ Failed to import: ${failureCount} skills`)
+  // console.log('=====================\n')
 
   } catch (error) {
     console.error('Fatal error during import:', error)

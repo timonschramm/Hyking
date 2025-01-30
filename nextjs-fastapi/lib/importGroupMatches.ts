@@ -34,7 +34,7 @@ async function createGroupMatch(profiles: any[], activity: any) {
       }
     })
 
-    console.log(`Created group match: ${groupMatch.id} with chat room: ${groupMatch.chatRoom?.id}`)
+  // console.log(`Created group match: ${groupMatch.id} with chat room: ${groupMatch.chatRoom?.id}`)
     return groupMatch
   } catch (error) {
     console.error('Error creating group match:', error)
@@ -64,7 +64,7 @@ async function createChatRoomForMatch(matchId: string, profileIds: string[]) {
       }
     })
     
-    console.log(`Created chat room: ${updatedChatRoom.id} for match: ${matchId}`)
+  // console.log(`Created chat room: ${updatedChatRoom.id} for match: ${matchId}`)
     return updatedChatRoom
   } catch (error) {
     console.error('Error creating chat room:', error)
@@ -196,7 +196,7 @@ async function findSuitableActivity(group: any[]) {
 
 async function importGroupMatches() {
   try {
-    console.log('Starting group matches import...')
+  // console.log('Starting group matches import...')
     
     // Get all profiles that have completed onboarding
     const profiles = await prisma.profile.findMany({
@@ -207,13 +207,13 @@ async function importGroupMatches() {
     })
 
     if (profiles.length < 3) {
-      console.log('Not enough profiles to create group matches')
+    // console.log('Not enough profiles to create group matches')
       return
     }
 
     // Find compatible groups
     const compatibleGroups = await findCompatibleProfiles(profiles)
-    console.log(`Found ${compatibleGroups.length} compatible groups`)
+  // console.log(`Found ${compatibleGroups.length} compatible groups`)
 
     let successCount = 0
     let failureCount = 0
@@ -224,14 +224,14 @@ async function importGroupMatches() {
         // Find a suitable activity for the group
         const activity = await findSuitableActivity(group)
         if (!activity) {
-          console.log('No suitable activity found for group')
+        // console.log('No suitable activity found for group')
           continue
         }
 
         // Create the group match
         const groupMatch = await createGroupMatch(group, activity)
         if (groupMatch) {
-          console.log(`✅ Created group match for activity: ${activity.title} with ${group.length} members`)
+        // console.log(`✅ Created group match for activity: ${activity.title} with ${group.length} members`)
           successCount++
         } else {
           failureCount++
@@ -242,10 +242,10 @@ async function importGroupMatches() {
       }
     }
 
-    console.log('\n=== Import Summary ===')
-    console.log(`✅ Successfully created: ${successCount} group matches`)
-    console.log(`❌ Failed to create: ${failureCount} group matches`)
-    console.log('=====================\n')
+  // console.log('\n=== Import Summary ===')
+  // console.log(`✅ Successfully created: ${successCount} group matches`)
+  // console.log(`❌ Failed to create: ${failureCount} group matches`)
+  // console.log('=====================\n')
 
   } catch (error) {
     console.error('Fatal error during import:', error)

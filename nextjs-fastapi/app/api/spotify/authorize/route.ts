@@ -6,10 +6,10 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const rawIsProfile = searchParams.get('isProfile');
-    console.log("Raw isProfile param:", rawIsProfile);
+  // console.log("Raw isProfile param:", rawIsProfile);
     
     const isProfile = rawIsProfile === '1' || rawIsProfile === 'true';
-    console.log("Parsed isProfile:", isProfile);
+  // console.log("Parsed isProfile:", isProfile);
     
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const baseRedirectUri = process.env.SPOTIFY_REDIRECT_URI;
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const path = isProfile ? '/profile' : '/onboarding';
     const callbackUrl = `${baseRedirectUri}${path}`;
     
-    console.log("Final callbackUrl:", callbackUrl);
+  // console.log("Final callbackUrl:", callbackUrl);
 
     if (!clientId) {
       console.error('Spotify client ID not configured');
@@ -33,7 +33,7 @@ export async function GET(request: Request) {
 
     const spotifyAuthUrl = `https://accounts.spotify.com/authorize?${authParams.join('&')}`;
     const response = NextResponse.json({ url: spotifyAuthUrl });
-    console.log("Response:", response);
+  // console.log("Response:", response);
     return response;
   } catch (error) {
     console.error('Error generating auth URL:', error);

@@ -11,25 +11,25 @@ function CallbackContent() {
   useEffect(() => {
     if (!searchParams) return;
     const code = searchParams.get('code');
-    console.log('Starting Spotify callback for profile');
-    console.log('Received query param code:', code);
+  // console.log('Starting Spotify callback for profile');
+  // console.log('Received query param code:', code);
 
     const processCallback = async () => {
       try {
         if (!code) {
           throw new Error('No code parameter in callback URL');
         }
-        console.log('Exchanging code for a token now...');
+      // console.log('Exchanging code for a token now...');
 
         const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/profile`);
-        console.log('Token exchange response status:', tokenResponse.status);
+      // console.log('Token exchange response status:', tokenResponse.status);
 
         if (!tokenResponse.ok) {
           throw new Error('Token exchange failed');
         }
 
         const data = await tokenResponse.json();
-        console.log('Token exchange response data:', data);
+      // console.log('Token exchange response data:', data);
 
         if (!data.access_token) {
           throw new Error('No access token received');

@@ -22,13 +22,13 @@ export default function Match() {
         }
         const data = await response.json();
         setCurrentUser(data);
-        console.log('currentUser:', currentUser);
-        console.log('data:', data);
+      // console.log('currentUser:', currentUser);
+      // console.log('data:', data);
       } catch (error) {
         console.error('Failed to fetch current user:', error);
       }
     };
-    
+
     const fetchProfiles = async () => {
       try {
         const response = await fetch('/api/userRecs');
