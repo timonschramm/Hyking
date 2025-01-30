@@ -71,7 +71,7 @@ class Chatbot:
             - 'other': Anything else unrelated or unclear.
 
             Respond ONLY with the category name, no explanations.
-        """,
+            """,
             "recommendation": f"""
                 You are a hiking recommendation assistant.
                 Parse the user's input and return ONLY a valid JSON object with:
@@ -94,14 +94,12 @@ class Chatbot:
                 - group_size (string, one of 'small', 'medium', 'large')
                 - is_pet_friendly (boolean, true or false)
                 - facilities (array of strings)
-                - description_match array of all words derived from input that could be important, such as ['beautiful views', 'challenging', 'easy', 'waterfall'])
 
                 Your response must:
-                - The user may use words like "about," "approximately," or "around" for numerical values.
-                If such words are detected for length or altitude, apply a ±20% range around the specified value and set both min and max values.   
+                - Include ALL important keywords from the user input in `description_match`, even if they are already part of other filters (e.g., "waterfalls" should be in `description_match` even if it's also in `scenery`).
+                - If the user uses words like "about," "approximately," or "around" for numerical values, apply a ±20% range around the specified value and set both min and max values.
                 - ONLY contain a valid JSON object.
                 - NOT include any explanations or text outside the JSON.
-                - If no information for filter is provided fill in 'None'
                 - Use lowercase for boolean values (`true`/`false`).
                 - Avoid trailing commas.
 

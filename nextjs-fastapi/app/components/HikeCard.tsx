@@ -44,7 +44,7 @@ const HikeCard: React.FC<HikeCardProps> = ({ hike, onClick, detailed = false }) 
         <div className="px-6 py-4 space-y-4">
           <div className="grid grid-cols-2 gap-4 text-gray-700">
             <div>
-              <p><strong>Length:</strong> {hike.length} km</p>
+              <p><strong>Length:</strong> {hike.length} m</p>
               <p><strong>Ascent:</strong> {hike.ascent || 'N/A'} m</p>
               <p><strong>Descent:</strong> {hike.descent || 'N/A'} m</p>
               <p><strong>Duration:</strong> {hike.durationMin || 'N/A'} mins</p>
@@ -52,7 +52,7 @@ const HikeCard: React.FC<HikeCardProps> = ({ hike, onClick, detailed = false }) 
             <div>
               <p><strong>Min Altitude:</strong> {hike.minAltitude || 'N/A'} m</p>
               <p><strong>Max Altitude:</strong> {hike.maxAltitude || 'N/A'} m</p>
-              <p><strong>Difficulty:</strong> {hike.difficulty}/5</p>
+              <p><strong>Difficulty:</strong> {hike.difficulty}/3</p>
               <p><strong>Is Winter Friendly:</strong> {hike.isWinter ? 'Yes' : 'No'}</p>
             </div>
           </div>

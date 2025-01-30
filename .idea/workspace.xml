@@ -5,9 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Team_8.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Team_8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/components/HikeCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/HikeCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,6 +115,9 @@
       <workItem from="1738194866945" duration="122000" />
       <workItem from="1738195062125" duration="1651000" />
       <workItem from="1738196803832" duration="379000" />
+      <workItem from="1738199563971" duration="483000" />
+      <workItem from="1738200059779" duration="904000" />
+      <workItem from="1738201044455" duration="705000" />
     </task>
     <servers />
   </component>

@@ -46,6 +46,26 @@ import re  # Import regex for better filtering
 
 import re  # Import regex for better filtering
 
+import re
+
+
+def extract_keywords(user_input):
+    """
+    Extract important keywords from the user input that should be included in `description_match`.
+    """
+    # Define a list of common hiking-related keywords
+    hiking_keywords = ["waterfalls", "mountains", "forest", "easy", "challenging", "scenic", "rocky", "snowy", "lake",
+                       "river"]
+
+    # Use regex to find all matching keywords in the user input
+    keywords = []
+    for keyword in hiking_keywords:
+        if re.search(rf"\b{keyword}\b", user_input, re.IGNORECASE):
+            keywords.append(keyword)
+
+    return keywords
+
+
 def handle_hike_recommendation(user_input, user_id):
     """
     Handles hike recommendations dynamically and prioritizes matches across all text fields for a specific user.
@@ -65,85 +85,39 @@ def handle_hike_recommendation(user_input, user_id):
         # Ensure numerical filters are initialized with default values
         numerical_filters = {
             "max_length": 15000,  # Default max length in meters
-            "min_length": 0,      # Default min length in meters
-            "min_altitude": 0,    # Default min altitude in meters
+            "min_length": 0,  # Default min length in meters
+            "min_altitude": 0,  # Default min altitude in meters
             "max_altitude": 10000,  # Default max altitude in meters
         }
         for key, default_value in numerical_filters.items():
             if key not in user_filters or user_filters[key] is None:
                 user_filters[key] = default_value
 
-        # Check if the user wants to adjust existing filters
-        adjust_filters_prompt = f"""
-            The user has previously set the following filters: {json.dumps(user_filters, indent=2)}.
-            The user's new input is: {user_input}.
-            Determine if the user wants to adjust, specify, or remove any of the existing filters.
-            Respond with 'yes' if the user wants to adjust filters, otherwise respond with 'no'.
-        """
-        adjust_filters_response = chatbot._call_gpt(user_input, adjust_filters_prompt, user_id)
+        # Extract new filters dynamically
+        system_prompt = chatbot._build_system_prompt("recommendation", user_input)
+        gpt_response = chatbot._call_gpt(user_input, system_prompt, user_id)
 
-        if adjust_filters_response.strip().lower() == 'yes':
-            # User wants to adjust filters, so update the existing filters
-            update_filters_prompt = f"""
-                The user has previously set the following filters: {json.dumps(user_filters, indent=2)}.
-                The user's new input is: {user_input}.
-                Update the filters based on the user's input and return the FULL updated filters in JSON format:
-                {{
-                    "region": "string (if a specific region is mentioned)",
-                    "point_lat": "float (latitude, if region known)",
-                    "point_lon": "float (longitude, if region known)",
-                    "difficulty": "integer (1=easy, 2=medium, 3=hard)",
-                    "max_length": "integer (max length in meters, e.g., 15000)",
-                    "min_length": "integer (min length in meters, optional)",
-                    "duration_min": "integer (duration in minutes, optional)",
-                    "scenery": "list of strings (e.g., ['mountains', 'forest'])",
-                    "terrain": "list of strings (e.g., ['rocky', 'snowy'])",
-                    "is_winter": "boolean (true/false)",
-                    "min_altitude": "integer (optional, meters)",
-                    "max_altitude": "integer (optional, meters)",
-                    "description_match": "list of strings (e.g., ['challenging', 'easy'])",
-                    "popularity": "string (low, medium, high)",
-                    "season": "string (e.g., 'summer', 'winter')",
-                    "fitness_level": "string (beginner, intermediate, advanced)",
-                    "group_size": "string (small, medium, large)",
-                    "is_pet_friendly": "boolean (true/false)",
-                    "facilities": "list of strings",
-                    "description_match": "list of keywords extracted from user input"
-                }}
-                - Ensure all filters from previous messages are included.
-                - If a filter should be removed (e.g., "no waterfalls"), exclude it from the response.
-                - Initialize `description_match` as an empty list if no keywords are provided.
-                - Do not output any explanations, only the JSON object.
-            """
-            gpt_response = chatbot._call_gpt(user_input, update_filters_prompt, user_id)
+        try:
+            new_filters = json.loads(gpt_response)
 
-            try:
-                updated_filters = json.loads(gpt_response)
-                user_filters.update(updated_filters)
+            # **Fallback: Manually extract keywords and append to `description_match`**
+            extracted_keywords = extract_keywords(user_input)
+            if "description_match" not in new_filters:
+                new_filters["description_match"] = []
+            new_filters["description_match"] = list(set(new_filters["description_match"] + extracted_keywords))
 
-                # **NEW: Remove unwanted items dynamically**
-                unwanted_items = re.findall(r"don't want (\w+)|no (\w+)", user_input.lower())
-                if unwanted_items:
-                    for item in unwanted_items:
-                        unwanted_feature = item[0] or item[1]  # Extract non-empty match
-                        for filter_category in ["scenery", "description_match", "terrain"]:
-                            if filter_category in user_filters and unwanted_feature in user_filters[filter_category]:
-                                user_filters[filter_category].remove(unwanted_feature)
+            # Merge new filters with existing ones
+            for key, value in new_filters.items():
+                if key in list_based_filters and isinstance(value, list):
+                    # Append new values to existing lists
+                    user_filters[key] = list(set(user_filters[key] + value))
+                else:
+                    # Update other filters
+                    user_filters[key] = value
 
-            except json.JSONDecodeError:
-                print(f"❌ GPT Response was not valid JSON: {gpt_response}")
-                return {"response": "I couldn't process your request. Could you provide more details?"}
-        else:
-            # Extract new filters dynamically
-            system_prompt = chatbot._build_system_prompt("recommendation", user_input)
-            gpt_response = chatbot._call_gpt(user_input, system_prompt, user_id)
-
-            try:
-                new_filters = json.loads(gpt_response)
-                user_filters.update(new_filters)
-            except json.JSONDecodeError:
-                print(f"❌ GPT Response was not valid JSON: {gpt_response}")
-                return {"response": "I couldn't process your request. Could you provide more details?"}
+        except json.JSONDecodeError:
+            print(f"❌ GPT Response was not valid JSON: {gpt_response}")
+            return {"response": "I couldn't process your request. Could you provide more details?"}
 
         # Fetch recommendations
         recommendations_df = getHike.getHike(user_filters)
@@ -156,17 +130,19 @@ def handle_hike_recommendation(user_input, user_id):
                     recommendations_df[field] = ""
 
             # Sort recommendations by final_score
-            recommendations_df = recommendations_df.sort_values(by="final_score", ascending=False).reset_index(drop=True)
+            recommendations_df = recommendations_df.sort_values(by="final_score", ascending=False).reset_index(
+                drop=True)
 
             # Debugging output
-            print("Sorted Recommendations Sent to Frontend:\n", recommendations_df[["id", "title", "final_score"]].head())
+            print("Sorted Recommendations Sent to Frontend:\n",
+                  recommendations_df[["id", "title", "final_score"]].head())
 
             # Convert to dict for frontend
             recommendations = recommendations_df.to_dict(orient="records")
             return {
                 "response": "Here are some hikes you might like.",
                 "hikes": recommendations,
-                "filters": user_filters  # **NEW: Include full filter list**
+                "filters": user_filters  # Include full filter list
             }
 
         # No results found: Provide alternatives
@@ -178,14 +154,14 @@ def handle_hike_recommendation(user_input, user_id):
             return {
                 "response": "No hikes matched your filters. Filters like difficulty or keywords might have been too restrictive.",
                 "alternatives": alternative_filters,
-                "filters": user_filters  # **NEW: Include full filter list**
+                "filters": user_filters  # Include full filter list
             }
 
     except Exception as e:
         print(f"❌ Error in handle_hike_recommendation: {e}")
         return {
             "response": "An error occurred while processing your request. Please try again later.",
-            "filters": user_filters  # **NEW: Include full filter list in error case**
+            "filters": user_filters  # Include full filter list in error case
         }
 
 
