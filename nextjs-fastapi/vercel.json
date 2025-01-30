@@ -3,6 +3,11 @@
         "api/**": {
             "excludeFiles": "{.next,*.cache,node_modules,public}/**"
         }
+    },
+    "build": {
+    "env": {
+      "VERCEL_ANALYTICS_DEBUG": "1"
     }
+  }
 }
 
