@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
 import { UserCard } from '@/app/components/UserCard';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
@@ -81,10 +82,12 @@ export default function LikedMe() {
       <DialogTrigger asChild>
         <div className="group overflow-hidden hover:shadow-lg transition-all duration-300 bg-card rounded-xl">
           <div className="relative w-full h-[280px]">
-            <img
+            <Image
               src={profile.imageUrl || '/default-avatar.jpg'}
               alt={profile.displayName || 'User'}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              fill
+              sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4">

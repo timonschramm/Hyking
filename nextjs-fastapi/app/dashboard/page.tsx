@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Activity } from '@prisma/client';
 import { createClient } from '@/utils/supabase/client';
 import { Skeleton } from "@/components/ui/skeleton";
@@ -120,12 +121,14 @@ export default function DashboardPage() {
         {hikes.map((trail, index) => (
           <div key={index} 
                className="bg-background-white rounded-lg shadow-md overflow-hidden border-secondary-gray">
-            <div className="h-48 bg-background-light">
+            <div className="h-48 bg-background-light relative">
               {trail.primaryImageId && (
-                <img 
+                <Image 
                   src={`https://img.oastatic.com/img2/${trail.primaryImageId}/default/variant.jpg`} 
                   alt={trail.title} 
-                  className="w-full h-full object-cover rounded-2xl" 
+                  fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  className="object-cover rounded-2xl" 
                 />
               )}
             </div>

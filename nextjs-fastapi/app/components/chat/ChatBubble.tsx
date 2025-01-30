@@ -36,6 +36,7 @@ export const ChatBubble = ({
               src={senderProfile.imageUrl || '/default-avatar.jpg'}
               alt={senderProfile.email}
               fill
+              sizes="(max-width: 768px) 2rem, 2rem"
               className="rounded-full object-cover border border-gray-200"
               priority
             />

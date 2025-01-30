@@ -48,6 +48,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
             src={`https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`}
             alt={activity.title}
             fill
+            sizes="(max-width: 768px) 3rem, 3rem"
             className="object-cover"
           />
           {/* <div className="absolute top-0 right-0 bg-black/50 text-white text-xs px-1 rounded-bl">
@@ -89,6 +90,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
             src={otherUser.imageUrl || '/default-avatar.jpg'}
             alt={otherUser.email}
             fill
+            sizes="(max-width: 768px) 3rem, 3rem"
             className="object-cover"
           />
         </div>

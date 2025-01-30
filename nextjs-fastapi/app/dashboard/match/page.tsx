@@ -14,20 +14,7 @@ export default function Match() {
   const [currentUser, setCurrentUser] = useState<Profile | null>(null);
 
   useEffect(() => {
-    const fetchCurrentUser = async () => {
-      try {
-        const response = await fetch('/api/profile/me');
-        if (!response.ok) {
-          throw new Error('Failed to fetch current user');
-        }
-        const data = await response.json();
-        setCurrentUser(data);
-      // console.log('currentUser:', currentUser);
-      // console.log('data:', data);
-      } catch (error) {
-        console.error('Failed to fetch current user:', error);
-      }
-    };
+  
 
     const fetchProfiles = async () => {
       try {
@@ -44,7 +31,6 @@ export default function Match() {
       }
     };
 
-    fetchCurrentUser();
     fetchProfiles();
   }, []);
 

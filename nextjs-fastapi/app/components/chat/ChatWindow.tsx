@@ -109,6 +109,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
             src={chatImage}
             alt={chatTitle}
             fill
+            sizes="(max-width: 768px) 2.5rem, 2.5rem"
             className={`object-cover ${chatRoom.groupMatch ? 'rounded-lg' : 'rounded-full'}`}
           />
         </div>
