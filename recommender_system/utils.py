@@ -163,9 +163,10 @@ def get_recommendations(user_id:int, hike_desc:str):
     ids = [id for id in all_ids if id not in swiped_users]
     sim_list = []
     for id in ids:
-        sim = calc_overall_similarity(user_id, id) #TODO: Change to overall similarity
+        sim = calc_overall_similarity(user_id, id) 
         sim_list.append((id, sim))
 
     sim_list.sort(key=lambda x: x[1], reverse=True)
 
-    return [tuple[0] for tuple in sim_list[:7]] #TODO: Change to 10
+    return [tuple[0] for tuple in sim_list[:10]] 
+
