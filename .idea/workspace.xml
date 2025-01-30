@@ -6,8 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/components/Modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/Modal.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -110,6 +111,8 @@
       <workItem from="1738106563180" duration="2427000" />
       <workItem from="1738189854360" duration="736000" />
       <workItem from="1738190665882" duration="2182000" />
+      <workItem from="1738194866945" duration="122000" />
+      <workItem from="1738195062125" duration="666000" />
     </task>
     <servers />
   </component>
@@ -120,9 +123,9 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py</url>
-          <line>44</line>
-          <option name="timeStamp" value="1" />
+          <url>file://$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py</url>
+          <line>8</line>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

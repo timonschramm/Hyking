@@ -24,31 +24,29 @@ class FinalRecommender:
             )
 
         # Length score (make-or-break criteria)
-        if self.user_filters.get("min_length") or self.user_filters.get("max_length"):
-            hike_length = row.get("length", 0)
-            min_length = self.user_filters.get("min_length", 0)
-            max_length = self.user_filters.get("max_length", float('inf'))
-            length_score = 100 if min_length <= hike_length <= max_length else 0
+        hike_length = row.get("length", 0)
+        min_length = self.user_filters.get("min_length", 0)
+        max_length = self.user_filters.get("max_length", float('inf'))
+        length_score = 100 if min_length <= hike_length <= max_length else 0
 
         # Altitude score
-        if self.user_filters.get("min_altitude") or self.user_filters.get("max_altitude"):
-            hike_min_alt = row.get("minAltitude", 0)
-            hike_max_alt = row.get("maxAltitude", 0)
-            user_min_alt = self.user_filters.get("min_altitude", 0)
-            user_max_alt = self.user_filters.get("max_altitude", float('inf'))
+        hike_min_alt = row.get("minAltitude", 0)
+        hike_max_alt = row.get("maxAltitude", 0)
+        user_min_alt = self.user_filters.get("min_altitude", 0)
+        user_max_alt = self.user_filters.get("max_altitude", float('inf'))
 
-            # Check if hike altitude falls within user altitude range
-            altitude_score = 100 if (
+        # Check if hike altitude falls within user altitude range
+        altitude_score = 100 if (
                 hike_min_alt >= user_min_alt and hike_max_alt <= user_max_alt
-            ) else 0
+        ) else 0
 
         # Weighted final score
         return (
-            (keyword_score * 0.4) +  # High weight for keyword matches
-            (proximity_score * 0.3) +  # Proximity is important
-            (difficulty_score * 0.2) +  # Moderate weight for difficulty
-            (length_score * 0.3) +  # Significant weight for length criteria
-            (altitude_score * 0.2)  # Moderate weight for altitude criteria
+                (keyword_score * 0.4) +  # High weight for keyword matches
+                (proximity_score * 0.3) +  # Proximity is important
+                (difficulty_score * 0.2) +  # Moderate weight for difficulty
+                (length_score * 0.3) +  # Significant weight for length criteria
+                (altitude_score * 0.2)  # Moderate weight for altitude criteria
         )
 
     def get_recommendations(self, top_n=5):
