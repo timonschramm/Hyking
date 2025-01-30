@@ -5,10 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/Team_8.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Team_8.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbotLoop.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/components/Modal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/Modal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/chatBot/chatbot.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,23 +111,13 @@
       <workItem from="1738189854360" duration="736000" />
       <workItem from="1738190665882" duration="2182000" />
       <workItem from="1738194866945" duration="122000" />
-      <workItem from="1738195062125" duration="666000" />
+      <workItem from="1738195062125" duration="1651000" />
+      <workItem from="1738196803832" duration="379000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/nextjs-fastapi/api/chatBot/finalRecommender.py</url>
-          <line>8</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Team_8$Testing.coverage" NAME="Testing Coverage Results" MODIFIED="1738068808155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/aTemp" />

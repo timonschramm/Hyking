@@ -1,10 +1,19 @@
 import openai
 import json
-from .constants import OpenAPIKey
+import os
+from dotenv import load_dotenv
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+env_path = os.path.join(project_root, ".env.local")
+load_dotenv(dotenv_path=env_path)
 
-# Ensure the API key is set
-openai.api_key = OpenAPIKey
-client = openai.Client(api_key=openai.api_key)
+# Get API key from environment
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+if not openai_api_key:
+    raise ValueError("❌ OPENAI_API_KEY is missing! Make sure it's set in the .env.local file.")
+
+# Correctly initialize OpenAI client with the retrieved key
+client = openai.Client(api_key=openai_api_key)
 
 
 class Chatbot:
