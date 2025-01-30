@@ -34,6 +34,11 @@ export async function POST(request: NextRequest) {
         activityId: activityId,
         action: action,
       },
+      select: {
+        id: true,
+        action: true,
+        timestamp: true
+      }
     });
 
     return NextResponse.json(swipe);

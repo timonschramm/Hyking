@@ -471,7 +471,6 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
-
               {/* Spotify section */}
               <SpotifyArtistsDisplay
                 isConnected={profileData?.spotifyConnected || false}
