@@ -1,38 +1,32 @@
 import sqlite3
 import numpy as np
-import requests
+import openai
 import os
 
-# Hugging Face API settings
-HF_API_URL = "https://api-inference.huggingface.co/pipeline/feature-extraction/sentence-transformers/all-MiniLM-L6-v2"
-HF_API_TOKEN = os.getenv("HF_API_TOKEN")  # Store your Hugging Face token in Vercel environment variables
+# Load OpenAI API key from environment variables
 
-def get_text_embedding(text: str) -> np.ndarray:
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def get_text_embedding(text: str, model: str = "text-embedding-ada-002") -> np.ndarray:
     """
-    Calculate an embedding for the given text using Hugging Face's Inference API.
+    Calculate an embedding for the given text using OpenAI's embeddings API.
 
     Parameters:
     - text: Text for which the embedding will be calculated.
+    - model: OpenAI embedding model to use (default is "text-embedding-ada-002").
 
     Returns:
     - numpy.ndarray: Array of the embedding for the given text.
     """
-    headers = {
-        "Authorization": f"Bearer {HF_API_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "inputs": text,
-        "options": {"wait_for_model": True},  # Ensure the model is loaded
-    }
-
     try:
-        response = requests.post(HF_API_URL, headers=headers, json=payload)
-        response.raise_for_status()  # Raise an error for bad responses
-        embedding = np.array(response.json())
+        response = openai.Embedding.create(
+            input=text,
+            model=model
+        )
+        embedding = np.array(response["data"][0]["embedding"])
         return embedding
-    except requests.exceptions.RequestException as e:
-        raise ValueError(f"Failed to fetch embedding from Hugging Face API: {e}")
+    except Exception as e:
+        raise ValueError(f"Failed to fetch embedding from OpenAI API: {e}")
 
 def get_closest_hikes(lat: float, lon: float, radius_km: float) -> list:
     """
