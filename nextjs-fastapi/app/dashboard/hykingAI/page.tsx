@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Hike } from '../../components/chatBot/types';
 import HikeCard from '../../components/HikeCard';
+import WeatherWidget from '../../components/WeatherWidget'; // Import the new WeatherWidget
 import Modal from '../../components/Modal';
 
 // Utility function to get or create a unique user ID
@@ -11,12 +12,18 @@ const getUserId = () => {
   return `user_${Date.now()}`; // Generates a new ID every time
 };
 
+// Update the Message type to include weather data
 type Message = {
   id: string;
   senderId: string;
   text: string;
   createdAt: string;
   hikes?: Hike[];
+  weather?: {
+    name: string;
+    weather: { description: string }[];
+    main: { temp: number };
+  }; // Add weather data type
 };
 
 export default function HykingAIPage() {
@@ -83,6 +90,7 @@ export default function HykingAIPage() {
 
       const data = await response.json();
       const hikes = data.hikes || [];
+      const weather = data.weather || null; // Extract weather data from the response
 
       const botResponse: Message = {
         id: (Date.now() + 1).toString(),
@@ -90,6 +98,7 @@ export default function HykingAIPage() {
         text: data.response || 'Here are some hikes you might like:',
         createdAt: new Date().toISOString(),
         hikes: hikes,
+        weather: weather, // Include weather data in the message
       };
       setTimeout(() => {
         setMessages((prev) => [...prev, botResponse]);
@@ -155,6 +164,7 @@ export default function HykingAIPage() {
                   ))}
                 </div>
               )}
+              {msg.weather && <WeatherWidget weather={msg.weather} />} {/* Render weather widget */}
             </div>
           </div>
         ))}

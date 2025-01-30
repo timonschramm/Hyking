@@ -13,6 +13,7 @@ const navItems = [
   { name: "Liked Me", href: "/dashboard/likedme", icon: Heart },
   { name: "Chats", href: "/dashboard/chats", icon: MessageCircle },
   { name: "Group Matches", href: "/dashboard/groupmatches", icon: Users },
+  { name: "HykingAI", href: "/dashboard/hykingAI", icon: MessageCircle },
 ];
 
 function truncateEmail(email: string) {

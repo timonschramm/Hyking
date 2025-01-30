@@ -2,6 +2,7 @@ import json
 from .chatbot import Chatbot
 from . import getHike
 from . import finalRecommender
+from .weather import get_weather
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -12,7 +13,7 @@ chatbot = Chatbot()
 def chatbot_loop_api(user_input, user_id):
     """
     Main API wrapper for chatbot interactions with user-specific memory.
-    Updated to handle the new 'adjust_filters' intent.
+    Updated to handle the new 'weather' intent.
     """
     if not user_input:
         return {"error": "No input provided"}
@@ -29,6 +30,8 @@ def chatbot_loop_api(user_input, user_id):
         return handle_hike_recommendation(user_input, user_id)
     elif intent == "clarification":
         return handle_clarification(user_input, user_id)
+    elif intent == "weather":
+        return handle_weather(user_input, user_id)
     else:
         return {"response": "🤖 Sorry, I didn't understand that."}
 
@@ -184,3 +187,36 @@ def handle_clarification(user_input, user_id):
     general_prompt = chatbot._build_system_prompt("default", user_input)
     response = chatbot._call_gpt(user_input, general_prompt, user_id)
     return {"response": response}
+
+def handle_weather(user_input, user_id):
+    """
+    Handles weather-related queries by fetching weather data from OpenWeatherMap API.
+    Uses ChatGPT to extract the city name from the user's input.
+    """
+    try:
+        # Use ChatGPT to extract the city name from the user's input
+        system_prompt = """
+        Extract the city name from the user's input. 
+        Respond ONLY with the city name. If no city is mentioned, respond with "unknown".
+        """
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_input},
+        ]
+
+        # Call ChatGPT to extract the city name
+        location=chatbot._call_gpt(user_input, system_prompt, user_id)
+
+        # Validate the extracted location
+        if location.lower() == "unknown" or not location:
+            return {"response": "Please specify a location for the weather."}
+
+        # Fetch weather data
+        weather_data = get_weather(location)
+        return {
+            "response": f"Weather in {location}: {weather_data['weather'][0]['description']}, Temperature: {weather_data['main']['temp']}°C",
+            "weather": weather_data  # Include full weather data for the frontend
+        }
+    except Exception as e:
+        print(f"❌ Error in handle_weather: {e}")
+        return {"response": "Sorry, I couldn't fetch the weather data. Please try again later."}

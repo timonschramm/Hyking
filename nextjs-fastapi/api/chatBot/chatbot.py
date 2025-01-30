@@ -68,6 +68,7 @@ class Chatbot:
             - 'hike_recommendation': If the user is asking for a hike route or adjusting/refining their preferences (e.g., changing difficulty, scenery, etc.).
             - 'clarification': For refining or clarifying a previous request.
             - 'adjust_filters': If the user is explicitly updating or changing their filters (e.g., "I don't care about waterfalls, only easy hikes").
+            - 'weather': If the user is asking about the weather (e.g., "What's the weather in New York?").
             - 'other': Anything else unrelated or unclear.
 
             Respond ONLY with the category name, no explanations.
@@ -167,7 +168,8 @@ class Chatbot:
 
             # Validate the response and remove temporary history
             memory["history"].pop()
-            valid_intents = ["general_chat", "hike_recommendation", "clarification", "adjust_filters", "other"]
+            valid_intents = ["general_chat", "hike_recommendation", "clarification", "adjust_filters", "weather",
+                             "other"]
             if intent in valid_intents:
                 print(f"🧠 Detected intent: {intent}")
                 return intent
