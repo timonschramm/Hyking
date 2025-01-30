@@ -2,7 +2,6 @@ import sqlite3
 import numpy as np
 import openai
 import os
-from sklearn.metrics.pairwise import cosine_similarity
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from collections import Counter
@@ -12,6 +11,22 @@ load_dotenv(".env.local")
 
 # Set OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
+
+def cosine_similarity(vec_a: np.ndarray, vec_b: np.ndarray) -> float:
+    """
+    Computes the cosine similarity between two vectors.
+
+    Parameters:
+    - vec_a: First vector.
+    - vec_b: Second vector.
+
+    Returns:
+    - float: Cosine similarity between the two vectors.
+    """
+    dot_product = np.dot(vec_a, vec_b.T)
+    norm_a = np.linalg.norm(vec_a)
+    norm_b = np.linalg.norm(vec_b)
+    return dot_product / (norm_a * norm_b)
 
 def get_text_embedding(text: str, model: str = "text-embedding-ada-002") -> np.ndarray:
     """
@@ -188,7 +203,7 @@ def calc_skill_similarity(user_id_a: int, user_id_b: int) -> float:
     user_a_skill_embedding = get_user_skill_embedding(user_id_a)
     user_b_skill_embedding = get_user_skill_embedding(user_id_b)
 
-    return cosine_similarity(user_a_skill_embedding, user_b_skill_embedding)[0][0]
+    return cosine_similarity(user_a_skill_embedding, user_b_skill_embedding)
 
 def calc_interest_similarity(user_id_a: int, user_id_b: int) -> float:
     """
@@ -203,11 +218,11 @@ def calc_interest_similarity(user_id_a: int, user_id_b: int) -> float:
     """
     user_a_direct_interest_embedding = get_user_direct_interest_embedding(user_id_a)
     user_b_direct_interest_embedding = get_user_direct_interest_embedding(user_id_b)
-    direct_interest_sim = cosine_similarity(user_a_direct_interest_embedding, user_b_direct_interest_embedding)[0][0]
+    direct_interest_sim = cosine_similarity(user_a_direct_interest_embedding, user_b_direct_interest_embedding)
 
     user_a_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_a)
     user_b_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_b)
-    indirect_interest_sim = cosine_similarity(user_a_indirect_interest_embedding, user_b_indirect_interest_embedding)[0][0]
+    indirect_interest_sim = cosine_similarity(user_a_indirect_interest_embedding, user_b_indirect_interest_embedding)
 
     return 0.33 * direct_interest_sim + 0.67 * indirect_interest_sim
 
@@ -225,7 +240,7 @@ def calc_hike_description_similarity(hike_desc_a: str, hike_desc_b: str) -> floa
     hike_desc_a_embedding = get_text_embedding(hike_desc_a)
     hike_desc_b_embedding = get_text_embedding(hike_desc_b)
 
-    return cosine_similarity(hike_desc_a_embedding, hike_desc_b_embedding)[0][0]
+    return cosine_similarity(hike_desc_a_embedding, hike_desc_b_embedding)
 
 def calc_overall_similarity(user_id_a: int, user_id_b: int, hike_desc_a: str, hike_desc_b: str) -> float:
     """
