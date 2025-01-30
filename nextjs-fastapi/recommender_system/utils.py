@@ -1,46 +1,32 @@
-from transformers import PreTrainedModel, PreTrainedTokenizer
-from sentence_transformers import SentenceTransformer
-import torch
+import os
 import sqlite3
 import numpy as np
 import math
 from sklearn.metrics.pairwise import cosine_similarity
 from supabase import create_client, Client
 from dotenv import load_dotenv
-import os
 from collections import Counter
+from openai import OpenAI
 
 load_dotenv(".env.local")
+client = OpenAI()
 
-def get_text_embedding(text:str, model, tokenizer, avg:bool):
+def get_text_embedding(text: str, model=None, tokenizer=None, avg=None):
     """
-    Calculate an embedding for the given text using the specified model
+    Calculate an embedding for the given text using OpenAI's API
 
     Parameters:
     - text: Text for which the embedding will be calculated
-    - model: Language model used for the embedding
-    - tokenizer: According tokenizer for the model
-    - avg: If the cls embedding is used or if the embeddings are averaged
+    - model, tokenizer, avg: Kept for backwards compatibility but not used
 
     Returns:
     - numpy Array: Array of the embedding for the given text
     """
-    if isinstance(model, SentenceTransformer):
-        return torch.tensor(model.encode(text, convert_to_tensor=True)).numpy()
-    elif isinstance(model, PreTrainedModel) and isinstance(tokenizer, PreTrainedTokenizer):
-        input = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-
-        with torch.no_grad():
-            output = model(**input)
-
-        if avg:
-            embedding = output.last_hidden_state.mean(dim=1)
-        else:
-            embedding = output.last_hidden_state[:, 0, :]
-        
-        return embedding.numpy()
-    else:
-        ValueError("Model or Tokenizer invalidlse:VaModel or Tokenizer invalid")
+    response = client.embeddings.create(
+        model="text-embedding-3-large",
+        input=text
+    )
+    return np.array(response.data[0].embedding).reshape(1, -1)
 
 def get_closest_hikes(lat:int, lon:int, radius_km:int):
     """

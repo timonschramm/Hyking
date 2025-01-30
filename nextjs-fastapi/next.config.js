@@ -11,6 +11,15 @@ const nextConfig = {
     ],
   },
 
+  webpack: (config, { isServer }) => {
+    // Ignore the warnings from these modules
+    config.ignoreWarnings = [
+      { module: /node_modules\/@opentelemetry/ },
+      { module: /node_modules\/prisma-instrumentation-5-x/ },
+      { module: /node_modules\/require-in-the-middle/ }
+    ];
+    return config;
+  },
 
   //
   rewrites: async () => {
