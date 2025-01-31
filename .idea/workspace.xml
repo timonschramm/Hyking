@@ -6,7 +6,10 @@
   <component name="ChangeListManager">
     <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/api/userRecs/[userId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/userRecs/[userId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/api/getRecs.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/getRecs.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/recommender_system/init.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/recommender_system/init.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/recommender_system/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/api/recommender_system/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -83,6 +86,7 @@
       <recent name="C:\Users\nicol\Documents\GitHub\Team_8\nextjs-fastapi\api\chatBot" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\nicol\Documents\GitHub\recsysprak\nextjs-fastapi\api" />
       <recent name="C:\Users\nicol\Documents\GitHub\Team_8\nextjs-fastapi\api" />
       <recent name="C:\Users\nicol\Documents\GitHub\Team_8\aTemp" />
     </key>
@@ -130,6 +134,7 @@
       <workItem from="1738244740365" duration="11703000" />
       <workItem from="1738274695342" duration="1670000" />
       <workItem from="1738277535899" duration="2378000" />
+      <workItem from="1738334701265" duration="804000" />
     </task>
     <servers />
   </component>
