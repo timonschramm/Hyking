@@ -27,7 +27,7 @@ export default function Match() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const response = await fetch(`/api/userRecs/${user.id}`);
+      const response = await fetch(`/api/userrecsbyid?userId=${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch profiles');
       }
