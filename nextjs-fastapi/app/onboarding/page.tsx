@@ -58,6 +58,14 @@ export default function OnboardingPage() {
     return <div>Error: {error}</div>;
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-lg text-gray-600">Loading your profile... This may take a few seconds</p>
+      </div>
+    );
+  }
+
   if (!initialData) return null;
 
   return <OnboardingFlow initialData={initialData} />;
