@@ -1,9 +1,12 @@
+export const maxDuration = 300;
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 import { v4 as uuidv4 } from 'uuid';
-
 export async function GET(request: NextRequest) {
+    console.log(process.env.NEXT_PUBLIC_FASTAPI_URL)
+    console.log("userrecsbyid called")
   try {
     const supabase = createClient();
     const { data: { user } } = await (await supabase).auth.getUser();
@@ -22,7 +25,10 @@ export async function GET(request: NextRequest) {
 
     let fastapiResponse;
     try {
+      console.log("just fetching: ", `${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/py/recommendations?userID=${userId}`)
       fastapiResponse = await fetch(`${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/py/recommendations?userID=${userId}`);
+      console.log("just after fetching")
+      console.log("fastapiResponse: ", fastapiResponse)
     } catch (error) {
       console.error('Failed to connect to recommendations service:', error);
       return NextResponse.json({ 

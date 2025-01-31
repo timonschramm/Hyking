@@ -14,6 +14,6 @@ router = APIRouter()
 @router.get("/recommendations")
 async def get_recommendation(userID: str): #TODO: Add hike_desc
     # For now, we'll just return the userID
-
+    print("get_recommendation called in the python api")
     rec_ids = get_recommendations(userID, "") #Change
     return {"recommendedUserIDs": rec_ids} 

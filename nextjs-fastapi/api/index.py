@@ -103,4 +103,5 @@ async def login(user: UserCreate):
 
 @app.get("/api/py/helloFastApi")
 def hello_fast_api():
+    print("helloFastApi called in the python api")
     return {"message": "Hello from FastAPI"}

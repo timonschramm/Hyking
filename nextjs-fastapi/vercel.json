@@ -1,13 +1,14 @@
 {
     "functions": {
         "api/**": {
-            "excludeFiles": "{.next,*.cache,node_modules,public}/**"
+            "excludeFiles": "{.next,*.cache,node_modules,public}/**",
+            "maxDuration": 300
         }
     },
     "build": {
-    "env": {
-      "VERCEL_ANALYTICS_DEBUG": "1"
+        "env": {
+            "VERCEL_ANALYTICS_DEBUG": "1"
+        }
     }
-  }
 }
 
