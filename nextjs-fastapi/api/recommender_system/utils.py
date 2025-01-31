@@ -145,6 +145,7 @@ def cosine_similarity_numpy(vec1, vec2):
     return np.array([[similarity]])  # Ensure a 2D array return
 
 
+
 def calc_overall_similarity(user_id_a: int, user_id_b: int):
     """
     Calculates the overall similarity between two users.
@@ -160,74 +161,35 @@ def calc_overall_similarity(user_id_a: int, user_id_b: int):
             + 0.34 * calc_interest_similarity(user_id_a, user_id_b))  # TODO: Discuss weights
 
 
+
 def get_recommendations(user_id: int, hike_desc: str):
-    """Optimized version with batch queries"""
+    """
+    Calculates a list of recommendations for the user based on skill, interests and given hike description
+
+    Parameters:
+    - user_id: ID of the user
+    - hike_desc: Description of the hike
+
+    Returns:
+    - list of int: IDs of recommended users
+    """
+
     url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
     key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
     supabase: Client = create_client(url, key)
 
-    # Get all relevant users in one query
-    response = (supabase.from_("Profile")
-               .select("id")
-               .neq("id", user_id)
-               .execute().data)
+    response = supabase.from_("Profile").select("id").neq("id", user_id).execute().data
     all_ids = [item["id"] for item in response]
 
-    # Get all swiped users in one query
-    swiped_response = (supabase.from_("UserSwipe")
-                      .select("receiverId")
-                      .eq("senderId", user_id)
-                      .execute().data)
-    swiped_users = [item["receiverId"] for item in swiped_response]
-    
-    candidate_ids = [id for id in all_ids if id not in swiped_users]
+    response = supabase.from_("UserSwipe").select("receiverId").eq("senderId", user_id).execute().data
+    swiped_users = [item["receiverId"] for item in response]
 
-    # Batch fetch all required data for all users at once
-    skills_response = (supabase.table("UserSkill")
-                      .select("profileId, SkillLevel(numericValue, name)")
-                      .in_("profileId", [user_id] + candidate_ids)
-                      .execute().data)
-    
-    interests_response = (supabase.table("UserInterest")
-                        .select("profileId, interestId, Interest(category)")
-                        .in_("profileId", [user_id] + candidate_ids)
-                        .execute().data)
-
-    # Create lookup dictionaries for faster access
-    skills_by_user = {}
-    interests_by_user = {}
-    
-    # Process skills
-    for skill in skills_response:
-        if skill['SkillLevel'] and skill['SkillLevel']['name'] not in ["CAR", "PUBLIC TRANSPORTATION", "BOTH"]:
-            if skill['profileId'] not in skills_by_user:
-                skills_by_user[skill['profileId']] = []
-            skills_by_user[skill['profileId']].append(skill['SkillLevel']['numericValue'])
-
-    # Process interests
-    for interest in interests_response:
-        if interest['profileId'] not in interests_by_user:
-            interests_by_user[interest['profileId']] = []
-        interests_by_user[interest['profileId']].append({
-            'interestId': interest['interestId'],
-            'category': interest['Interest']['category']
-        })
-
-    # Calculate similarities
+    ids = [id for id in all_ids if id not in swiped_users]
     sim_list = []
-    user_a_skills = np.array(skills_by_user.get(user_id, [])).reshape(1, -1)
-    user_a_interests = interests_by_user.get(user_id, [])
-
-    for candidate_id in candidate_ids:
-        user_b_skills = np.array(skills_by_user.get(candidate_id, [])).reshape(1, -1)
-        user_b_interests = interests_by_user.get(candidate_id, [])
-        
-        # Calculate similarity using the pre-fetched data
-        skill_sim = cosine_similarity_numpy(user_a_skills, user_b_skills)[0][0]
-        interest_sim = calc_interest_similarity(user_id, candidate_id)
-        
-        overall_sim = 0.66 * skill_sim + 0.34 * interest_sim
-        sim_list.append((candidate_id, overall_sim))
+    for id in ids:
+        sim = calc_overall_similarity(user_id, id)
+        sim_list.append((id, sim))
 
     sim_list.sort(key=lambda x: x[1], reverse=True)
+
     return [tuple[0] for tuple in sim_list[:10]]
