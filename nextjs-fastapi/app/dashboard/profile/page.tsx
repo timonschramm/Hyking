@@ -325,6 +325,7 @@ export default function ProfilePage() {
               onImageSelect={(file) => setNewImageFile(file)}
               size="lg"
               email={profileData?.email}
+              isEditable={isEditing}
             />
           </div>
           <div className="absolute top-4 right-4">

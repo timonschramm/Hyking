@@ -80,12 +80,21 @@ export default function ChatsPage() {
   return (
     <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'hidden md:block' : 'block'}`}>
-        <ChatList
+      
+        {chatRooms.length === 0 && !isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <p className="text-sm text-muted-foreground">
+              You need some matches to start chatting
+            </p>
+          </div>
+        ) : (
+          <ChatList
           chatRooms={chatRooms}
           selectedChat={selectedChat}
-          onSelectChat={setSelectedChat}
-          isLoading={isLoading}
-        />
+            onSelectChat={setSelectedChat}
+            isLoading={isLoading}
+          />
+        )}
       </div>
       
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'block' : 'hidden md:block'}`}>
@@ -96,7 +105,9 @@ export default function ChatsPage() {
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
-            Select a conversation to start chatting
+            {chatRooms.length === 0 && !isLoading
+              ? "You need some matches to start chatting"
+              : "Select a conversation to start chatting the chatroom amount you have is "}
           </div>
         )}
       </div>

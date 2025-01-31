@@ -146,7 +146,7 @@ export default function HykingAIPage() {
             >
               {msg.text}
               <p className="text-xs text-gray-400 mt-1">
-                {new Date(msg.createdAt).toLocaleTimeString()}
+                {new Date(msg.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
               {msg.hikes && msg.hikes.length > 0 && (
                 <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">

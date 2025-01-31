@@ -61,7 +61,7 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
           <div className="flex flex-col gap-2">
             <div className="flex gap-4 text-sm">
               <div>
-                <span className="font-medium">Length:</span> {hikeActivity.length}km
+                <span className="font-medium">Length:</span> {hikeActivity.length}m
               </div>
               <div>
                 <span className="font-medium">Duration:</span> {Math.round(hikeActivity.durationMin / 60)}h

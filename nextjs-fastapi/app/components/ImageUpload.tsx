@@ -8,6 +8,7 @@ interface ImageUploadProps {
   onImageSelect: (file: File) => void;
   size?: 'sm' | 'md' | 'lg';
   email?: string;
+  isEditable?: boolean;
 }
 
 const sizeClasses = {
@@ -20,7 +21,8 @@ export default function ImageUpload({
   currentImageUrl, 
   onImageSelect, 
   size = 'md',
-  email
+  email,
+  isEditable = true
 }: ImageUploadProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentImageUrl || null);
 
@@ -56,15 +58,17 @@ export default function ImageUpload({
           {email?.[0]?.toUpperCase() || '?'}
         </AvatarFallback>
       </Avatar>
-      <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full opacity-0 hover:opacity-100 transition-opacity">
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="hidden"
-        />
-        <span className="text-white text-sm">Change Photo</span>
-      </label>
+      {isEditable && (
+        <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 cursor-pointer rounded-full opacity-0 hover:opacity-100 transition-opacity">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            className="hidden"
+          />
+          <span className="text-white text-sm">Change Photo</span>
+        </label>
+      )}
     </div>
   );
 }

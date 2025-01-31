@@ -1,7 +1,7 @@
 export const config = {
   appName: 'Hyking',
   auth: {
-    callbackUrl: '/dashboard/',
+    callbackUrl: '/dashboard/groupmatches',
   },
 };
 

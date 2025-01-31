@@ -169,7 +169,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       if (!response.ok) throw new Error('Failed to update profile');
       
       toast.success('Profile updated successfully!');
-      router.push('/dashboard');
+      router.push('/dashboard/groupmatches');
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to complete onboarding');

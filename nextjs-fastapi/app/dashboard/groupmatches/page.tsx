@@ -90,7 +90,7 @@ export default function GroupMatchesPage() {
             No group matches yet
           </h3>
           <p className="text-muted-foreground max-w-md">
-            We&apos;re working on finding the perfect hiking group for you! We&apos;ll notify you when we have some great matches.
+            We&apos;re working on finding the perfect hiking group for you! We&apos;ll notify you when we have some great matches. Therefore please complete your profile and swipe our users so we can match you with them.
           </p>
         </div>
       </div>

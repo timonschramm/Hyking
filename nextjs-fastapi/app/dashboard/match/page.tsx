@@ -17,7 +17,7 @@ export default function Match() {
   const [isLoading, setIsLoading] = useState(false);
   const [noMoreProfiles, setNoMoreProfiles] = useState(false);
 
-  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ imageUrl: string | null; email: string | null } | null>(null);
 
   const fetchProfiles = async () => {
     if (isLoading) return;
@@ -48,11 +48,26 @@ export default function Match() {
 
   };
 
+  const fetchProfileImage = async () => {
+    try {
+      const response = await fetch('/api/profile/image');
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile image');
+      }
+      const data = await response.json();
+      setCurrentUser(data);
+    } catch (error) {
+      console.error('Error fetching profile image:', error);
+    }
+  };
+
   useEffect(() => {
     if (profiles.length == 0 && !noMoreProfiles) {
-    fetchProfiles();}
-    setProfiles((prev) => prev.slice(0, prev.length/2))
-}, []);
+      fetchProfiles();
+    }
+    setProfiles((prev) => prev.slice(0, prev.length/2));
+    fetchProfileImage();
+  }, []);
 
 
 
