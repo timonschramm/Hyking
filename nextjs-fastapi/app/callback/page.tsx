@@ -143,6 +143,7 @@ function CallbackContent() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <h1 className="text-2xl font-bold mb-4">Connecting to Spotify...</h1>
+        <h2>This can take around half a minute.</h2>
         <p>Please wait while we set up your music preferences. Check the console logs for details.</p>
 
         {spotifyToken && (
