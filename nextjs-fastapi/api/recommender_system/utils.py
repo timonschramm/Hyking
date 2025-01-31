@@ -3,7 +3,6 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 from collections import Counter
-import time
 
 load_dotenv(".env.local")
 
@@ -26,7 +25,7 @@ def get_user_skill_embedding(user_id: str):
     response = supabase.table("UserSkill").select("SkillLevel(numericValue, name)").eq("profileId", user_id).neq(
         "SkillLevel.name", "CAR").neq("SkillLevel.name", "PUBLIC_TRANSPORT").neq("SkillLevel.name",
                                                                                       "BOTH").execute().data
-
+    
     skills = [item['SkillLevel']['numericValue'] for item in response if item['SkillLevel'] is not None]
     return np.array(skills)
 
@@ -213,7 +212,7 @@ def get_comp_indirect_interest_embeddings(comp_ids: list[str]):
     return np.array(indirect_interest_embeddings)
 
 
-def get_recommendations(user_id: int):
+def get_recommendations(user_id: str):
     """
     Calculates a list of recommendations for the user based on skill, interests and given hike description
 
@@ -236,7 +235,6 @@ def get_recommendations(user_id: int):
     swiped_users = [item["receiverId"] for item in response]
     ids = [id for id in all_ids if id not in swiped_users]
 
-    start_time = time.time()
     user_skill_embedding = get_user_skill_embedding(user_id)
     user_direct_interest_embedding = get_user_direct_interest_embedding(user_id)
     user_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id)
@@ -245,7 +243,6 @@ def get_recommendations(user_id: int):
     comp_skill_embeddings = get_comp_skill_embeddings(ids)
     comp_direct_interest_embeddings = get_comp_direct_interest_embeddings(ids)
     comp_indirect_interest_embeddings = get_comp_indirect_interest_embeddings(ids)
-
 
     skill_sim = fast_cosine_sim(user_skill_embedding, comp_skill_embeddings)
     direct_interest_sim = fast_cosine_sim(user_direct_interest_embedding, comp_direct_interest_embeddings)
@@ -256,21 +253,10 @@ def get_recommendations(user_id: int):
 
     sorted_indices = np.argsort(overall_sim)[::-1]
 
-    sorted_user_ids = np.array(ids)[sorted_indices]
-    end_time = time.time()
-    print("Schnell = ", end_time-start_time)
-    #sorted_scores = overall_sim[sorted_indices]
-
-
-
-    sim_list = []
-    for id in ids:
-        sim = calc_overall_similarity(user_id, id)
-        sim_list.append((id, sim))
-
-    sim_list.sort(key=lambda x: x[1], reverse=True)
-    end_time = time.time()
-    print("Langsam = ", end_time-start_time)
+    sorted_user_ids = np.array(ids)[sorted_indices].tolist()
+    
+    return sorted_user_ids[:10]
+    
  
     
 
@@ -278,4 +264,4 @@ def get_recommendations(user_id: int):
 
 
 
-get_recommendations("06469565-293d-4b7d-b8fd-01f09c659a43")
+#get_recommendations("ce761f47-1e5f-453d-a829-d0ca925a5ca6")
