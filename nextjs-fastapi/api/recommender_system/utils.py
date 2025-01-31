@@ -3,6 +3,7 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 import os
 from collections import Counter
+import time
 
 load_dotenv(".env.local")
 
@@ -23,12 +24,11 @@ def get_user_skill_embedding(user_id: str):
     supabase: Client = create_client(url, key)
 
     response = supabase.table("UserSkill").select("SkillLevel(numericValue, name)").eq("profileId", user_id).neq(
-        "SkillLevel.name", "CAR").neq("SkillLevel.name", "PUBLIC TRANSPORTATION").neq("SkillLevel.name",
+        "SkillLevel.name", "CAR").neq("SkillLevel.name", "PUBLIC_TRANSPORT").neq("SkillLevel.name",
                                                                                       "BOTH").execute().data
 
     skills = [item['SkillLevel']['numericValue'] for item in response if item['SkillLevel'] is not None]
-    skill_embedding = np.array(skills).reshape(1, -1)
-    return skill_embedding
+    return np.array(skills)
 
 
 def get_user_direct_interest_embedding(user_id: int):
@@ -52,7 +52,7 @@ def get_user_direct_interest_embedding(user_id: int):
 
     interest_embedding = np.array([1 if interest in user_interests else 0 for interest in all_interests], dtype=float)
 
-    return interest_embedding.reshape(1, -1)
+    return interest_embedding
 
 
 def get_user_indirect_interest_embedding(user_id: int):
@@ -77,7 +77,7 @@ def get_user_indirect_interest_embedding(user_id: int):
     categories = sorted(list(set([category['category'] for category in categories_response])))
     result = [category_count[category] for category in categories]
 
-    interest_embedding = np.array(result).reshape(1, -1)
+    interest_embedding = np.array(result)
     return interest_embedding
 
 
@@ -93,8 +93,8 @@ def calc_skill_similarity(user_id_a: int, user_id_b: int):
     - float: Skill similarity between the two users
     """
 
-    user_a_skill_embedding = get_user_skill_embedding(user_id_a)
-    user_b_skill_embedding = get_user_skill_embedding(user_id_b)
+    user_a_skill_embedding = get_user_skill_embedding(user_id_a).reshape(1, -1)
+    user_b_skill_embedding = get_user_skill_embedding(user_id_b).reshape(1, -1)
 
     try:
         return cosine_similarity_numpy(user_a_skill_embedding, user_b_skill_embedding)[0][0]
@@ -113,13 +113,13 @@ def calc_interest_similarity(user_id_a: int, user_id_b: int):
     Returns:
     - float: Interest similarity between the two users
     """
-    user_a_direct_interest_embedding = get_user_direct_interest_embedding(user_id_a)
-    user_b_direct_interest_embedding = get_user_direct_interest_embedding(user_id_b)
+    user_a_direct_interest_embedding = get_user_direct_interest_embedding(user_id_a).reshape(1, -1)
+    user_b_direct_interest_embedding = get_user_direct_interest_embedding(user_id_b).reshape(1, -1)
     direct_interest_sim = \
     cosine_similarity_numpy(user_a_direct_interest_embedding, user_b_direct_interest_embedding)[0][0]
 
-    user_a_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_a)
-    user_b_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_b)
+    user_a_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_a).reshape(1, -1)
+    user_b_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_b).reshape(1, -1)
     indirect_interest_sim = \
     cosine_similarity_numpy(user_a_indirect_interest_embedding, user_b_indirect_interest_embedding)[0][0]
 
@@ -145,7 +145,6 @@ def cosine_similarity_numpy(vec1, vec2):
     return np.array([[similarity]])  # Ensure a 2D array return
 
 
-
 def calc_overall_similarity(user_id_a: int, user_id_b: int):
     """
     Calculates the overall similarity between two users.
@@ -161,8 +160,60 @@ def calc_overall_similarity(user_id_a: int, user_id_b: int):
             + 0.34 * calc_interest_similarity(user_id_a, user_id_b))  # TODO: Discuss weights
 
 
+def fast_cosine_sim(reference_vector: np.array, other_vectors: np.array):
+    """
+    Computes cosine similarity between a reference vector and multiple other vectors using matrix operations.
+    
+    Parameters:
+    - reference_vector: 1D Array for comparison
+    - other_vectors: 2D array where each row is a vector
 
-def get_recommendations(user_id: int, hike_desc: str):
+    Returns:
+    - np.ndarray: Cosine similarity scores.
+    
+    """
+    dot_products = other_vectors @ reference_vector
+    norms = np.linalg.norm(other_vectors, axis=1) * np.linalg.norm(reference_vector) 
+    return dot_products / norms  # TODO: not check for 0
+
+
+def get_comp_skill_embeddings(comp_ids: list[str]):
+
+    skill_embeddings = np.empty(shape=(0,3))
+
+    for id in comp_ids:
+        user_skill = get_user_skill_embedding(id)
+        user_skill_padded = np.pad(user_skill, (0, max(0, 3 - user_skill.shape[0])), mode='constant', constant_values=-1)
+        skill_embeddings = np.vstack([skill_embeddings, user_skill_padded])
+
+    return np.array(skill_embeddings)
+
+def get_comp_direct_interest_embeddings(comp_ids: list[str]):
+    
+    direct_interest_embeddings = np.empty(shape=(0,25))
+
+    for id in comp_ids:
+        user_interest = get_user_direct_interest_embedding(id)
+        if np.sum(user_interest, axis=0) == 0:
+            user_interest[0] = -1
+        direct_interest_embeddings = np.vstack([direct_interest_embeddings, user_interest])
+
+    return np.array(direct_interest_embeddings)
+
+def get_comp_indirect_interest_embeddings(comp_ids: list[str]):
+
+    indirect_interest_embeddings = np.empty(shape=(0,5))
+
+    for id in comp_ids:
+        user_interest = get_user_indirect_interest_embedding(id)
+        if np.sum(user_interest, axis=0) == 0:
+            user_interest[0] = -1
+        indirect_interest_embeddings = np.vstack([indirect_interest_embeddings, user_interest])
+    
+    return np.array(indirect_interest_embeddings)
+
+
+def get_recommendations(user_id: int):
     """
     Calculates a list of recommendations for the user based on skill, interests and given hike description
 
@@ -183,13 +234,48 @@ def get_recommendations(user_id: int, hike_desc: str):
 
     response = supabase.from_("UserSwipe").select("receiverId").eq("senderId", user_id).execute().data
     swiped_users = [item["receiverId"] for item in response]
-
     ids = [id for id in all_ids if id not in swiped_users]
+
+    start_time = time.time()
+    user_skill_embedding = get_user_skill_embedding(user_id)
+    user_direct_interest_embedding = get_user_direct_interest_embedding(user_id)
+    user_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id)
+
+
+    comp_skill_embeddings = get_comp_skill_embeddings(ids)
+    comp_direct_interest_embeddings = get_comp_direct_interest_embeddings(ids)
+    comp_indirect_interest_embeddings = get_comp_indirect_interest_embeddings(ids)
+
+
+    skill_sim = fast_cosine_sim(user_skill_embedding, comp_skill_embeddings)
+    direct_interest_sim = fast_cosine_sim(user_direct_interest_embedding, comp_direct_interest_embeddings)
+    indirect_interest_sim = fast_cosine_sim(user_indirect_interest_embedding, comp_indirect_interest_embeddings)
+
+    overall_sim = 0.67 * skill_sim + 0.11 * direct_interest_sim + 0.22 * indirect_interest_sim
+    
+
+    sorted_indices = np.argsort(overall_sim)[::-1]
+
+    sorted_user_ids = np.array(ids)[sorted_indices]
+    end_time = time.time()
+    print("Schnell = ", end_time-start_time)
+    #sorted_scores = overall_sim[sorted_indices]
+
+
+
     sim_list = []
     for id in ids:
         sim = calc_overall_similarity(user_id, id)
         sim_list.append((id, sim))
 
     sim_list.sort(key=lambda x: x[1], reverse=True)
+    end_time = time.time()
+    print("Langsam = ", end_time-start_time)
+ 
+    
 
-    return [tuple[0] for tuple in sim_list[:10]]
+
+
+
+
+get_recommendations("06469565-293d-4b7d-b8fd-01f09c659a43")
