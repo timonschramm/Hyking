@@ -62,6 +62,7 @@
     "daisyui": "^4.12.14",
     "postcss": "^8.4.49",
     "prisma": "^6.3.0",
+    "supabase": "^2.9.6",
     "tailwindcss": "^3.4.15",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
