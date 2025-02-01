@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Home, Search, Bell, Mountain, Star, Heart, MessageCircle, Users, Sparkles } from "lucide-react";
 
 const navItems = [
-  { name: "Group Matches", href: "/dashboard", icon: Users },
+  { name: "Group Matches", href: "/dashboard/groupmatches", icon: Users },
   { name: "Matching", href: "/dashboard/match", icon: Star },
   { name: "Liked Me", href: "/dashboard/likedme", icon: Heart },
   { name: "Chats", href: "/dashboard/chats", icon: MessageCircle },
