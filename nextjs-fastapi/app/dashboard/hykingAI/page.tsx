@@ -79,7 +79,7 @@ export default function HykingAIPage() {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`/apinextjs/py/chat`, {
+      const response = await fetch(`/api/py/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, user_input: message.trim() }),
