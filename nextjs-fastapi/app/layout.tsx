@@ -18,7 +18,7 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
       </head>
-      <body className={inter.className} suppressHydrationWarning={true}>
+      <body className={`${inter.className} bg-background-white`} suppressHydrationWarning={true}>
         {children}
       </body>
     </html>

@@ -39,7 +39,7 @@ export default function UserArtistDisplay({ artists }: UserArtistDisplayProps) {
           </div>
           <div className="text-xs">
             <p className="font-medium truncate">{artist.name}</p>
-            <p className="text-gray-500 dark:text-gray-400 truncate">
+            <p className="text-gray-500  truncate">
               {artist.genres.slice(0, 1).map(genre => genre.name).join(', ')}
             </p>
           </div>

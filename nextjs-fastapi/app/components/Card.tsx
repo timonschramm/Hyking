@@ -15,8 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const CardSkeleton = () => {
   return (
     <div className="absolute flex flex-col items-center justify-center">
-      <div className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px] dark:bg-primary dark:text-primary-white">
-        <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
+      <div className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px]  ">
+        <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white ">
           <Skeleton className="absolute inset-0 bg-gray-200" />
           
           <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4">
@@ -148,13 +148,13 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
                     e.stopPropagation();
                   }
                 }}
-                className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px] dark:bg-primary dark:text-primary-white cursor-pointer"
+                className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px]   cursor-pointer"
                 onDragEnd={dragEnd}
                 style={{ x, rotate, opacity }}
                 transition={{ type: 'tween', duration: 0.2 }}
                 whileDrag={{ cursor: 'grabbing' }}
               >
-                <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white dark:bg-primary">
+                <div className="no-scrollbar rounded-2xl relative h-full w-full overflow-hidden bg-background-white ">
                   <motion.div
                     className="absolute inset-0 flex items-center justify-center z-50"
                     style={{ 
@@ -229,21 +229,21 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
                   />
                 </div>
 
-                <div className="space-y-4 p-6 bg-background-white dark:bg-primary rounded-b-2xl">
+                <div className="space-y-4 p-6 bg-background-white  rounded-b-2xl">
                   <h2 className="text-2xl font-semibold">{data.title}</h2>
                   
-                  <p className="text-primary-medium dark:text-primary-white">
+                  <p className="text-primary-medium ">
                     {data.teaserText}
                   </p>
 
                   <div className="flex flex-wrap gap-2">
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                    <span className="rounded-full bg-secondary-sage  px-3 py-1 text-xs text-primary ">
                       Difficulty: {data.difficulty}
                     </span>
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                    <span className="rounded-full bg-secondary-sage  px-3 py-1 text-xs text-primary ">
                       ↑ {data.ascent}m
                     </span>
-                    <span className="rounded-full bg-secondary-sage dark:bg-primary-white/10 px-3 py-1 text-xs text-primary dark:text-primary-white">
+                    <span className="rounded-full bg-secondary-sage  px-3 py-1 text-xs text-primary ">
                       ↓ {data.descent}m
                     </span>
                   </div>
@@ -255,7 +255,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
                       <p>Max Altitude: {data.maxAltitude}m</p>
                       <p>Region: {data.primaryRegion}</p>
                       {data.publicTransportFriendly && (
-                        <p className="text-teal-700 dark:text-teal-400">Public Transport Friendly</p>
+                        <p className="text-teal-700 ">Public Transport Friendly</p>
                       )}
                     </div>
                   </div>

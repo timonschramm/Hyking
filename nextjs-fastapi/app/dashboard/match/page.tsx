@@ -112,7 +112,7 @@ export default function Match() {
     }
   };
   return (
-    <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background dark:bg-primary text-primary dark:text-primary-white">
+    <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background  text-primary ">
       <style jsx>{`
         @keyframes ripple {
           0% {
@@ -201,7 +201,7 @@ export default function Match() {
                 )
               ))
             ) : (
-              <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+              <h2 className="text-center text-2xl font-bold text-primary ">
                 No more profiles available!
                 <br />
                 Come back later for more

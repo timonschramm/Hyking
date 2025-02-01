@@ -86,7 +86,7 @@ export default function GroupMatchesPage() {
           <div className="w-24 h-24 mb-6 rounded-full bg-secondary-sage/20 flex items-center justify-center">
             <Users className="w-12 h-12 text-secondary-sage" />
           </div>
-          <h3 className="text-xl font-semibold text-primary dark:text-primary-white mb-2">
+          <h3 className="text-xl font-semibold text-primary  mb-2">
             No group matches yet
           </h3>
           <p className="text-muted-foreground max-w-md">

@@ -124,24 +124,20 @@ export default function DashboardLayout({
 
   // Update the dropdown menu content to use truncated email
   const dropdownContent = (
-    <DropdownMenuContent align="end" className="w-56 bg-background-white text-primary dark:text-primary-white">
+    <DropdownMenuContent align="end" className="w-56 bg-white text-primary">
       <DropdownMenuLabel>
         <div className="flex flex-col space-y-1">
           <p className="text-sm font-medium leading-none">{user?.name || "Account"}</p>
-          <p className="text-xs leading-none text-primary-medium dark:text-primary-white">
+          <p className="text-xs leading-none text-primary-medium">
             {user?.email ? truncateEmail(user.email) : "user@example.com"}
           </p>
         </div>
       </DropdownMenuLabel>
-      <DropdownMenuSeparator className="bg-secondary-sage dark:bg-primary-white" />
+      <DropdownMenuSeparator className="bg-secondary-sage" />
       <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
         <User className="mr-2 h-4 w-4" />
         <span>Profile</span>
       </DropdownMenuItem>
-      {/* <DropdownMenuItem>
-        <Settings className="mr-2 h-4 w-4" />
-        <span>Settings</span>
-      </DropdownMenuItem> */}
       <DropdownMenuSeparator />
       <DropdownMenuItem onClick={handleLogout}>
         <LogOut className="mr-2 h-4 w-4" />
@@ -151,12 +147,12 @@ export default function DashboardLayout({
   );
 
   return (
-    <div className="bg-background-white dark:bg-primary text-primary dark:text-primary-white">
+    <div className="bg-white text-primary">
       {isMobile ? (
         // Mobile view
         <>
           <div className="fixed inset-0 flex flex-col w-screen">
-            <div className="h-[calc(100vh-5rem)] overflow-y-auto">
+            <div className="h-[calc(100vh-5rem)] overflow-y-auto bg-white">
               {children}
             </div>
             <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
@@ -165,9 +161,9 @@ export default function DashboardLayout({
       ) : (
         // Desktop view
         <>
-          <div className="flex h-screen">
+          <div className="flex h-screen bg-white">
             <Sidebar user={user} dropdownContent={dropdownContent} />
-            <div className="flex-grow overflow-y-auto">
+            <div className="flex-grow overflow-y-auto bg-white">
               {children}
             </div>
           </div>

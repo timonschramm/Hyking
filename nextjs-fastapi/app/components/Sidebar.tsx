@@ -24,7 +24,7 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
   const pathname = usePathname();
 
   return (
-    <nav className="hidden md:flex flex-col w-64 text-foreground border-r border-border p-4 dark:bg-primary dark:text-primary-white">
+    <nav className="hidden md:flex flex-col w-64 text-foreground border-r border-border p-4  ">
       <ul className="space-y-2 flex-grow">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
@@ -35,8 +35,8 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
                 className={cn(
                   "flex rounded-xl items-center p-2 transition-colors",
                   isActive
-                    ? "bg-primary text-primary-white dark:bg-primary-white dark:text-primary"
-                    : "text-foreground hover:bg-primary hover:text-primary-white dark:text-primary-white dark:hover:bg-primary-white dark:hover:text-primary"
+                    ? "bg-primary text-primary-white  "
+                    : "text-foreground hover:bg-primary hover:text-primary-white   "
                 )}
               >
                 <item.icon className="w-6 h-6 mr-4" />
@@ -49,12 +49,12 @@ export default function Sidebar({ user, dropdownContent }: { user: any; dropdown
       <div className="mt-auto">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="w-full justify-start p-2 hover:bg-primary hover:text-primary-white dark:hover:bg-primary-white dark:hover:text-primary">
+            <Button variant="ghost" className="w-full justify-start p-2 hover:bg-primary hover:text-primary-white  ">
               <Avatar className="w-10 h-10 mr-4">
                 {user?.image ? (
                   <AvatarImage src={user.image} alt={user?.name || 'User'} />
                 ) : (
-                  <AvatarFallback className="bg-primary text-primary-white dark:bg-primary-white dark:text-primary">
+                  <AvatarFallback className="bg-primary text-primary-white  ">
                     {user?.name?.charAt(0) || user?.email?.charAt(0) || "U"}
                   </AvatarFallback>
                 )}

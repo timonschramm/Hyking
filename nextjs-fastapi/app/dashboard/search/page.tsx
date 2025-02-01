@@ -41,7 +41,7 @@ export default function Search() {
   };
 
   return (
-    <div className="relative flex h-full w-full items-center justify-center bg-background dark:bg-primary text-primary dark:text-primary-white">
+    <div className="relative flex h-full w-full items-center justify-center bg-background  text-primary ">
       <div className="absolute inset-0 flex items-center justify-center">
         {isLoading ? (
           <CardSkeleton />
@@ -59,7 +59,7 @@ export default function Search() {
                 )
               ))
             ) : (
-              <h2 className="text-center text-2xl font-bold text-primary dark:text-primary-white">
+              <h2 className="text-center text-2xl font-bold text-primary ">
                 No more activities available!
                 <br />
                 Come back later for more
