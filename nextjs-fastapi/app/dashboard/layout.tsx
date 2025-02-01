@@ -50,23 +50,55 @@ export default function DashboardLayout({
     const checkUser = async () => {
       const { data: { user: supabaseUser }, error } = await supabase.auth.getUser();
       if (supabaseUser && !error) {
-        setUser({
-          email: supabaseUser.email,
-          name: supabaseUser.user_metadata?.name,
-          image: supabaseUser.user_metadata?.avatar_url
-        });
+        try {
+          const response = await fetch('/apinextjs/profile/image');
+          if (!response.ok) {
+            throw new Error('Failed to fetch profile');
+          }
+          const profileData = await response.json();
+          
+          setUser({
+            email: profileData.email,
+            name: profileData.email ? profileData.email.split('@')[0] : 'User',
+            image: profileData.imageUrl
+          });
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+          // Fallback to session data if API fails
+          setUser({
+            email: supabaseUser.email,
+            name: supabaseUser.email ? supabaseUser.email.split('@')[0] : 'User',
+            image: supabaseUser.user_metadata?.avatar_url
+          });
+        }
       }
     };
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        setUser({
-          email: session.user.email,
-          name: session.user.user_metadata?.name,
-          image: session.user.user_metadata?.avatar_url
-        });
+        try {
+          const response = await fetch('/apinextjs/profile/image');
+          if (!response.ok) {
+            throw new Error('Failed to fetch profile');
+          }
+          const profileData = await response.json();
+          
+          setUser({
+            email: profileData.email,
+            name: profileData.email ? profileData.email.split('@')[0] : 'User',
+            image: profileData.imageUrl
+          });
+        } catch (error) {
+          console.error('Error fetching profile data:', error);
+          // Fallback to session data if API fails
+          setUser({
+            email: session.user.email,
+            name: session.user.email ? session.user.email.split('@')[0] : 'User',
+            image: session.user.user_metadata?.avatar_url
+          });
+        }
       } else {
         setUser(null);
       }

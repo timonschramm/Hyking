@@ -17,7 +17,17 @@ export default function Match() {
   const [isLoading, setIsLoading] = useState(false);
   const [noMoreProfiles, setNoMoreProfiles] = useState(false);
 
-  const [currentUser, setCurrentUser] = useState<{ imageUrl: string | null; email: string | null } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ 
+    imageUrl: string | null; 
+    email: string | null;
+    image?: string | null;
+  } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem('userProfile');
+      return cached ? JSON.parse(cached) : null;
+    }
+    return null;
+  });
 
   const fetchProfiles = async () => {
     if (isLoading) return;
@@ -55,7 +65,14 @@ export default function Match() {
         throw new Error('Failed to fetch profile image');
       }
       const data = await response.json();
-      setCurrentUser(data);
+      
+      const currentData = JSON.stringify(currentUser);
+      const newData = JSON.stringify(data);
+      
+      if (currentData !== newData) {
+        setCurrentUser(data);
+        localStorage.setItem('userProfile', JSON.stringify(data));
+      }
     } catch (error) {
       console.error('Error fetching profile image:', error);
     }
@@ -66,6 +83,7 @@ export default function Match() {
       fetchProfiles();
     }
     setProfiles((prev) => prev.slice(0, prev.length/2));
+    
     fetchProfileImage();
   }, []);
 
@@ -157,7 +175,7 @@ export default function Match() {
               </div>
               <Avatar className="w-32 h-32 border-4 border-white relative z-20">
                 <AvatarImage
-                  src={currentUser?.imageUrl || ''}
+                  src={currentUser?.imageUrl || currentUser?.image || ''}
                   alt="Your profile"
                   className="object-cover"
                 />
