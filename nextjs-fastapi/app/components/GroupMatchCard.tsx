@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge"
 import { GroupMatchCardProps, ProfileWithGroupSuggestion } from "@/types/groupMatch"
 import { cn } from "@/lib/utils"
 import { ProfileDetailsDialog } from "./ProfileDetailsDialog"
+import HikeCard from "./HikeCard"
+import { Hike } from "./chatBot/types"
 
 export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchCardProps) {
 // console.log("groupMatch")
@@ -26,42 +28,77 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
   const acceptedCount = groupMatch.profiles.filter(p => p.hasAccepted).length
   const totalCount = groupMatch.profiles.length
 
+  // Convert hikeActivity to match the Hike type
+  const hikeForCard: Hike = {
+    id: String(hikeActivity.id),
+    title: hikeActivity.title,
+    teaserText: hikeActivity.teaserText || undefined,
+    descriptionShort: hikeActivity.descriptionShort || undefined,
+    difficulty: hikeActivity.difficulty,
+    length: hikeActivity.length,
+    durationMin: hikeActivity.durationMin,
+    primaryRegion: hikeActivity.primaryRegion,
+    primaryImageId: hikeActivity.primaryImageId,
+    pointLat: hikeActivity.pointLat,
+    pointLon: hikeActivity.pointLon,
+    descriptionLong: hikeActivity.descriptionLong,
+    ascent: hikeActivity.ascent,
+    descent: hikeActivity.descent,
+    minAltitude: hikeActivity.minAltitude,
+    maxAltitude: hikeActivity.maxAltitude,
+    isWinter: hikeActivity.isWinter,
+    isClosed: hikeActivity.isClosed,
+    publicTransportFriendly: hikeActivity.publicTransportFriendly,
+    landscapeRating: hikeActivity.landscapeRating,
+    experienceRating: hikeActivity.experienceRating,
+    staminaRating: hikeActivity.staminaRating,
+  }
+
   return (
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
-      <div className="relative h-48">
-        <Image
-          src={hikeActivity.primaryImageId && hikeActivity.primaryImageId !== ""
-            ? `https://img.oastatic.com/img2/${hikeActivity.primaryImageId}/default/variant.jpg`
-            : '/images/fallback-hike.jpg'
-          }
-          alt={hikeActivity.title}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500"
-          onError={(e: any) => {
-            e.target.src = '/images/fallback-hike.jpg'
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 p-4 text-white">
-          <h3 className="text-xl font-semibold mb-2">{hikeActivity.title}</h3>
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="h-4 w-4" />
-            <span>{hikeActivity.primaryRegion}</span>
+      <Dialog>
+        <DialogTrigger asChild>
+          <div className="relative h-48 cursor-pointer">
+            <Image
+              src={hikeActivity.primaryImageId && hikeActivity.primaryImageId !== ""
+                ? `https://img.oastatic.com/img2/${hikeActivity.primaryImageId}/default/variant.jpg`
+                : '/images/fallback-hike.jpg'
+              }
+              alt={hikeActivity.title}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              onError={(e: any) => {
+                e.target.src = '/images/fallback-hike.jpg'
+              }}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="absolute bottom-0 p-4 text-white">
+              <h3 className="text-xl font-semibold mb-2">{hikeActivity.title}</h3>
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4" />
+                <span>{hikeActivity.primaryRegion}</span>
+              </div>
+            </div>
+            <div className="absolute top-4 right-4 flex gap-2">
+              <Badge variant="secondary" className="bg-black/50 border-none text-white">
+                <Users className="w-3 h-3 mr-1" />
+                {acceptedCount}/{totalCount}
+              </Badge>
+              {hasCurrentUserAccepted && (
+                <Badge variant="default" className="bg-green-500/90 border-none">
+                  <Check className="w-3 h-3 mr-1" />
+                  Joined
+                </Badge>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="absolute top-4 right-4 flex gap-2">
-          <Badge variant="secondary" className="bg-black/50 border-none text-white">
-            <Users className="w-3 h-3 mr-1" />
-            {acceptedCount}/{totalCount}
-          </Badge>
-          {hasCurrentUserAccepted && (
-            <Badge variant="default" className="bg-green-500/90 border-none">
-              <Check className="w-3 h-3 mr-1" />
-              Joined
-            </Badge>
-          )}
-        </div>
-      </div>
+        </DialogTrigger>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0 overflow-hidden">
+          <div className="overflow-y-auto p-6 max-h-[calc(90vh-2rem)]">
+            <HikeCard hike={hikeForCard} detailed={true} />
+          </div>
+        </DialogContent>
+      </Dialog>
       <CardContent className="p-4">
         <div className="space-y-4">
           <div className="flex flex-col gap-2">

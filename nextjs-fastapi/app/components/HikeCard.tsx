@@ -1,5 +1,32 @@
+'use client'
+
 import React from 'react';
 import { Hike } from './chatBot/types';
+import dynamic from 'next/dynamic';
+import 'leaflet/dist/leaflet.css';
+import type { Icon as LeafletIcon } from 'leaflet';
+import type { MapContainer as LeafletMapContainer, TileLayer as LeafletTileLayer } from 'react-leaflet';
+
+// Dynamically import the map components to avoid SSR issues
+const MapContainer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.MapContainer),
+  { ssr: false }
+) as typeof LeafletMapContainer;
+
+const TileLayer = dynamic(
+  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  { ssr: false }
+) as typeof LeafletTileLayer;
+
+const Marker = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Marker),
+  { ssr: false }
+);
+
+const Popup = dynamic(
+  () => import('react-leaflet').then((mod) => mod.Popup),
+  { ssr: false }
+);
 
 interface HikeCardProps {
   hike: Hike;
@@ -8,6 +35,26 @@ interface HikeCardProps {
 }
 
 const HikeCard: React.FC<HikeCardProps> = ({ hike, onClick, detailed = false }) => {
+  // Create a ref for the map icon to avoid SSR mismatch
+  const [icon, setIcon] = React.useState<LeafletIcon | null>(null);
+
+  React.useEffect(() => {
+    // Import the icon on the client side
+    import('leaflet').then((L) => {
+      setIcon(
+        new L.Icon({
+          iconUrl: '/images/marker-icon.png',
+          iconRetinaUrl: '/images/marker-icon-2x.png',
+          shadowUrl: '/images/marker-shadow.png',
+          iconSize: [25, 41],
+          iconAnchor: [12, 41],
+          popupAnchor: [1, -34],
+          shadowSize: [41, 41]
+        })
+      );
+    });
+  }, []);
+
   return (
     <div
       className={`bg-white rounded-lg shadow-lg overflow-hidden ${
@@ -82,9 +129,34 @@ const HikeCard: React.FC<HikeCardProps> = ({ hike, onClick, detailed = false }) 
           )}
 
           {hike.pointLat && hike.pointLon && (
-            <p>
-              <strong>Coordinates:</strong> {hike.pointLat}, {hike.pointLon}
-            </p>
+            <div className="mt-4">
+              <p className="mb-2">
+                <strong>Coordinates:</strong> {hike.pointLat}, {hike.pointLon}
+              </p>
+              <div className="h-[300px] w-full rounded-lg overflow-hidden">
+                {icon && (
+                  <MapContainer
+                    center={[Number(hike.pointLat), Number(hike.pointLon)]}
+                    zoom={13}
+                    scrollWheelZoom={false}
+                    style={{ height: '100%', width: '100%' }}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                    />
+                    <Marker 
+                      position={[Number(hike.pointLat), Number(hike.pointLon)]} 
+                      icon={icon}
+                    >
+                      <Popup>
+                        {hike.title}
+                      </Popup>
+                    </Marker>
+                  </MapContainer>
+                )}
+              </div>
+            </div>
           )}
         </div>
       )}
