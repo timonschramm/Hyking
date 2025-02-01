@@ -1,4 +1,3 @@
-'use client';
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
@@ -7,8 +6,9 @@ import Image from 'next/image';
 import { ChatWindowProps } from '@/types/chat';
 import { ChatBubble } from './ChatBubble';
 import { cn } from '@/lib/utils';
-import HikeCard from '@/app/components/HikeCard'; // Import HikeCard
-import WeatherWidget from '@/app/components/WeatherWidget'; // Import WeatherWidget
+import HikeCard from '@/app/components/HikeCard';
+import WeatherWidget from '@/app/components/WeatherWidget';
+import Modal from '@/app/components/Modal';
 
 function formatMessageDate(date: Date | string) {
   const messageDate = new Date(date);
@@ -37,10 +37,13 @@ function shouldShowDateSeparator(currentMsg: any, prevMsg: any) {
   );
 }
 
-export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
+export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWindowProps) {
   const [message, setMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false); // Typing indicator for chatbot
+  const [selectedHike, setSelectedHike] = useState<any>(null); // Selected hike for modal
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+  const [chatRoom, setChatRoom] = useState(initialChatRoom); // Local state for chatRoom
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -114,7 +117,10 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
 
     // Add user message to the chat
     const updatedMessages = [...chatRoom.messages, userMessage];
-    chatRoom.messages = updatedMessages; // Update the chatRoom object directly
+    setChatRoom((prevChatRoom) => ({
+      ...prevChatRoom,
+      messages: updatedMessages,
+    }));
     setMessage('');
 
     if (message.trim().toLowerCase().startsWith('hey hykingai')) {
@@ -146,7 +152,10 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
         };
 
         setTimeout(() => {
-          chatRoom.messages = [...updatedMessages, botResponse]; // Add bot response to the chat
+          setChatRoom((prevChatRoom) => ({
+            ...prevChatRoom,
+            messages: [...updatedMessages, botResponse],
+          }));
           setIsTyping(false);
         }, 1000); // Simulate typing delay
       } catch (error) {
@@ -159,7 +168,10 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
           chatRoomId: chatRoom.id, // Add chatRoomId
           sender: hykingAISender, // Use the default sender for the bot
         };
-        chatRoom.messages = [...updatedMessages, errorMessage]; // Add error message to the chat
+        setChatRoom((prevChatRoom) => ({
+          ...prevChatRoom,
+          messages: [...updatedMessages, errorMessage],
+        }));
         setIsTyping(false);
       }
     } else {
@@ -185,13 +197,40 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
 
   // Handle hike card clicks
   const handleHikeClick = (hike: any) => {
-    console.log('Hike clicked:', hike);
-    // Add logic to handle hike clicks (e.g., open a modal)
+    setSelectedHike(hike);
+    setIsModalOpen(true);
+  };
+
+  // Handle changing the group's hike
+  const handleChangeHike = async (hikeId: string) => {
+    try {
+      const response = await fetch(`/api/groupmatches/${chatRoom.groupMatch?.id}/change-hike`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hikeId }),
+      });
+
+      if (!response.ok) throw new Error('Failed to change hike');
+
+      const updatedGroupMatch = await response.json();
+
+      // Update the chatRoom state with the new hike
+      setChatRoom((prevChatRoom) => ({
+        ...prevChatRoom,
+        groupMatch: updatedGroupMatch,
+      }));
+
+      setIsModalOpen(false);
+      alert('Hike changed successfully!');
+    } catch (error) {
+      console.error('Error changing hike:', error);
+      alert('Failed to change hike. Please try again.');
+    }
   };
 
   // Handle example prompt clicks
   const handleExamplePromptClick = (prompt: string) => {
-    setMessage("Hey HykingAI "+prompt); // Set the prompt as the message
+    setMessage("Hey HykingAI " + prompt); // Set the prompt as the message
   };
 
   // Get chat title and image
@@ -203,7 +242,7 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
     const activity = chatRoom.groupMatch.hikeSuggestions[0];
     chatTitle = activity.title;
     chatImage = `https://img.oastatic.com/img2/${activity.primaryImageId}/default/variant.jpg`;
-    memberCount = chatRoom.groupMatch.profiles.length;
+    memberCount = chatRoom.groupMatch.profiles?.length || 0; // Add a fallback for undefined profiles
   } else if (chatRoom.match) {
     const otherUser = chatRoom.match.users[0]?.user;
     if (otherUser) {
@@ -343,6 +382,21 @@ export default function ChatWindow({ chatRoom, onBack }: ChatWindowProps) {
           </button>
         </form>
       </div>
+
+      {/* Modal for hike details */}
+      {isModalOpen && selectedHike && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <HikeCard hike={selectedHike} detailed />
+          {chatRoom.groupMatch && (
+            <button
+              onClick={() => handleChangeHike(selectedHike.id)}
+              className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              Change to This Hike
+            </button>
+          )}
+        </Modal>
+      )}
     </div>
   );
 }
