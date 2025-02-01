@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
-import { Send, ChevronLeft, Users } from 'lucide-react';
+import { Send, ChevronLeft, Users, ExternalLink } from 'lucide-react';
 import Image from 'next/image';
 import { ChatWindowProps, HikeData } from '@/types/chat';
 import { ChatBubble } from './ChatBubble';
@@ -255,28 +255,44 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b p-3">
-        <button onClick={onBack} className="md:hidden">
-          <ChevronLeft className="h-6 w-6" />
-        </button>
-        <div className="relative h-10 w-10 flex-shrink-0">
-          <Image
-            src={chatImage}
-            alt={chatTitle}
-            fill
-            sizes="(max-width: 768px) 2.5rem, 2.5rem"
-            className={`object-cover ${chatRoom.groupMatch ? 'rounded-lg' : 'rounded-full'}`}
-          />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b p-4">
+        <div className="flex items-center gap-2 w-full">
+          <button
+            onClick={onBack}
+            className="rounded-full p-2 hover:bg-gray-100 md:hidden"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <div className="relative h-10 w-10 overflow-hidden rounded-full">
+            <Image
+              src={chatImage || '/default-avatar.jpg'}
+              alt={chatTitle}
+              fill
+              className="object-cover"
+              onError={(e: any) => {
+                e.target.src = '/default-avatar.jpg'
+              }}
+            />
+          </div>
+          <div className="flex-1">
+            <h2 className="font-semibold">{chatTitle}</h2>
+            {chatRoom.groupMatch && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="h-4 w-4" />
+                <span>{memberCount} members</span>
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="font-semibold">{chatTitle}</h2>
-          {chatRoom.groupMatch && (
-            <div className="flex items-center gap-1 text-sm text-neutral-500">
-              <Users className="h-4 w-4" />
-              <span>{memberCount} members</span>
-            </div>
-          )}
-        </div>
+        {chatRoom.groupMatch && (
+          <button
+            onClick={() => window.open(`https://www.outdooractive.com/en/route/${chatRoom.groupMatch?.hikeSuggestions[0].id}`, '_blank')}
+            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
+          >
+            <ExternalLink className="h-4 w-4" />
+            View on OutdoorActive
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 bg-neutral-50">

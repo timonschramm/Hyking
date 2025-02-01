@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { MapPin, Check, Users, MessageCircle } from "lucide-react"
+import { MapPin, Check, Users, MessageCircle, ExternalLink } from "lucide-react"
 import Image from "next/image"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { UserCard } from "@/app/components/UserCard"
@@ -27,7 +27,7 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
   const totalCount = groupMatch.profiles.length
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col">
       <div className="relative h-48">
         <Image
           src={hikeActivity.primaryImageId && hikeActivity.primaryImageId !== ""
@@ -111,23 +111,25 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
-            {groupMatch.chatRoom && hasCurrentUserAccepted && (
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="outline"
+              onClick={() => window.open(`https://www.outdooractive.com/en/route/${hikeActivity.id}`, '_blank')}
+            >
+              <ExternalLink className="w-4 h-4 mr-1" />
+              View on OutdoorActive
+            </Button>
+            {groupMatch.chatRoom && hasCurrentUserAccepted ? (
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => onViewChat?.(groupMatch.chatRoom!.id)}
-                className="text-sm"
               >
                 <MessageCircle className="w-4 h-4 mr-1" />
                 Chat
               </Button>
-            )}
-            {!hasCurrentUserAccepted && (
+            ) : !hasCurrentUserAccepted && (
               <Button
-                size="sm"
                 onClick={() => onAccept(groupMatch.id)}
-                className="text-sm"
               >
                 Join Group
               </Button>
