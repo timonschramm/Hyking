@@ -14,7 +14,6 @@ import InterestsOption from '@/app/components/OnboardingStep/StepOptions/Interes
 import SkillsOption from '@/app/components/OnboardingStep/StepOptions/SkillsOption';
 import { UserInterestWithInterest } from '@/types/Interest';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
-import { useEffect as useEffectClient } from 'react';
 
 
 
@@ -126,34 +125,22 @@ const ProfileSkeleton = () => {
 
 
 export default function ProfilePage() {
-  const [mounted, setMounted] = useState(false);
   const [profileData, setProfileData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
+  const supabase = createClient();
+  const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
   const [userInterestIds, setUserInterestIds] = useState<string[]>([]);
   const [availableSkills, setAvailableSkills] = useState<(Skill & { skillLevels: SkillLevel[] })[]>([]);
-  const router = useRouter();
-  const supabase = createClient();
-
-  // Add mounted state to prevent hydration issues
-  useEffectClient(() => {
-    setMounted(true);
-  }, []);
-
   const loadProfileData = useCallback(async () => {
-    if (!mounted) return;
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/login');
-        return;
-      }
+      if (!user) return;
 
       const [profileResponse, skillsResponse] = await Promise.all([
         fetch(`/apinextjs/profile?userId=${user.id}`),
@@ -176,13 +163,11 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase.auth, router, mounted]);
+  }, [supabase.auth]);
 
   useEffect(() => {
-    if (mounted) {
-      loadProfileData();
-    }
-  }, [loadProfileData, mounted]);
+    loadProfileData();
+  }, [loadProfileData]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -327,7 +312,6 @@ export default function ProfilePage() {
     });
   };
 
-  if (!mounted) return <ProfileSkeleton />;
   if (isLoading) return <ProfileSkeleton />;
 
   return (
@@ -386,7 +370,7 @@ export default function ProfilePage() {
                     type="number"
                     value={editedData?.age || ''}
                     onChange={(e) => setEditedData({ ...editedData!, age: parseInt(e.target.value) })}
-                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
+                    className="w-full p-2 border rounded-lg"
                   />
                 ) : (
                   <p className="text-lg">{profileData.age}</p>
@@ -400,7 +384,7 @@ export default function ProfilePage() {
                   <select
                     value={editedData?.gender || ''}
                     onChange={(e) => setEditedData({ ...editedData!, gender: e.target.value })}
-                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
+                    className="w-full p-2 border rounded-lg"
                   >
                     <option value="">Select Gender</option>
                     <option value="male">Male</option>
@@ -420,7 +404,7 @@ export default function ProfilePage() {
                     type="text"
                     value={editedData?.location || ''}
                     onChange={(e) => setEditedData({ ...editedData!, location: e.target.value })}
-                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
+                    className="w-full p-2 border rounded-lg"
                   />
                 ) : (
                   <p className="text-lg">{profileData.location}</p>
@@ -473,7 +457,7 @@ export default function ProfilePage() {
                       interests: userInterestIds || []
                     }}
                     onInterestSelect={handleInterestSelect}
-                    maxSelect={20}
+                    maxSelect={5}
                   />
                 ) : (
                   <div className="flex flex-wrap gap-2">
