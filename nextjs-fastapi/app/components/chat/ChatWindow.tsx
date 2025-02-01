@@ -254,14 +254,15 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   }
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b p-4">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b p-4 bg-white shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-2 w-full">
           <button
             onClick={onBack}
-            className="rounded-full p-2 hover:bg-gray-100 md:hidden"
+            className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center"
+            aria-label="Go back"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-6 w-6" />
           </button>
           <div className="relative h-10 w-10 overflow-hidden rounded-full">
             <Image
@@ -283,20 +284,20 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
               </div>
             )}
           </div>
+          {chatRoom.groupMatch && (
+            <button
+              onClick={() => window.open(`https://www.outdooractive.com/en/route/${chatRoom.groupMatch?.hikeSuggestions[0].id}`, '_blank')}
+              className="ml-auto sm:ml-0 flex items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
+            >
+              <ExternalLink className="h-4 w-4" />
+              <span className="hidden sm:inline">View on OutdoorActive</span>
+            </button>
+          )}
         </div>
-        {chatRoom.groupMatch && (
-          <button
-            onClick={() => window.open(`https://www.outdooractive.com/en/route/${chatRoom.groupMatch?.hikeSuggestions[0].id}`, '_blank')}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50"
-          >
-            <ExternalLink className="h-4 w-4" />
-            View on OutdoorActive
-          </button>
-        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 bg-neutral-50">
-        <div className="space-y-4">
+      <div className="flex-1 overflow-y-auto bg-neutral-50 p-4">
+        <div className="space-y-4 pb-[120px]">
           {chatRoom.messages.map((msg, index) => {
             const isSender = msg.senderId === currentUserId;
             const senderProfile = msg.sender ? {
@@ -368,8 +369,8 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
       </div>
 
       {/* Chatbot prompt and example bubbles */}
-      <div className="p-4 bg-white border-t">
-        <div className="mb-4">
+      <div className="fixed bottom-0 left-0 right-0 z-40 sm:relative p-4 bg-white border-t shadow-lg sm:shadow-none">
+        <div className="mb-4 max-h-[60px] overflow-y-auto">
           <p className="text-sm text-gray-600 text-center">
             Ask our chatbot anything in this chat by typing{" "}
             <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
@@ -387,7 +388,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
           </div>
         </div>
 
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 bg-white">
           <input
             type="text"
             value={message}

@@ -161,10 +161,12 @@ export default function DashboardLayout({
         // Mobile view
         <>
           <div className="fixed inset-0 flex flex-col w-screen">
-            <div className={`flex-1 ${pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto'} bg-white`}>
+            <div className={`flex-1 ${pathname.includes('/dashboard/chats/') ? 'h-screen' : pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto pb-16'} bg-white`}>
               {children}
             </div>
-            {!isChatWindowOpen && <NavigationBottomBar user={user} dropdownContent={dropdownContent} />}
+            {!pathname.includes('/dashboard/chats/') && (
+              <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
+            )}
           </div>
         </>
       ) : (

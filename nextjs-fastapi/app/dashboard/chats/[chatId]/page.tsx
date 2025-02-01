@@ -104,7 +104,7 @@ export default function SingleChatPage({
   }
 
   return (
-    <div className="h-full border rounded-lg overflow-hidden">
+    <div className="h-full">
       <ChatWindow chatRoom={chatRoom} onBack={handleBack} />
     </div>
   );
