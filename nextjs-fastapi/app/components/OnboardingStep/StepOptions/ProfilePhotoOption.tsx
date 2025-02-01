@@ -42,6 +42,7 @@ export default function ProfilePhotoOption({ formData, onPhotoSelect }: ProfileP
           <AvatarImage 
             src={previewUrl || formData.imageUrl || ''} 
             alt="Profile picture" 
+            className="object-cover"
           />
           <AvatarFallback className="text-2xl bg-gradient-to-r from-blue-500 to-purple-500 text-white">
             {formData.email?.[0]?.toUpperCase() || '?'}
