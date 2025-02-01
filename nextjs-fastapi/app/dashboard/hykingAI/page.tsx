@@ -1,5 +1,4 @@
 'use client';
-
 import { useRef, useState, useEffect } from 'react';
 import { Send } from 'lucide-react';
 import { Hike } from '../../components/chatBot/types';
@@ -124,6 +123,42 @@ export default function HykingAIPage() {
     setIsModalOpen(true);
   };
 
+ const handleCreateGroup = async (hikeId: string) => {
+  try {
+    const response = await fetch('/api/groupmatches/create', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hikeId }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to create group: ${response.statusText}`);
+    }
+
+    const newGroupMatch = await response.json();
+
+    // Ensure the response contains the chatRoomId
+    if (!newGroupMatch.chatRoomId) {
+      throw new Error('Chat room ID not found in the response');
+    }
+
+    // Redirect to the new group match chat
+    console.log('New Group Match:', newGroupMatch);
+if (!newGroupMatch.chatRoomId) {
+  throw new Error('Chat room ID not found in the response');
+}
+
+setTimeout(() => {
+  window.location.href = `/dashboard/chats/${newGroupMatch.chatRoomId}`;
+}, 500); // Small delay for database sync
+
+
+  } catch (error) {
+    console.error('Error creating group:', error);
+    alert('Failed to create group. Please try again.');
+  }
+};
+
   const closeModal = () => {
     setSelectedHike(null);
     setIsModalOpen(false);
@@ -207,6 +242,12 @@ export default function HykingAIPage() {
       {isModalOpen && selectedHike && (
         <Modal onClose={closeModal}>
           <HikeCard hike={selectedHike} detailed />
+          <button
+            onClick={() => handleCreateGroup(selectedHike.id)}
+            className="mt-4 w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Create New Group for This Hike
+          </button>
         </Modal>
       )}
     </div>

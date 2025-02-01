@@ -17,70 +17,81 @@ export default function ChatsPage() {
   }, []);
 
   const fetchChats = async () => {
-    try {
-      const response = await fetch('/api/chats');
-      const data = await response.json();
-      setChatRooms(data);
-    // console.log('Chats fetched:', data);
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error fetching chats:', error);
-      setIsLoading(false);
-    }
-  };
+  try {
+    const response = await fetch('/api/chats');
+    const data = await response.json();
+
+    // Parse createdAt strings into Date objects
+    const updatedChatRooms = data.map((room: ChatRoomWithDetails) => ({
+      ...room,
+      messages: room.messages.map((msg) => ({
+        ...msg,
+        createdAt: new Date(msg.createdAt),
+      })),
+      lastMessage: room.lastMessage ? new Date(room.lastMessage) : new Date(), // Fallback to current date if null
+    }));
+
+    setChatRooms(updatedChatRooms);
+    setIsLoading(false);
+  } catch (error) {
+    console.error('Error fetching chats:', error);
+    setIsLoading(false);
+  }
+};
 
   const setupRealtimeSubscription = () => {
-  // console.log('Setting up realtime subscription...');
-    
-    const channel = supabase
-      .channel('messages')
-      .on('broadcast', { event: 'new_message' }, (payload) => {
-      // console.log('Received realtime message:', payload);
-        const newMessage = payload.payload as RealtimeMessage;
-        
-        setChatRooms(currentRooms => 
-          currentRooms.map(room => {
-            if (room.id === newMessage.chatRoomId) {
-              const existingMessageIds = new Set(room.messages.map(m => m.id));
-              if (existingMessageIds.has(newMessage.id)) {
-                return room;
-              }
+  const channel = supabase
+    .channel('messages')
+    .on('broadcast', { event: 'new_message' }, (payload) => {
+      const newMessage = payload.payload as RealtimeMessage;
 
-              return {
-                ...room,
-                messages: [...room.messages, newMessage],
-                lastMessage: newMessage.createdAt
-              };
-            }
-            return room;
-          })
-        );
+      // Ensure createdAt is a Date object
+      if (typeof newMessage.createdAt === 'string') {
+        newMessage.createdAt = new Date(newMessage.createdAt);
+      }
 
-        setSelectedChat(current => {
-          if (current?.id === newMessage.chatRoomId) {
-            const existingMessageIds = new Set(current.messages.map(m => m.id));
+      setChatRooms(currentRooms =>
+        currentRooms.map(room => {
+          if (room.id === newMessage.chatRoomId) {
+            const existingMessageIds = new Set(room.messages.map(m => m.id));
             if (existingMessageIds.has(newMessage.id)) {
-              return current;
+              return room;
             }
 
             return {
-              ...current,
-              messages: [...current.messages, newMessage],
-              lastMessage: newMessage.createdAt
+              ...room,
+              messages: [...room.messages, newMessage],
+              lastMessage: newMessage.createdAt || new Date(), // Fallback to current date if null
             };
           }
-          return current;
-        });
-      })
-      .subscribe();
+          return room;
+        })
+      );
 
-    return () => supabase.removeChannel(channel);
-  };
+      setSelectedChat(current => {
+        if (current?.id === newMessage.chatRoomId) {
+          const existingMessageIds = new Set(current.messages.map(m => m.id));
+          if (existingMessageIds.has(newMessage.id)) {
+            return current;
+          }
+
+          return {
+            ...current,
+            messages: [...current.messages, newMessage],
+            lastMessage: newMessage.createdAt || new Date(), // Fallback to current date if null
+          };
+        }
+        return current;
+      });
+    })
+    .subscribe();
+
+  return () => supabase.removeChannel(channel);
+};
 
   return (
     <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'hidden md:block' : 'block'}`}>
-      
         {chatRooms.length === 0 && !isLoading ? (
           <div className="flex justify-center items-center h-full">
             <p className="text-sm text-muted-foreground">
@@ -89,28 +100,28 @@ export default function ChatsPage() {
           </div>
         ) : (
           <ChatList
-          chatRooms={chatRooms}
-          selectedChat={selectedChat}
+            chatRooms={chatRooms}
+            selectedChat={selectedChat}
             onSelectChat={setSelectedChat}
             isLoading={isLoading}
           />
         )}
       </div>
-      
+
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'block' : 'hidden md:block'}`}>
         {selectedChat ? (
-          <ChatWindow 
-            chatRoom={selectedChat} 
+          <ChatWindow
+            chatRoom={selectedChat}
             onBack={() => setSelectedChat(null)}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
             {chatRooms.length === 0 && !isLoading
               ? "You need some matches to start chatting"
-              : "Select a conversation to start chatting the chatroom amount you have is "}
+              : "Select a conversation to start chatting"}
           </div>
         )}
       </div>
     </div>
   );
-} 
+}
