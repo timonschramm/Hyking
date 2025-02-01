@@ -4,14 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/[id]/change-hike/route.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/create/route.ts" afterDir="false" />
+    <list default="true" id="6b24946a-bb13-4f25-99cd-75dbbbd40d9e" name="Changes" comment="changed functionality to support user changing / creating gorup hikes via chatbot">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/api/chats/[chatId]/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/chats/[chatId]/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/[id]/accept/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/[id]/accept/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/api/groupmatches/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/components/chat/ChatWindow.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/components/chat/ChatWindow.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/app/dashboard/hykingAI/page.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/nextjs-fastapi/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/nextjs-fastapi/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -139,12 +135,25 @@
       <workItem from="1738277535899" duration="2378000" />
       <workItem from="1738334701265" duration="804000" />
       <workItem from="1738335587201" duration="306000" />
-      <workItem from="1738367355416" duration="8277000" />
+      <workItem from="1738367355416" duration="9327000" />
     </task>
+    <task id="LOCAL-00001" summary="changed functionality to support user changing / creating gorup hikes via chatbot">
+      <option name="closed" value="true" />
+      <created>1738376079482</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1738376079482</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="changed functionality to support user changing / creating gorup hikes via chatbot" />
+    <option name="LAST_COMMIT_MESSAGE" value="changed functionality to support user changing / creating gorup hikes via chatbot" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

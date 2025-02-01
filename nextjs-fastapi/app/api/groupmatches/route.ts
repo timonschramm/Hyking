@@ -14,13 +14,7 @@ export async function GET(req: NextRequest) {
     }
 
     const groupMatches = await prisma.groupMatch.findMany({
-      where: {
-        profiles: {
-          some: {
-            profileId: user.id,
-          },
-        },
-      },
+
       select: groupMatchListView,
     });
 
