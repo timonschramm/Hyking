@@ -76,7 +76,9 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
                 <span className="font-medium">Difficulty:</span> {hikeActivity.difficulty}/5
               </div>
             </div>
-            <p className="text-sm text-muted-foreground">{hikeActivity.descriptionShort}</p>
+            <p className="text-sm text-muted-foreground">
+              {hikeActivity.descriptionShort?.replace(/<[^>]*>/g, '')}
+            </p>
           </div>
 
           <div className="space-y-2">

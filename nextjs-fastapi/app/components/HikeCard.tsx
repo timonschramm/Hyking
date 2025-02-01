@@ -33,9 +33,9 @@ const HikeCard: React.FC<HikeCardProps> = ({ hike, onClick, detailed = false }) 
       {/* Basic Information */}
       <div className="p-6">
         <h2 className="text-2xl font-bold text-gray-800">{hike.title}</h2>
-        {hike.teaserText && <p className="text-gray-600 mt-2">{hike.teaserText}</p>}
+        {hike.teaserText && <p className="text-gray-600 mt-2">{hike.teaserText.replace(/<[^>]*>/g, '')}</p>}
         {detailed && hike.descriptionLong && (
-          <p className="text-gray-700 mt-4 leading-relaxed">{hike.descriptionLong}</p>
+          <p className="text-gray-700 mt-4 leading-relaxed">{hike.descriptionLong.replace(/<[^>]*>/g, '')}</p>
         )}
       </div>
 
