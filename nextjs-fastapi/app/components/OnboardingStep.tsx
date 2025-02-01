@@ -205,7 +205,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   const handleInterestSelect = (interestId: string) => {
     setFormData(prev => {
       const currentInterests = prev.interests || [];
-      const maxSelect = stepData.options.find(opt => opt.label === 'Interests')?.maxSelect || 5;
+      const maxSelect = stepData.options.find(opt => opt.label === 'Interests')?.maxSelect || 20;
     // console.log('currentInterests:', currentInterests);
       if (currentInterests.includes(interestId)) {
         // Fix: Create new array to ensure state update

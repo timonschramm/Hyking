@@ -3,6 +3,9 @@
         "api/**": {
             "excludeFiles": "{.next,*.cache,node_modules,public}/**",
             "maxDuration": 300
+        },
+        "app/apinextjs/**/*": {
+            "maxDuration": 60
         }
     },
     "build": {

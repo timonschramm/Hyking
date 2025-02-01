@@ -6,6 +6,9 @@ if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL is required');
 }
 
+// Add connection pool parameters to DATABASE_URL with correct parameter names
+const databaseUrl = `${process.env.DATABASE_URL}?pgbouncer=true&connection_timeout=60&pool_timeout=60&connection_limit=10`;
+
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
 export const prisma =
@@ -19,9 +22,9 @@ export const prisma =
     },
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: databaseUrl,  // Use the URL with connection pool parameters
       },
-    },
+    }
   })
   // .$extends(
   //   withOptimize({ apiKey: process.env.OPTIMIZE_API_KEY! })

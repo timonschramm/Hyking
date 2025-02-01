@@ -15,7 +15,7 @@ const InterestOption: React.FC<InterestOptionProps> = ({
     availableInterests,
     formData,
     onInterestSelect,
-    maxSelect = 5
+    maxSelect = 20
 }) => {
     return (
         <div className="space-y-4">

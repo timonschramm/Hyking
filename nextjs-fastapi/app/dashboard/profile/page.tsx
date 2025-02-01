@@ -370,7 +370,7 @@ export default function ProfilePage() {
                     type="number"
                     value={editedData?.age || ''}
                     onChange={(e) => setEditedData({ ...editedData!, age: parseInt(e.target.value) })}
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
                   />
                 ) : (
                   <p className="text-lg">{profileData.age}</p>
@@ -384,7 +384,7 @@ export default function ProfilePage() {
                   <select
                     value={editedData?.gender || ''}
                     onChange={(e) => setEditedData({ ...editedData!, gender: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
                   >
                     <option value="">Select Gender</option>
                     <option value="male">Male</option>
@@ -404,7 +404,7 @@ export default function ProfilePage() {
                     type="text"
                     value={editedData?.location || ''}
                     onChange={(e) => setEditedData({ ...editedData!, location: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
+                    className="w-full p-2 border rounded-lg bg-white text-gray-900"
                   />
                 ) : (
                   <p className="text-lg">{profileData.location}</p>
@@ -457,7 +457,7 @@ export default function ProfilePage() {
                       interests: userInterestIds || []
                     }}
                     onInterestSelect={handleInterestSelect}
-                    maxSelect={5}
+                    maxSelect={20}
                   />
                 ) : (
                   <div className="flex flex-wrap gap-2">

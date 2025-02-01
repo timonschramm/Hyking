@@ -47,7 +47,7 @@ export function InterestsStep({ formData, errors, onChange }: InterestsStepProps
           formData={formData}
           onInterestSelect={(interestId) => {
             const currentInterests = Array.isArray(formData.interests) ? formData.interests : [];
-            const maxSelect = 5;
+            const maxSelect = 20;
 
             if (currentInterests.includes(interestId)) {
               onChange('interests', currentInterests.filter((id: string) => id !== interestId));
@@ -55,7 +55,7 @@ export function InterestsStep({ formData, errors, onChange }: InterestsStepProps
               onChange('interests', [...currentInterests, interestId]);
             }
           }}
-          maxSelect={5}
+          maxSelect={20}
         />
         {errors.interests && (
           <p className="text-sm text-red-500 mt-1">{errors.interests}</p>

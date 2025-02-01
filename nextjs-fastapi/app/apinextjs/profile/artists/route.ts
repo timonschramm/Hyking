@@ -3,6 +3,11 @@ import { createClient } from '@/utils/supabase/server';
 import { prisma } from '@/lib/prisma';
 import { Genre, Prisma } from '@prisma/client';
 
+// Set timeout and runtime config for this API route
+export const maxDuration = 60; // 60 seconds timeout
+export const runtime = 'nodejs'; // Use Node.js runtime instead of Edge for better database handling
+export const dynamic = 'force-dynamic'; // Disable static optimization
+
 // Type for incoming artist data
 interface SpotifyArtistData {
   spotifyId: string;
