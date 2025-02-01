@@ -174,7 +174,7 @@ export default function DashboardLayout({
         <>
           <div className="flex h-screen bg-white">
             <Sidebar user={user} dropdownContent={dropdownContent} />
-            <div className={`flex-grow ${pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto'} bg-white`}>
+            <div className="flex-grow overflow-y-auto bg-white">
               {children}
             </div>
           </div>

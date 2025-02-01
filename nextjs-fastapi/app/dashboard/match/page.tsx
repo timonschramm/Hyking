@@ -112,7 +112,7 @@ export default function Match() {
     }
   };
   return (
-    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-background text-primary">
+    <div className="relative h-full w-full flex items-center justify-center overflow-hidden bg-background text-primary">
       <style jsx>{`
         :global(body) {
           overscroll-behavior: none;
@@ -175,7 +175,7 @@ export default function Match() {
           animation: ripple 2s linear infinite 1s;
         }
       `}</style>
-      <div className="absolute inset-0 flex items-center justify-center match-container">
+      <div className="relative h-full w-full flex items-center justify-center match-container">
         {isLoading ? (
           <div className="flex flex-col items-center gap-6">
             <div className="relative">

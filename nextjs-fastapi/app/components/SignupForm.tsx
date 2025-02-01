@@ -44,8 +44,8 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-96 space-y-6">
+    <div className="min-h-screen flex items-center justify-center px-4 py-8 sm:px-0">
+      <div className="w-full max-w-[24rem] space-y-6">
         <h2 className="text-2xl font-bold mb-6 text-center">Create an account</h2>
         
         {/* OAuth Buttons */}

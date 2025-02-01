@@ -55,6 +55,8 @@ const UserCard = ({
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const dragThreshold = 10; // pixels
 
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
@@ -147,6 +149,18 @@ const UserCard = ({
       console.error('Error recording swipe:', error);
     }
   }, [router]);
+
+  const handleDragStart = (event: any, info: PanInfo) => {
+    setIsDragging(true);
+    setDragStart({ x: info.point.x, y: info.point.y });
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isDragging) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
 
   if (displayMode === 'grid') {
     return (
@@ -286,15 +300,16 @@ const UserCard = ({
               <motion.div
                 drag="x"
                 dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                onDragStart={() => setIsDragging(true)}
-                onClick={(e) => {
-                  if (isDragging) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                onDragStart={handleDragStart}
+                onClick={handleClick}
+                className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px] cursor-pointer"
+                onDragEnd={(e, info) => {
+                  const dragDistance = Math.abs(info.point.x - dragStart.x);
+                  if (dragDistance > dragThreshold) {
+                    dragEnd(e, info);
                   }
+                  setIsDragging(false);
                 }}
-                className="card-image-wrapper card relative z-30 h-[70vh] w-[90vw] md:h-[438px] md:w-[289px]   cursor-pointer"
-                onDragEnd={dragEnd}
                 style={{ x, rotate, opacity }}
                 transition={{ type: 'tween', duration: 0.2 }}
                 whileDrag={{ cursor: 'grabbing' }}

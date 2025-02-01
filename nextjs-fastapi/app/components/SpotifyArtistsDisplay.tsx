@@ -266,7 +266,7 @@ export default function SpotifyArtistsDisplay({
           onClick={onConnect}
           className="bg-[#1DB954] hover:bg-[#1ed760] text-white"
         >
-          Connect to Spotdifyy
+          Connect to Spotify
         </Button>
       </div>
     );
