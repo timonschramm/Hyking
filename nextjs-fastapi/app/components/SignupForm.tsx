@@ -44,9 +44,9 @@ export default function SignupForm() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-900">
-      <div className="bg-gray-800 p-8 rounded-lg shadow-md w-96">
-        <h2 className="text-2xl font-bold mb-6 text-center text-white">Create an account</h2>
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="w-96 space-y-6">
+        <h2 className="text-2xl font-bold mb-6 text-center">Create an account</h2>
         
         {/* OAuth Buttons */}
         <div className="space-y-4 mb-6">
@@ -61,10 +61,10 @@ export default function SignupForm() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-600" />
+              <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-gray-800 px-2 text-gray-400">
+              <span className="bg-background px-2 text-gray-500">
                 Or continue with email
               </span>
             </div>
@@ -74,7 +74,7 @@ export default function SignupForm() {
         <form onSubmit={handleSubmit}>
           {error && <p className="text-red-500 mb-4">{error}</p>}
           <div className="mb-4">
-            <label className="block text-gray-300 mb-2" htmlFor="email">
+            <label className="block mb-2" htmlFor="email">
               Email
             </label>
             <input
@@ -82,12 +82,12 @@ export default function SignupForm() {
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 focus:ring-blue-400 focus:border-blue-400"
+              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400 bg-white autofill:bg-white focus:bg-white [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:hover:bg-white [&:-webkit-autofill]:focus:bg-white [&:-webkit-autofill]:active:bg-white [&:-webkit-autofill]:[transition-delay:9999s]"
               required
             />
           </div>
           <div className="mb-6">
-            <label className="block text-gray-300 mb-2" htmlFor="password">
+            <label className="block mb-2" htmlFor="password">
               Password
             </label>
             <input
@@ -95,21 +95,24 @@ export default function SignupForm() {
               id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded bg-gray-700 text-white border-gray-600 focus:ring-blue-400 focus:border-blue-400"
+              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400 bg-white autofill:bg-white focus:bg-white [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:hover:bg-white [&:-webkit-autofill]:focus:bg-white [&:-webkit-autofill]:active:bg-white [&:-webkit-autofill]:[transition-delay:9999s]"
               required
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+            className="w-full bg-indigo-600 text-white p-2 rounded hover:bg-indigo-700"
           >
             {loading ? 'Creating account...' : 'Sign Up'}
           </button>
         </form>
 
-        <p className="mt-4 text-center text-gray-300">
-          Already have an account? <Link href="/login" className="text-blue-400 hover:underline">Login</Link>
+        <p className="mt-4 text-center text-gray-600">
+          Already have an account?{' '}
+          <Link href="/login" className="text-indigo-600 hover:underline">
+            Login
+          </Link>
         </p>
       </div>
       <Toaster />

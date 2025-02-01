@@ -95,7 +95,7 @@ export default function LoginForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400"
+              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400 bg-white autofill:bg-white focus:bg-white [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:hover:bg-white [&:-webkit-autofill]:focus:bg-white [&:-webkit-autofill]:active:bg-white [&:-webkit-autofill]:[transition-delay:9999s]"
               required
             />
           </div>
@@ -109,7 +109,7 @@ export default function LoginForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400"
+              className="w-full p-2 border rounded border-gray-300 focus:ring-indigo-400 focus:border-indigo-400 bg-white autofill:bg-white focus:bg-white [&:-webkit-autofill]:bg-white [&:-webkit-autofill]:hover:bg-white [&:-webkit-autofill]:focus:bg-white [&:-webkit-autofill]:active:bg-white [&:-webkit-autofill]:[transition-delay:9999s]"
               required
             />
           </div>
