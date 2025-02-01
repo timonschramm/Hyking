@@ -11,8 +11,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { content, chatRoomId, isAI } = await request.json();
-  // console.log('Received message request:', { content, chatRoomId, userId: user.id });
+    const { content, chatRoomId, isAI, metadata } = await request.json();
+    console.log('Received message request:', { content, chatRoomId, userId: user.id, metadata });
 
     if (!chatRoomId) {
       return NextResponse.json({ error: 'ChatRoom ID is required' }, { status: 400 });
@@ -28,6 +28,8 @@ export async function POST(request: NextRequest) {
           content,
           chatRoomId,
           senderId,
+          isAI,
+          metadata: metadata || null, // Add metadata to the message
         },
         include: {
           sender: true,
@@ -46,9 +48,9 @@ export async function POST(request: NextRequest) {
       return { message, chatRoom };
     });
 
-  // console.log('Created message in database:', message);
+    console.log('Created message in database:', message);
 
-    // Broadcast through Supabase Realtime
+    // Broadcast through Supabase Realtime with metadata
     const channel = supabaseClient.channel('messages');
     const resp = await channel.send({
       type: 'broadcast',
@@ -59,14 +61,16 @@ export async function POST(request: NextRequest) {
         chatRoomId: message.chatRoomId,
         senderId: message.senderId,
         sender: message.sender,
-        createdAt: message.createdAt
+        createdAt: message.createdAt,
+        isAI: message.isAI,
+        metadata: message.metadata // Include metadata in the broadcast
       }
     });
 
     if (resp === 'error') {
       console.error('Error broadcasting message');
     } else {
-    // console.log('Successfully broadcast message');
+      console.log('Successfully broadcast message with metadata');
     }
 
     return NextResponse.json({ message });

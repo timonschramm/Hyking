@@ -30,10 +30,16 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="relative h-48">
         <Image
-          src={`https://img.oastatic.com/img2/${hikeActivity.primaryImageId}/default/variant.jpg`}
+          src={hikeActivity.primaryImageId && hikeActivity.primaryImageId !== ""
+            ? `https://img.oastatic.com/img2/${hikeActivity.primaryImageId}/default/variant.jpg`
+            : '/images/fallback-hike.jpg'
+          }
           alt={hikeActivity.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e: any) => {
+            e.target.src = '/images/fallback-hike.jpg'
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
         <div className="absolute bottom-0 p-4 text-white">
@@ -106,7 +112,7 @@ export function GroupMatchCard({ groupMatch, onAccept, onViewChat }: GroupMatchC
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            {groupMatch.chatRoom && (
+            {groupMatch.chatRoom && hasCurrentUserAccepted && (
               <Button
                 variant="outline"
                 size="sm"

@@ -3,12 +3,13 @@ import { format, isToday, isYesterday, isThisWeek } from 'date-fns';
 import { createClient } from '@/utils/supabase/client';
 import { Send, ChevronLeft, Users } from 'lucide-react';
 import Image from 'next/image';
-import { ChatWindowProps } from '@/types/chat';
+import { ChatWindowProps, HikeData } from '@/types/chat';
 import { ChatBubble } from './ChatBubble';
 import { cn } from '@/lib/utils';
 import HikeCard from '@/app/components/HikeCard';
 import WeatherWidget from '@/app/components/WeatherWidget';
 import Modal from '@/app/components/Modal';
+import { Hike } from '@/app/components/chatBot/types';
 
 function formatMessageDate(date: Date | string) {
   const messageDate = new Date(date);
@@ -41,7 +42,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   const [message, setMessage] = useState('');
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isTyping, setIsTyping] = useState(false); // Typing indicator for chatbot
-  const [selectedHike, setSelectedHike] = useState<any>(null); // Selected hike for modal
+  const [selectedHike, setSelectedHike] = useState<HikeData | null>(null); // Selected hike for modal
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [chatRoom, setChatRoom] = useState(initialChatRoom); // Local state for chatRoom
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -147,9 +148,10 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
 
           if (!aiResponse.ok) throw new Error('Failed to get AI response');
           const data = await aiResponse.json();
+          console.log('AI Response:', data); // Debug log
 
           // Send AI message with metadata
-          await fetch('/apinextjs/chats/message', {
+          const aiMessageResponse = await fetch('/apinextjs/chats/message', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -162,6 +164,13 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
               }
             }),
           });
+
+          if (!aiMessageResponse.ok) {
+            throw new Error('Failed to send AI message');
+          }
+
+          const aiMessageData = await aiMessageResponse.json();
+          console.log('AI Message saved:', aiMessageData); // Debug log
         } catch (error) {
           console.error('AI Error:', error);
           await fetch('/apinextjs/chats/message', {
@@ -184,15 +193,17 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   };
 
   // Handle hike card clicks
-  const handleHikeClick = (hike: any) => {
+  const handleHikeClick = (hike: HikeData) => {
     setSelectedHike(hike);
     setIsModalOpen(true);
   };
 
   // Handle changing the group's hike
   const handleChangeHike = async (hikeId: string) => {
+    if (!chatRoom.groupMatch?.id) return;
+    
     try {
-      const response = await fetch(`/apinextjs/groupmatches/${chatRoom.groupMatch?.id}/change-hike`, {
+      const response = await fetch(`/apinextjs/groupmatches/${chatRoom.groupMatch.id}/change-hike`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hikeId }),
@@ -205,7 +216,10 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
       // Update the chatRoom state with the new hike
       setChatRoom((prevChatRoom) => ({
         ...prevChatRoom,
-        groupMatch: updatedGroupMatch,
+        groupMatch: {
+          ...prevChatRoom.groupMatch!,
+          hikeSuggestions: updatedGroupMatch.hikeSuggestions,
+        },
       }));
 
       setIsModalOpen(false);
@@ -298,9 +312,9 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
                 {/* Render metadata content if exists */}
                 {msg.metadata && (
                   <>
-                    {msg.metadata.hikes?.length > 0 && (
+                    {msg.metadata.hikes && msg.metadata.hikes.length > 0 && (
                       <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {msg.metadata.hikes.map((hike: any) => (
+                        {msg.metadata.hikes.map((hike) => (
                           <div
                             key={hike.id}
                             className="cursor-pointer"

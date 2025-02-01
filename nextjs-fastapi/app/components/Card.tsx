@@ -183,14 +183,17 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
 
                   <div className="relative h-full w-full">
                     <Image
-                      src={data.primaryImageId 
+                      src={data.primaryImageId && data.primaryImageId !== "" 
                         ? `https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`
-                        : '/fallback-image.jpg'
+                        : '/images/fallback-hike.jpg'
                       }
                       fill
                       alt={data.title}
                       className="object-cover"
                       priority
+                      onError={(e: any) => {
+                        e.target.src = '/images/fallback-hike.jpg'
+                      }}
                     />
                   </div>
                   
@@ -212,14 +215,17 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
-                    src={data.primaryImageId 
+                    src={data.primaryImageId && data.primaryImageId !== "" 
                       ? `https://img.oastatic.com/img2/${data.primaryImageId}/default/variant.jpg`
-                      : '/fallback-image.jpg'
+                      : '/images/fallback-hike.jpg'
                     }
                     fill
                     alt={data.title}
                     className="object-cover rounded-t-2xl"
                     priority
+                    onError={(e: any) => {
+                      e.target.src = '/images/fallback-hike.jpg'
+                    }}
                   />
                 </div>
 
