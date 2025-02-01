@@ -14,6 +14,7 @@ import InterestsOption from '@/app/components/OnboardingStep/StepOptions/Interes
 import SkillsOption from '@/app/components/OnboardingStep/StepOptions/SkillsOption';
 import { UserInterestWithInterest } from '@/types/Interest';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
+import { useEffect as useEffectClient } from 'react';
 
 
 
@@ -125,22 +126,34 @@ const ProfileSkeleton = () => {
 
 
 export default function ProfilePage() {
+  const [mounted, setMounted] = useState(false);
   const [profileData, setProfileData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editedData, setEditedData] = useState<ProfileWithArtistsAndInterestsAndSkills | null>(null);
   const [newImageFile, setNewImageFile] = useState<File | null>(null);
-  const supabase = createClient();
-  const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [availableInterests, setAvailableInterests] = useState<Interest[]>([]);
   const [userInterestIds, setUserInterestIds] = useState<string[]>([]);
   const [availableSkills, setAvailableSkills] = useState<(Skill & { skillLevels: SkillLevel[] })[]>([]);
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Add mounted state to prevent hydration issues
+  useEffectClient(() => {
+    setMounted(true);
+  }, []);
+
   const loadProfileData = useCallback(async () => {
+    if (!mounted) return;
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        router.push('/login');
+        return;
+      }
 
       const [profileResponse, skillsResponse] = await Promise.all([
         fetch(`/apinextjs/profile?userId=${user.id}`),
@@ -163,11 +176,13 @@ export default function ProfilePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [supabase.auth]);
+  }, [supabase.auth, router, mounted]);
 
   useEffect(() => {
-    loadProfileData();
-  }, [loadProfileData]);
+    if (mounted) {
+      loadProfileData();
+    }
+  }, [loadProfileData, mounted]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -312,6 +327,7 @@ export default function ProfilePage() {
     });
   };
 
+  if (!mounted) return <ProfileSkeleton />;
   if (isLoading) return <ProfileSkeleton />;
 
   return (
