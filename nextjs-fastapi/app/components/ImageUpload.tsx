@@ -2,7 +2,6 @@
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { useState, useEffect } from 'react';
-import heic2any from 'heic2any';
 
 interface ImageUploadProps {
   currentImageUrl?: string | null;
@@ -36,43 +35,15 @@ export default function ImageUpload({
     };
   }, [previewUrl]);
 
-  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
 
     const file = event.target.files[0];
-    
-    try {
-      // Check if the file is HEIC format
-      if (file.type === 'image/heic' || file.type === 'image/heif') {
-        // Convert HEIC to JPEG
-        const jpegBlob = await heic2any({
-          blob: file,
-          toType: 'image/jpeg',
-          quality: 0.85
-        });
-        
-        // Convert blob to File
-        const convertedFile = new File(
-          [jpegBlob as Blob], 
-          file.name.replace(/\.(heic|HEIC|heif|HEIF)$/, '.jpg'),
-          { type: 'image/jpeg' }
-        );
-        
-        const objectUrl = URL.createObjectURL(convertedFile);
-        setPreviewUrl(objectUrl);
-        onImageSelect(convertedFile);
-      } else {
-        // Handle non-HEIC images as before
-        const objectUrl = URL.createObjectURL(file);
-        setPreviewUrl(objectUrl);
-        onImageSelect(file);
-      }
-    } catch (error) {
-      console.error('Error processing image:', error);
-      alert('Error processing image. Please try a different image or format.');
-    }
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    onImageSelect(file);
   };
 
   return (
