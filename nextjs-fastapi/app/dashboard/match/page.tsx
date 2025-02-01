@@ -112,8 +112,14 @@ export default function Match() {
     }
   };
   return (
-    <div className="relative flex sm:h-[100vh] h-[calc(100vh-5rem)] w-full items-center justify-center overflow-hidden bg-background  text-primary ">
+    <div className="relative flex sm:h-[100vh] h-[100dvh] w-full items-center justify-center overflow-hidden bg-background text-primary fixed inset-0">
       <style jsx>{`
+        :global(body) {
+          overflow: hidden;
+          position: fixed;
+          width: 100%;
+          height: 100%;
+        }
         @keyframes ripple {
           0% {
             transform: scale(1);
