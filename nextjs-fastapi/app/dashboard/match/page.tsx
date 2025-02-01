@@ -112,13 +112,19 @@ export default function Match() {
     }
   };
   return (
-    <div className="relative flex sm:h-[100vh] h-[100dvh] w-full items-center justify-center overflow-hidden bg-background text-primary fixed inset-0">
+    <div className="absolute inset-0 flex items-center justify-center overflow-hidden bg-background text-primary">
       <style jsx>{`
         :global(body) {
-          overflow: hidden;
-          position: fixed;
-          width: 100%;
-          height: 100%;
+          overscroll-behavior: none;
+        }
+        .match-container {
+          padding-bottom: env(safe-area-inset-bottom);
+          margin-bottom: 5rem; /* Space for bottom nav */
+        }
+        @media (min-width: 768px) {
+          .match-container {
+            margin-bottom: 0; /* No bottom margin needed on desktop */
+          }
         }
         @keyframes ripple {
           0% {
@@ -169,7 +175,7 @@ export default function Match() {
           animation: ripple 2s linear infinite 1s;
         }
       `}</style>
-      <div className="absolute inset-0 flex items-center justify-center">
+      <div className="absolute inset-0 flex items-center justify-center match-container">
         {isLoading ? (
           <div className="flex flex-col items-center gap-6">
             <div className="relative">

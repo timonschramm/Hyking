@@ -152,7 +152,7 @@ export default function DashboardLayout({
         // Mobile view
         <>
           <div className="fixed inset-0 flex flex-col w-screen">
-            <div className="h-[calc(100vh-5rem)] overflow-y-auto bg-white">
+            <div className={`flex-1 ${pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto'} bg-white`}>
               {children}
             </div>
             <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
@@ -163,7 +163,7 @@ export default function DashboardLayout({
         <>
           <div className="flex h-screen bg-white">
             <Sidebar user={user} dropdownContent={dropdownContent} />
-            <div className="flex-grow overflow-y-auto bg-white">
+            <div className={`flex-grow ${pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto'} bg-white`}>
               {children}
             </div>
           </div>
