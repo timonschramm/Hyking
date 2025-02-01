@@ -41,7 +41,7 @@ export const ChatBubble = ({
           <div className="relative h-8 w-8">
             <Image
               src={senderProfile.imageUrl || '/default-avatar.jpg'}
-              alt={senderProfile.email}
+              alt="user profile"
               fill
               sizes="(max-width: 768px) 2rem, 2rem"
               className="rounded-full object-cover border border-gray-200"

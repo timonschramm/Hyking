@@ -7,9 +7,10 @@ import {
   useTransform,
 } from 'framer-motion';
 import Image from 'next/image';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, forwardRef } from 'react';
 import { Check, X, Music, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { DialogTitle } from "@radix-ui/react-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { UserArtistWithArtist } from '@/types/Artists';
 import { UserInterestWithInterest } from '@/types/Interest';
@@ -45,13 +46,13 @@ const UserCardSkeleton = () => {
   );
 };
 
-const UserCard = ({
+const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
   data,
   active,
   removeCard,
   disableActions = false,
   displayMode = 'stack'
-}: UserCardProps) => {
+}, ref) {
   const [exitX, setExitX] = useState(0);
   const [direction, setDirection] = useState<'left' | 'right' | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -164,14 +165,14 @@ const UserCard = ({
 
   if (displayMode === 'grid') {
     return (
-      <div className="relative aspect-[3/4] rounded-xl overflow-hidden">
+      <div ref={ref} className="relative aspect-[3/4] rounded-xl overflow-hidden">
         <Dialog>
           <DialogTrigger asChild>
             <div className="relative h-full w-full cursor-pointer group">
               <Image
                 src={data.imageUrl || `/default-avatar.jpg`}
                 fill
-                alt={`${data.email}'s profile`}
+                alt={`user profile`}
                 className="object-cover transition-transform group-hover:scale-105"
                 sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
               />
@@ -200,7 +201,13 @@ const UserCard = ({
             </div>
           </DialogTrigger>
 
-          <DialogContent className="p-0 border-none !rounded-2xl overflow-hidden max-w-[95vw] md:max-w-[400px]">
+          <DialogContent 
+            className="p-0 border-none !rounded-2xl overflow-hidden max-w-[95vw] md:max-w-[400px]"
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <DialogTitle className="sr-only">
+              {data.email.split('@')[0]}'s Profile
+            </DialogTitle>
             <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
               <div className="relative h-[40vh] md:h-[50vh]">
                 <Image
@@ -288,7 +295,7 @@ const UserCard = ({
   }
 
   return (
-    <div className="absolute flex flex-col items-center justify-center">
+    <div ref={ref} className="absolute flex flex-col items-center justify-center">
       <motion.div
         initial={{ scale: 0.95, opacity: 0.5 }}
         animate={{ scale: 1.05, opacity: 1 }}
@@ -377,13 +384,19 @@ const UserCard = ({
               </motion.div>
             </DialogTrigger>
 
-            <DialogContent className="fixed p-0 border-none !rounded-2xl overflow-hidden md:left-[calc(50%+120px)] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[95vw] md:max-w-[400px]">
+            <DialogContent 
+              className="fixed p-0 border-none !rounded-2xl overflow-hidden md:left-[calc(50%+120px)] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[95vw] md:max-w-[400px]"
+              onOpenAutoFocus={(e) => e.preventDefault()}
+            >
+              <DialogTitle className="sr-only">
+                {data.email.split('@')[0]}'s Profile
+              </DialogTitle>
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto rounded-2xl">
                 <div className="relative h-[40vh] md:h-[50vh]">
                   <Image
                     src={data.imageUrl || `/default-avatar.jpg`}
                     fill
-                    alt={`${data.email}'s profile`}
+                    alt={`users profile`}
                     className="object-cover rounded-t-2xl"
                     priority
                   />
@@ -462,6 +475,8 @@ const UserCard = ({
       )}
     </div>
   );
-};
+});
+
+UserCard.displayName = 'UserCard';
 
 export { UserCard, UserCardSkeleton };

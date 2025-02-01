@@ -88,7 +88,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
         <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
           <Image
             src={otherUser.imageUrl || '/default-avatar.jpg'}
-            alt={otherUser.email}
+            alt="user picture"
             fill
             sizes="(max-width: 768px) 3rem, 3rem"
             className="object-cover"
