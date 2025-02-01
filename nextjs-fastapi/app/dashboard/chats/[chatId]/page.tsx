@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import ChatWindow from '@/app/components/chat/ChatWindow';
-import { ChatRoomWithDetails, RealtimeMessage } from '@/types/chat';
+import { ChatRoomWithDetails, RealtimeMessage, Message, MessageMetadata } from '@/types/chat';
 import { useRouter } from 'next/navigation';
 
 export default function SingleChatPage({
@@ -54,11 +54,27 @@ export default function SingleChatPage({
               return current;
             }
 
+            // Convert RealtimeMessage to Message format
+            const formattedMessage: Message = {
+              id: newMessage.id,
+              content: newMessage.content,
+              createdAt: new Date(newMessage.createdAt),
+              chatRoomId: newMessage.chatRoomId,
+              senderId: newMessage.senderId,
+              isAI: newMessage.isAI,
+              metadata: newMessage.metadata as MessageMetadata | null,
+              sender: newMessage.sender ? {
+                email: newMessage.sender.email,
+                imageUrl: newMessage.sender.imageUrl || undefined,
+                displayName: newMessage.sender.displayName || undefined
+              } : undefined
+            };
+
             // Add new message
             return {
               ...current,
-              messages: [...current.messages, newMessage],
-              lastMessage: newMessage.createdAt
+              messages: [...current.messages, formattedMessage],
+              lastMessage: new Date(newMessage.createdAt)
             };
           });
         }
