@@ -84,8 +84,8 @@ export const config = {
      * - public folder
      */
     '/((?!_next/static|_next/image|favicon.ico|public/).*)',
-    '/api/:path*',
-    '/chats/:path*',
-    '/dashboard/:path*'
+    // '/api/:path*',
+    // '/chats/:path*',
+    // '/dashboard/:path*'
   ],
 }
