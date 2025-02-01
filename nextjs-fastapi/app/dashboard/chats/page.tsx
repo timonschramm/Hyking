@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import ChatList from '@/app/components/chat/ChatList';
 import ChatWindow from '@/app/components/chat/ChatWindow';
-import { ChatRoomWithDetails, RealtimeMessage } from '@/types/chat';
+import { ChatRoomWithDetails, RealtimeMessage, Message, MessageMetadata } from '@/types/chat';
 
 export default function ChatsPage() {
   const [chatRooms, setChatRooms] = useState<ChatRoomWithDetails[]>([]);
@@ -45,23 +45,34 @@ export default function ChatsPage() {
     .on('broadcast', { event: 'new_message' }, (payload) => {
       const newMessage = payload.payload as RealtimeMessage;
 
-      // Ensure createdAt is a Date object
-      if (typeof newMessage.createdAt === 'string') {
-        newMessage.createdAt = new Date(newMessage.createdAt);
-      }
+      // Convert RealtimeMessage to Message format
+      const formattedMessage: Message = {
+        id: newMessage.id,
+        content: newMessage.content,
+        createdAt: new Date(newMessage.createdAt),
+        chatRoomId: newMessage.chatRoomId,
+        senderId: newMessage.senderId,
+        isAI: newMessage.isAI,
+        metadata: newMessage.metadata as MessageMetadata | null,
+        sender: newMessage.sender ? {
+          email: newMessage.sender.email,
+          imageUrl: newMessage.sender.imageUrl || undefined,
+          displayName: newMessage.sender.displayName || undefined
+        } : undefined
+      };
 
       setChatRooms(currentRooms =>
         currentRooms.map(room => {
-          if (room.id === newMessage.chatRoomId) {
+          if (room.id === formattedMessage.chatRoomId) {
             const existingMessageIds = new Set(room.messages.map(m => m.id));
-            if (existingMessageIds.has(newMessage.id)) {
+            if (existingMessageIds.has(formattedMessage.id)) {
               return room;
             }
 
             return {
               ...room,
-              messages: [...room.messages, newMessage],
-              lastMessage: newMessage.createdAt || new Date(), // Fallback to current date if null
+              messages: [...room.messages, formattedMessage],
+              lastMessage: formattedMessage.createdAt
             };
           }
           return room;
@@ -69,16 +80,16 @@ export default function ChatsPage() {
       );
 
       setSelectedChat(current => {
-        if (current?.id === newMessage.chatRoomId) {
+        if (current?.id === formattedMessage.chatRoomId) {
           const existingMessageIds = new Set(current.messages.map(m => m.id));
-          if (existingMessageIds.has(newMessage.id)) {
+          if (existingMessageIds.has(formattedMessage.id)) {
             return current;
           }
 
           return {
             ...current,
-            messages: [...current.messages, newMessage],
-            lastMessage: newMessage.createdAt || new Date(), // Fallback to current date if null
+            messages: [...current.messages, formattedMessage],
+            lastMessage: formattedMessage.createdAt
           };
         }
         return current;
