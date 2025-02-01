@@ -41,8 +41,8 @@ function CallbackContent() {
         hidden: false
       }));
 
-    // console.log('Preparing to POST artists to /api/profile/artists:', artists);
-      const uploadResponse = await fetch('/api/profile/artists', {
+    // console.log('Preparing to POST artists to /apinextjs/profile/artists:', artists);
+      const uploadResponse = await fetch('/apinextjs/profile/artists', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +80,7 @@ function CallbackContent() {
         }
       // console.log('Exchanging code for a token now...');
 
-        const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}`);
+        const tokenResponse = await fetch(`/apinextjs/auth/spotify/callback?code=${code}`);
 
       // console.log("Token exchange response:", tokenResponse);
         if (!tokenResponse.ok) {
@@ -100,7 +100,7 @@ function CallbackContent() {
         await fetchAndUploadArtists(data.access_token);
 
       // console.log('Setting user as spotifyConnected = true');
-        await fetch('/api/profile/update', {
+        await fetch('/apinextjs/profile/update', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

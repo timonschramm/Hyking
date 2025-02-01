@@ -23,7 +23,7 @@ function CallbackContent() {
         }
 
       // console.log('Making token exchange request...');
-        const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/onboarding`);
+        const tokenResponse = await fetch(`/apinextjs/auth/spotify/callback?code=${code}&path=/onboarding`);
         
       // console.log('Token Response Status:', tokenResponse.status);
       // console.log('Token Response Headers:', Object.fromEntries(tokenResponse.headers.entries()));

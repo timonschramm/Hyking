@@ -13,7 +13,7 @@ export default function Search() {
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const response = await fetch('/api/hikes');
+        const response = await fetch('/apinextjs/hikes');
         if (!response.ok) {
           throw new Error('Failed to fetch activities');
         }

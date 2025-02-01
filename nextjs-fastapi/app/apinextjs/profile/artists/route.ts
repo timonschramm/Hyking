@@ -35,7 +35,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(results);
   } catch (error) {
-    console.error('[POST /api/profile/artists] Error:', error);
+    console.error('[POST /apinextjs/profile/artists] Error:', error);
     return NextResponse.json({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'

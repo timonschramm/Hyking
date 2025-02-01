@@ -93,7 +93,7 @@ export default function SpotifyArtistsDisplay({
       });
       
     // console.log("Params:", params.toString());
-      const response = await fetch(`/api/spotify/authorize?${params}`);
+      const response = await fetch(`/apinextjs/spotify/authorize?${params}`);
 
       if (!response.ok) {
         throw new Error('Failed to get authorization URL');
@@ -123,7 +123,7 @@ export default function SpotifyArtistsDisplay({
       if (!response.ok) {
         if (response.status === 401) {
           // Token expired, try to refresh
-          const refreshResponse = await fetch('/api/spotify/refresh-token', {
+          const refreshResponse = await fetch('/apinextjs/spotify/refresh-token', {
             method: 'POST'
           });
 
@@ -175,7 +175,7 @@ export default function SpotifyArtistsDisplay({
 
       // Upload to database
     // console.log("newArtists:", newArtists)
-      const response = await fetch('/api/profile/artists', {
+      const response = await fetch('/apinextjs/profile/artists', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ artists: newArtists }),
@@ -196,7 +196,7 @@ export default function SpotifyArtistsDisplay({
 
   const deleteArtist = async (spotifyId: string) => {
     try {
-      const response = await fetch(`/api/profile/artists?artistId=${spotifyId}`, {
+      const response = await fetch(`/apinextjs/profile/artists?artistId=${spotifyId}`, {
         method: 'DELETE',
       });
 
@@ -218,7 +218,7 @@ export default function SpotifyArtistsDisplay({
       const artistToUpdate = profile.artists.find(a => a.artist.spotifyId === spotifyId);
       if (!artistToUpdate) return;
 
-      const response = await fetch(`/api/profile/artists?artistId=${artistToUpdate.artistId}&hidden=${!artistToUpdate.hidden}`, {
+      const response = await fetch(`/apinextjs/profile/artists?artistId=${artistToUpdate.artistId}&hidden=${!artistToUpdate.hidden}`, {
         method: 'PATCH',
       });
 
@@ -238,7 +238,7 @@ export default function SpotifyArtistsDisplay({
   const refreshSpotifyToken = async () => {
     try {
       // First try to refresh the token
-      const response = await fetch('/api/spotify/refresh-token', {
+      const response = await fetch('/apinextjs/spotify/refresh-token', {
         method: 'POST',
       });
 

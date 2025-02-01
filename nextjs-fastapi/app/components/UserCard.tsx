@@ -118,7 +118,7 @@ const UserCard = ({
 
   const recordSwipe = useCallback(async (userId: string, action: 'like' | 'dislike') => {
     try {
-      const response = await fetch('/api/users/swipes', {
+      const response = await fetch('/apinextjs/users/swipes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

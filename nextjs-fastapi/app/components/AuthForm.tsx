@@ -13,7 +13,7 @@ export default function AuthForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const endpoint = isLogin ? '/api/py/login' : '/api/py/signup';
+      const endpoint = isLogin ? '/apinextjs/py/login' : '/apinextjs/py/signup';
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: {

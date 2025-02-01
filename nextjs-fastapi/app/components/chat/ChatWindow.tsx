@@ -127,7 +127,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
       setIsTyping(true);
 
       try {
-        const response = await fetch(`/api/py/chat`, {
+        const response = await fetch(`/apinextjs/py/chat`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: currentUserId, user_input: message.trim() }),
@@ -177,7 +177,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
     } else {
       // Handle normal chat message
       try {
-        const response = await fetch('/api/chats/message', {
+        const response = await fetch('/apinextjs/chats/message', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   // Handle changing the group's hike
   const handleChangeHike = async (hikeId: string) => {
     try {
-      const response = await fetch(`/api/groupmatches/${chatRoom.groupMatch?.id}/change-hike`, {
+      const response = await fetch(`/apinextjs/groupmatches/${chatRoom.groupMatch?.id}/change-hike`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hikeId }),

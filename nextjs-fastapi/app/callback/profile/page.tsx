@@ -21,7 +21,7 @@ function CallbackContent() {
         }
       // console.log('Exchanging code for a token now...');
 
-        const tokenResponse = await fetch(`/api/auth/spotify/callback?code=${code}&path=/profile`);
+        const tokenResponse = await fetch(`/apinextjs/auth/spotify/callback?code=${code}&path=/profile`);
       // console.log('Token exchange response status:', tokenResponse.status);
 
         if (!tokenResponse.ok) {
@@ -36,7 +36,7 @@ function CallbackContent() {
         }
 
         // Update profile as Spotify connected
-        await fetch('/api/profile/update', {
+        await fetch('/apinextjs/profile/update', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

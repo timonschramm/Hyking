@@ -27,7 +27,7 @@ export default function Match() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-      const response = await fetch(`/api/userrecsbyid?userId=${user.id}`);
+      const response = await fetch(`/apinextjs/userrecsbyid?userId=${user.id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch profiles');
       }
@@ -50,7 +50,7 @@ export default function Match() {
 
   const fetchProfileImage = async () => {
     try {
-      const response = await fetch('/api/profile/image');
+      const response = await fetch('/apinextjs/profile/image');
       if (!response.ok) {
         throw new Error('Failed to fetch profile image');
       }

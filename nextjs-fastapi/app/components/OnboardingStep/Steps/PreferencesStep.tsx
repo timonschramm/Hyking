@@ -28,7 +28,7 @@ export default function PreferencesStep({
   useEffect(() => {
     async function fetchSkills() {
       try {
-        const response = await fetch('/api/profile/skills');
+        const response = await fetch('/apinextjs/profile/skills');
         if (!response.ok) throw new Error('Failed to fetch skills');
         const data = await response.json();
         setSkills(data);

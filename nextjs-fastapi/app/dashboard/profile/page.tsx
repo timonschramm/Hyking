@@ -143,8 +143,8 @@ export default function ProfilePage() {
       if (!user) return;
 
       const [profileResponse, skillsResponse] = await Promise.all([
-        fetch(`/api/profile?userId=${user.id}`),
-        fetch('/api/profile/skills')
+        fetch(`/apinextjs/profile?userId=${user.id}`),
+        fetch('/apinextjs/profile/skills')
       ]);
 
       if (!profileResponse.ok) throw new Error('Failed to fetch profile data');
@@ -190,7 +190,7 @@ export default function ProfilePage() {
       }
       formData.append('interests', JSON.stringify(userInterestIds));
 
-      const response = await fetch(`/api/profile?userId=${user.id}`, {
+      const response = await fetch(`/apinextjs/profile?userId=${user.id}`, {
         method: 'PUT',
         body: formData,
       });
@@ -279,7 +279,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchInterests = async () => {
       try {
-        const response = await fetch('/api/interests');
+        const response = await fetch('/apinextjs/interests');
         if (!response.ok) throw new Error('Failed to fetch interests');
         const interests: Interest[] = await response.json();
         setAvailableInterests(interests);

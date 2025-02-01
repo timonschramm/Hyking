@@ -33,8 +33,8 @@ export default function LikedMe() {
       try {
         // Fetch both received and sent likes in parallel
         const [receivedData, sentData] = await Promise.all([
-          fetch('/api/users/likes/received').then(res => res.json()),
-          fetch('/api/users/likes/sent').then(res => res.json())
+          fetch('/apinextjs/users/likes/received').then(res => res.json()),
+          fetch('/apinextjs/users/likes/sent').then(res => res.json())
         ]);
         
         setReceivedLikes(receivedData);

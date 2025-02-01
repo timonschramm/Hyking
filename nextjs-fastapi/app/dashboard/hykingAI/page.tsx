@@ -48,7 +48,7 @@ export default function HykingAIPage() {
 
     const fetchHikes = async () => {
       try {
-        const response = await fetch('/api/hikes');
+        const response = await fetch('/apinextjs/hikes');
         const data = await response.json();
         setAllHikes(data);
       } catch (error) {
@@ -79,7 +79,7 @@ export default function HykingAIPage() {
     setIsTyping(true);
 
     try {
-      const response = await fetch(`/api/py/chat`, {
+      const response = await fetch(`/apinextjs/py/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ user_id: userId, user_input: message.trim() }),
@@ -125,7 +125,7 @@ export default function HykingAIPage() {
 
  const handleCreateGroup = async (hikeId: string) => {
   try {
-    const response = await fetch('/api/groupmatches/create', {
+    const response = await fetch('/apinextjs/groupmatches/create', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ hikeId }),

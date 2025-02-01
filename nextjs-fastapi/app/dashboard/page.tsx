@@ -67,7 +67,7 @@ export default function DashboardPage() {
 
     const fetchHikes = async () => {
       try {
-        const response = await fetch('/api/hikes');
+        const response = await fetch('/apinextjs/hikes');
         const data = await response.json();
         setHikes(data);
       } catch (error) {

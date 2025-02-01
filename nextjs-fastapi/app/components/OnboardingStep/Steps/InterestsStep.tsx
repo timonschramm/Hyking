@@ -20,7 +20,7 @@ export function InterestsStep({ formData, errors, onChange }: InterestsStepProps
     const fetchInterests = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/interests');
+        const response = await fetch('/apinextjs/interests');
         if (response.ok) {
           const interests = await response.json();
           setAvailableInterests(interests);

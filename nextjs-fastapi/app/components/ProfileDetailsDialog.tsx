@@ -18,7 +18,7 @@ export function ProfileDetailsDialog({ profileId, initialData }: ProfileDetailsD
   useEffect(() => {
     const fetchProfileDetails = async () => {
       try {
-        const response = await fetch(`/api/profile?userId=${profileId}`)
+        const response = await fetch(`/apinextjs/profile?userId=${profileId}`)
         if (!response.ok) throw new Error('Failed to fetch profile details')
         const data = await response.json()
         setProfile(data)

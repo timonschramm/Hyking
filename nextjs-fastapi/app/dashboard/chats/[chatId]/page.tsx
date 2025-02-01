@@ -25,7 +25,7 @@ export default function SingleChatPage({
 
   const fetchChat = async () => {
     try {
-      const response = await fetch(`/api/chats/${params.chatId}`);
+      const response = await fetch(`/apinextjs/chats/${params.chatId}`);
       if (!response.ok) {
         throw new Error('Failed to fetch chat');
       }

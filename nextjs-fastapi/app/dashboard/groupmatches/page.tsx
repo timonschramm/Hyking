@@ -28,7 +28,7 @@ export default function GroupMatchesPage() {
         
         setCurrentUserId(user.id)
 
-        const response = await fetch('/api/groupmatches')
+        const response = await fetch('/apinextjs/groupmatches')
         if (!response.ok) throw new Error('Failed to fetch group matches')
         const data = await response.json()
         setGroupMatches(data)
@@ -44,7 +44,7 @@ export default function GroupMatchesPage() {
 
   const handleAcceptMatch = async (groupMatchId: string) => {
     try {
-      const response = await fetch(`/api/groupmatches/${groupMatchId}/accept`, {
+      const response = await fetch(`/apinextjs/groupmatches/${groupMatchId}/accept`, {
         method: 'POST',
       })
       
@@ -55,7 +55,7 @@ export default function GroupMatchesPage() {
         router.push(`/dashboard/chats/${updatedMatch.chatRoomId}`)
       }
       
-      const matchesResponse = await fetch('/api/groupmatches')
+      const matchesResponse = await fetch('/apinextjs/groupmatches')
       if (matchesResponse.ok) {
         const data = await matchesResponse.json()
         setGroupMatches(data)

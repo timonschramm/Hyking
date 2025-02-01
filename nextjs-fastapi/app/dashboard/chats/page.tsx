@@ -18,7 +18,7 @@ export default function ChatsPage() {
 
   const fetchChats = async () => {
   try {
-    const response = await fetch('/api/chats');
+    const response = await fetch('/apinextjs/chats');
     const data = await response.json();
 
     // Parse createdAt strings into Date objects

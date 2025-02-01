@@ -80,7 +80,7 @@ const Card = ({ data, active, removeCard }: ActivityCardProps) => {
 
   const recordSwipe = useCallback(async (activityId: number, action: 'like' | 'dislike') => {
     try {
-      const response = await fetch('/api/activities/swipes', {
+      const response = await fetch('/apinextjs/activities/swipes', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

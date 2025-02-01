@@ -143,7 +143,7 @@ const OnboardingStep: React.FC<OnboardingStepProps> = ({
   useEffect(() => {
     const fetchInterests = async () => {
       try {
-        const response = await fetch('/api/interests');
+        const response = await fetch('/apinextjs/interests');
         if (response.ok) {
           const interests = await response.json();
         // console.log('API Response:', interests);

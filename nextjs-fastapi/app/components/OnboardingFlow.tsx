@@ -161,7 +161,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
       submitFormData.append('data', JSON.stringify(transformedData));
 
-      const response = await fetch('/api/profile/update', {
+      const response = await fetch('/apinextjs/profile/update', {
         method: 'POST',
         body: submitFormData,
       });

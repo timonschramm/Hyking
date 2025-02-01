@@ -20,7 +20,7 @@ export default function ArtistsList({ artists }: { artists: Artist[] }) {
       const artist = localArtists.find(a => a.artistId === artistId);
       if (!artist) return;
 
-      const response = await fetch(`/api/profile/artists/${artistId}`, {
+      const response = await fetch(`/apinextjs/profile/artists/${artistId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ hidden: !artist.hidden })
