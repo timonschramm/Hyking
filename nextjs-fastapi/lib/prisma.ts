@@ -12,13 +12,19 @@ export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     // log: ['query'],
+    transactionOptions: {
+      maxWait: 60000,    // increased to 60 seconds
+      timeout: 60000,    // increased to 60 seconds
+      isolationLevel: 'ReadCommitted'  // added for better transaction handling
+    },
     datasources: {
       db: {
         url: process.env.DATABASE_URL,
       },
     },
-  }).$extends(
-    withOptimize({ apiKey: process.env.OPTIMIZE_API_KEY! })
-  );
+  })
+  // .$extends(
+  //   withOptimize({ apiKey: process.env.OPTIMIZE_API_KEY! })
+  // );
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma 

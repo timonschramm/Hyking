@@ -263,6 +263,8 @@ model Message {
   createdAt  DateTime  @default(now())
   chatRoomId String
   senderId   String
+  isAI       Boolean   @default(false)
+  metadata   Json?
   chatRoom   ChatRoom  @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
   sender     Profile   @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

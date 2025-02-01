@@ -11,12 +11,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { content, chatRoomId } = await request.json();
+    const { content, chatRoomId, isAI } = await request.json();
   // console.log('Received message request:', { content, chatRoomId, userId: user.id });
 
     if (!chatRoomId) {
       return NextResponse.json({ error: 'ChatRoom ID is required' }, { status: 400 });
     }
+
+    // Use HykingAI profile ID for AI messages
+    const senderId = isAI ? '09c8872c-b243-4605-8d7d-44b548f9c2f4' : user.id;
 
     // Use a transaction to ensure both operations succeed or fail together
     const { message, chatRoom } = await prisma.$transaction(async (tx) => {
@@ -24,7 +27,7 @@ export async function POST(request: NextRequest) {
         data: {
           content,
           chatRoomId,
-          senderId: user.id,
+          senderId,
         },
         include: {
           sender: true,

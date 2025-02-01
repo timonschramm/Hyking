@@ -37,8 +37,8 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Get the current session and user
-  const { data: { session } } = await supabase.auth.getSession()
+  // Get the current user securely
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Public paths that don't require onboarding check
   const publicPaths = ['/', '/auth', '/onboarding', '/_next', '/api', '/favicon.ico', '/public']
@@ -46,19 +46,19 @@ export async function middleware(request: NextRequest) {
   const isDashboardPath = request.nextUrl.pathname.startsWith('/dashboard')
 
   // If not logged in and trying to access dashboard, redirect to login
-  if (!session && isDashboardPath) {
+  if (!user && isDashboardPath) {
     const redirectUrl = new URL('/login', request.url)
     return NextResponse.redirect(redirectUrl)
   }
 
   // Only check onboarding status for dashboard routes
-  if (session?.user && isDashboardPath) {
+  if (user && isDashboardPath) {
     try {
       // Get user profile from Supabase
       const { data: profile } = await supabase
         .from('Profile')
         .select('onboardingCompleted')
-        .eq('id', session.user.id)
+        .eq('id', user.id)
         .single()
 
       // If onboarding is not completed, redirect to onboarding page

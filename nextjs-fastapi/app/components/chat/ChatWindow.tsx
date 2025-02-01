@@ -51,7 +51,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   const hykingAISender = {
     id: 'hykingAI',
     age: null,
-    imageUrl: '/path/to/bot/avatar.jpg', // Add a default avatar for the bot
+    imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Magic_Wand_Icon_229981_Color_Flipped.svg/1024px-Magic_Wand_Icon_229981_Color_Flipped.svg.png', // Add a default avatar for the bot
     gender: null,
     location: null,
     dogFriendly: null,
@@ -86,112 +86,100 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatRoom.messages]);
 
+  // Add useEffect for Supabase realtime subscription
+  useEffect(() => {
+    const channel = supabase
+      .channel('messages')
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        const newMessage = payload.payload;
+        
+        // Only update if the message belongs to this chat room
+        if (newMessage.chatRoomId === chatRoom.id) {
+          // Ensure createdAt is a Date object
+          if (typeof newMessage.createdAt === 'string') {
+            newMessage.createdAt = new Date(newMessage.createdAt);
+          }
+
+          setChatRoom(prevChatRoom => ({
+            ...prevChatRoom,
+            messages: [...prevChatRoom.messages, newMessage]
+          }));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatRoom.id]);
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || !currentUserId) return;
 
-    // Create a user message with the sender property
-    const userMessage = {
-      id: Date.now().toString(),
-      senderId: currentUserId,
-      content: message.trim(),
-      createdAt: new Date(), // Use Date object instead of string
-      chatRoomId: chatRoom.id, // Add chatRoomId
-      sender: {
-        id: currentUserId,
-        age: null, // Add actual user data if available
-        imageUrl: '/path/to/user/avatar.jpg', // Add actual user data if available
-        gender: null,
-        location: null,
-        dogFriendly: null,
-        spotifyConnected: false,
-        email: 'user@example.com', // Add actual user data if available
-        displayName: 'User', // Add actual user data if available
-        onboardingCompleted: true, // Add missing properties
-        spotifyAccessToken: null,
-        spotifyTokenExpiry: null,
-        spotifyRefreshToken: null,
-        bio: null,
-      },
-    };
+    const isAIMessage = message.trim().toLowerCase().startsWith('hey hykingai');
+    
+    try {
+      // Send user message
+      const response = await fetch('/apinextjs/chats/message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: message,
+          chatRoomId: chatRoom.id,
+          isAI: false,
+          metadata: null
+        }),
+      });
 
-    // Add user message to the chat
-    const updatedMessages = [...chatRoom.messages, userMessage];
-    setChatRoom((prevChatRoom) => ({
-      ...prevChatRoom,
-      messages: updatedMessages,
-    }));
-    setMessage('');
+      if (!response.ok) throw new Error('Failed to send message');
+      setMessage('');
 
-    if (message.trim().toLowerCase().startsWith('hey hykingai')) {
-      setIsTyping(true);
+      // Handle AI response if needed
+      if (isAIMessage) {
+        setIsTyping(true);
+        try {
+          const aiResponse = await fetch(`/api/py/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUserId, user_input: message.trim() }),
+          });
 
-      try {
-        const response = await fetch(`/api/py/chat`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUserId, user_input: message.trim() }),
-        });
+          if (!aiResponse.ok) throw new Error('Failed to get AI response');
+          const data = await aiResponse.json();
 
-        if (!response.ok) throw new Error('Failed to fetch response from backend');
-
-        const data = await response.json();
-        const hikes = data.hikes || [];
-        const weather = data.weather || null;
-
-        // Transform the chatbot response into the chat system's format
-        const botResponse = {
-          id: (Date.now() + 1).toString(),
-          senderId: 'hykingAI',
-          content: data.response || 'Here are some hikes you might like:',
-          createdAt: new Date(), // Use Date object instead of string
-          chatRoomId: chatRoom.id, // Add chatRoomId
-          sender: hykingAISender, // Use the default sender for the bot
-          hikes: hikes,
-          weather: weather,
-        };
-
-        setTimeout(() => {
-          setChatRoom((prevChatRoom) => ({
-            ...prevChatRoom,
-            messages: [...updatedMessages, botResponse],
-          }));
+          // Send AI message with metadata
+          await fetch('/apinextjs/chats/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: data.response || 'Here are some hikes you might like:',
+              chatRoomId: chatRoom.id,
+              isAI: true,
+              metadata: {
+                hikes: data.hikes || [],
+                weather: data.weather || null
+              }
+            }),
+          });
+        } catch (error) {
+          console.error('AI Error:', error);
+          await fetch('/apinextjs/chats/message', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: 'Sorry, I encountered an error. Please try again.',
+              chatRoomId: chatRoom.id,
+              isAI: true,
+              metadata: null
+            }),
+          });
+        } finally {
           setIsTyping(false);
-        }, 1000); // Simulate typing delay
-      } catch (error) {
-        console.error('Error:', error);
-        const errorMessage = {
-          id: (Date.now() + 2).toString(),
-          senderId: 'hykingAI',
-          content: 'Something went wrong. Please try again.',
-          createdAt: new Date(), // Use Date object instead of string
-          chatRoomId: chatRoom.id, // Add chatRoomId
-          sender: hykingAISender, // Use the default sender for the bot
-        };
-        setChatRoom((prevChatRoom) => ({
-          ...prevChatRoom,
-          messages: [...updatedMessages, errorMessage],
-        }));
-        setIsTyping(false);
+        }
       }
-    } else {
-      // Handle normal chat message
-      try {
-        const response = await fetch('/apinextjs/chats/message', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            content: message,
-            chatRoomId: chatRoom.id,
-          }),
-        });
-
-        if (!response.ok) throw new Error('Failed to send message');
-      } catch (error) {
-        console.error('Error sending message:', error);
-      }
+    } catch (error) {
+      console.error('Error sending message:', error);
     }
   };
 
@@ -307,26 +295,30 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
                   senderProfile={senderProfile}
                 />
 
-                {/* Render hikes if they exist */}
-                {(msg as any).hikes && (msg as any).hikes.length > 0 && (
-                  <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {(msg as any).hikes.map((hike: any) => (
-                      <div
-                        key={hike.id}
-                        className="cursor-pointer"
-                        onClick={() => handleHikeClick(hike)}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`View details of ${hike.title}`}
-                      >
-                        <HikeCard hike={hike} />
+                {/* Render metadata content if exists */}
+                {msg.metadata && (
+                  <>
+                    {msg.metadata.hikes?.length > 0 && (
+                      <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {msg.metadata.hikes.map((hike: any) => (
+                          <div
+                            key={hike.id}
+                            className="cursor-pointer"
+                            onClick={() => handleHikeClick(hike)}
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`View details of ${hike.title}`}
+                          >
+                            <HikeCard hike={hike} />
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
+                    )}
+                    {msg.metadata.weather && (
+                      <WeatherWidget weather={msg.metadata.weather} />
+                    )}
+                  </>
                 )}
-
-                {/* Render weather if it exists */}
-                {(msg as any).weather && <WeatherWidget weather={(msg as any).weather} />}
               </div>
             );
           })}
