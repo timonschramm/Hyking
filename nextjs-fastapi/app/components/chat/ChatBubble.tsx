@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import { cn } from "@/lib/utils";
 import Image from 'next/image';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatBubbleProps {
   content: string;
@@ -13,6 +14,12 @@ interface ChatBubbleProps {
     email: string;
   } | null;
 }
+
+// Function to convert **text** to markdown strong
+const preprocessContent = (content: string) => {
+  // Keep the **text** format as is, we'll handle it in the markdown renderer
+  return content;
+};
 
 export const ChatBubble = ({ 
   content, 
@@ -55,7 +62,20 @@ export const ChatBubble = ({
             {senderProfile.email.split('@')[0]}
           </span>
         )}
-          <div className="mb-1 break-words text-[0.9375rem] leading-[1.25rem]">{content}</div>
+          <div className="mb-1 break-words text-[0.9375rem] leading-[1.25rem] markdown-content">
+            <ReactMarkdown
+              components={{
+                strong: ({ node, ...props }) => (
+                  <span className="font-semibold" {...props} />
+                ),
+                p: ({ node, ...props }) => (
+                  <p className="mb-2 last:mb-0" {...props} />
+                )
+              }}
+            >
+              {preprocessContent(content)}
+            </ReactMarkdown>
+          </div>
           <div className="flex items-center justify-end gap-1">
             <span className="text-[0.65rem] text-gray-500">
               {format(timestamp, 'HH:mm')}

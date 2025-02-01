@@ -44,6 +44,7 @@ export default function DashboardLayout({
   const router = useRouter();
   const [user, setUser] = useState<{ name?: string; email?: string; image?: string } | null>(null);
   const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isChatWindowOpen, setIsChatWindowOpen] = useState<boolean>(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -111,9 +112,17 @@ export default function DashboardLayout({
     window.addEventListener('resize', handleResize);
     handleResize(); // Initial check
 
+    // Listen for chat window state changes
+    const handleChatWindowState = (event: any) => {
+      setIsChatWindowOpen(event.detail.isOpen);
+    };
+
+    window.addEventListener('chatWindowStateChange', handleChatWindowState);
+
     return () => {
       subscription.unsubscribe();
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('chatWindowStateChange', handleChatWindowState);
     };
   }, [supabase.auth]);
 
@@ -155,7 +164,7 @@ export default function DashboardLayout({
             <div className={`flex-1 ${pathname === '/dashboard/match' ? 'overflow-hidden' : 'overflow-y-auto'} bg-white`}>
               {children}
             </div>
-            <NavigationBottomBar user={user} dropdownContent={dropdownContent} />
+            {!isChatWindowOpen && <NavigationBottomBar user={user} dropdownContent={dropdownContent} />}
           </div>
         </>
       ) : (

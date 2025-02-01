@@ -5,11 +5,26 @@ import ChatList from '@/app/components/chat/ChatList';
 import ChatWindow from '@/app/components/chat/ChatWindow';
 import { ChatRoomWithDetails, RealtimeMessage, Message, MessageMetadata } from '@/types/chat';
 
+// Create a custom event for chat window state
+const CHAT_WINDOW_STATE_EVENT = 'chatWindowStateChange';
+
 export default function ChatsPage() {
   const [chatRooms, setChatRooms] = useState<ChatRoomWithDetails[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatRoomWithDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const supabase = createClient();
+
+  // Function to notify parent layout about chat window state
+  const notifyLayoutAboutChatWindow = (isOpen: boolean) => {
+    const event = new CustomEvent(CHAT_WINDOW_STATE_EVENT, { detail: { isOpen } });
+    window.dispatchEvent(event);
+  };
+
+  // Update layout when chat selection changes
+  useEffect(() => {
+    notifyLayoutAboutChatWindow(!!selectedChat);
+    return () => notifyLayoutAboutChatWindow(false);
+  }, [selectedChat]);
 
   useEffect(() => {
     fetchChats();
