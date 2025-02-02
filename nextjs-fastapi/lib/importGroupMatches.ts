@@ -358,7 +358,7 @@ async function getGroupSkillEmbedding(group: Array<string>){
           profileId: user_id,
           skill: {
             displayName: {
-              not: "Transportation", // Alle Skills außer "Car"
+              not: "Transportation", 
             },
           },
         },
@@ -436,9 +436,13 @@ export async function getHikeEmbeddings(){
   const hikesWithScore: [number, number[]][] = allHikes.map((hike) => {
 
     const distanceScore = normalize(hike.length, minmaxValues.length.min, minmaxValues.length.max);
-    const experienceScore = normalize((hike.experienceRating + hike.difficulty) / 2,
+
+    const scaledDifficulty = (hike.difficulty / 3) * 6;
+    const experienceScore = normalize(
+      (hike.experienceRating + hike.staminaRating + scaledDifficulty) / 3,
       minmaxValues.experienceRating.min,
-      minmaxValues.experienceRating.max);
+      minmaxValues.experienceRating.max
+    );
     const paceScore = normalize(hike.durationMin, minmaxValues.durationMin.min,  minmaxValues.durationMin.max);
     return [hike.id, [distanceScore, experienceScore, paceScore]]
   })
