@@ -156,15 +156,18 @@ export default function ChatList({ chatRooms, selectedChat, onSelectChat, isLoad
       <div className="h-[calc(100vh-4rem)] overflow-y-auto">
         <div className="flex flex-col">
           {sortedChats.map((chat) => (
-            <ChatListItem
+            <button 
               key={chat.id}
-              chat={chat}
-              isSelected={selectedChat?.id === chat.id}
-              currentUserId={currentUserId}
-              onClick={() => {
-                onSelectChat(chat);
-              }}
-            />
+              className={`w-full text-left ${selectedChat?.id === chat.id ? 'bg-neutral-100' : 'hover:bg-neutral-50'}`}
+              onClick={() => onSelectChat(chat)}
+            >
+              <ChatListItem
+                chat={chat}
+                isSelected={selectedChat?.id === chat.id}
+                currentUserId={currentUserId}
+                onClick={() => onSelectChat(chat)}
+              />
+            </button>
           ))}
         </div>
       </div>

@@ -258,19 +258,15 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
     <div className="flex flex-col h-full bg-white">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b p-4 bg-white shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-2 w-full">
-          {/* Show back button only on mobile OR in single chat view */}
-          {window.location.pathname.includes('/chats/') ? (
+          {/* Show back button on mobile or in single chat view */}
+          {(window.innerWidth < 768 || window.location.pathname.includes('/chats/')) && (
             <button
-              onClick={onBack}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onBack();
+              }}
               className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center"
-              aria-label="Go back"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-          ) : (
-            <button
-              onClick={onBack}
-              className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center md:hidden"
               aria-label="Go back"
             >
               <ChevronLeft className="h-6 w-6" />

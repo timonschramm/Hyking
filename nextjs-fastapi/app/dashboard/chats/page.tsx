@@ -117,6 +117,7 @@ export default function ChatsPage() {
 
   return (
     <div className="grid h-full grid-cols-1 gap-4 md:grid-cols-[300px_1fr]">
+      {/* Chat List - Always visible on desktop, hidden on mobile when chat is selected */}
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'hidden md:block' : 'block'}`}>
         {chatRooms.length === 0 && !isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -129,6 +130,7 @@ export default function ChatsPage() {
             chatRooms={chatRooms}
             selectedChat={selectedChat}
             onSelectChat={(chat) => {
+              console.log('Selecting chat:', chat.id); // Debug log
               setSelectedChat(chat);
             }}
             isLoading={isLoading}
@@ -136,11 +138,16 @@ export default function ChatsPage() {
         )}
       </div>
 
+      {/* Chat Window - Hidden on mobile when no chat is selected */}
       <div className={`border rounded-lg overflow-hidden ${selectedChat ? 'block' : 'hidden md:block'}`}>
         {selectedChat ? (
           <ChatWindow
+            key={selectedChat.id} // Add key to force re-render
             chatRoom={selectedChat}
-            onBack={() => setSelectedChat(null)}
+            onBack={() => {
+              console.log('Back button clicked'); // Debug log
+              setSelectedChat(null);
+            }}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground">
