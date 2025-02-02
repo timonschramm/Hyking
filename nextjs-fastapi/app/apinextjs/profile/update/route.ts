@@ -85,6 +85,7 @@ export async function POST(req: NextRequest) {
 
     // Convert form data to match Prisma schema
     const profileData = {
+      displayName: data.displayName || undefined,
       email: user.email,
       age: data.age ? parseInt(data.age) : undefined,
       gender: data.gender || undefined,

@@ -27,7 +27,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
   onClick: () => void
 }) {
   const lastMessage = chat.messages[chat.messages.length - 1];
-  const messagePreview = lastMessage ? `${lastMessage.sender?.email?.split('@')[0] ?? 'Unknown'}: ${lastMessage.content}` : 'No messages yet';
+  const messagePreview = lastMessage ? `${lastMessage.sender?.displayName ?? 'Unknown'}: ${lastMessage.content}` : 'No messages yet';
   const messageTime = lastMessage ? formatMessageDate(lastMessage.createdAt) : '';
 
   // For group chats

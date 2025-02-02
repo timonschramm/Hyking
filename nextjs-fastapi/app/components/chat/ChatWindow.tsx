@@ -45,6 +45,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   const [selectedHike, setSelectedHike] = useState<HikeData | null>(null); // Selected hike for modal
   const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
   const [chatRoom, setChatRoom] = useState(initialChatRoom); // Local state for chatRoom
+  const [showPrompts, setShowPrompts] = useState(true); // Add this state
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -248,7 +249,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   } else if (chatRoom.match) {
     const otherUser = chatRoom.match.users[0]?.user;
     if (otherUser) {
-      chatTitle = otherUser.email.split('@')[0];
+      chatTitle = otherUser.displayName || "Anon";
       chatImage = otherUser.imageUrl || '/default-avatar.jpg';
     }
   }
@@ -302,7 +303,8 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
             const isSender = msg.senderId === currentUserId;
             const senderProfile = msg.sender ? {
               imageUrl: msg.sender.imageUrl || '/default-avatar.jpg',
-              email: msg.sender.email
+              email: msg.sender.email,
+              displayName: msg.sender.displayName || "Anon"
             } : null;
             const prevMsg = index > 0 ? chatRoom.messages[index - 1] : null;
             const showDateSeparator = shouldShowDateSeparator(msg, prevMsg);
@@ -370,23 +372,42 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
 
       {/* Chatbot prompt and example bubbles */}
       <div className="fixed bottom-0 left-0 right-0 z-40 sm:relative p-4 bg-white border-t shadow-lg sm:shadow-none">
-        <div className="mb-4 max-h-[60px] overflow-y-auto">
-          <p className="text-sm text-gray-600 text-center">
-            Ask our chatbot anything in this chat by typing{" "}
-            <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
-            {examplePrompts.map((prompt, index) => (
-              <button
-                key={index}
-                onClick={() => handleExamplePromptClick(prompt)}
-                className="px-4 py-2 bg-green-50 text-green-600 text-sm rounded-full hover:bg-green-100 transition-colors"
-              >
-                {prompt}
-              </button>
-            ))}
+        {showPrompts && (
+          <div className="mb-4 relative">
+            <button 
+              onClick={() => setShowPrompts(false)}
+              className="absolute right-0 top-0 text-gray-500 hover:text-gray-700 p-1"
+              aria-label="Close prompts"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <p className="text-sm text-gray-600 text-center">
+              Ask our chatbot by typing{" "}
+              <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {examplePrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleExamplePromptClick(prompt)}
+                  className="px-4 py-2 bg-green-50 text-green-600 text-sm rounded-full hover:bg-green-100 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
+        {!showPrompts && (
+          <button
+            onClick={() => setShowPrompts(true)}
+            className="mb-4 text-sm text-green-600 hover:text-green-700 flex items-center justify-center w-full"
+          >
+            <span>Show example prompts</span>
+          </button>
+        )}
 
         <form onSubmit={handleSendMessage} className="flex items-center gap-2 bg-white">
           <input

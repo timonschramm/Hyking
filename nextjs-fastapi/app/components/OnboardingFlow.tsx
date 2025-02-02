@@ -30,6 +30,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState(() => ({
+    displayName: initialData.displayName || '',
     imageFile: null,
     imageUrl: initialData.imageUrl || null,
     email: initialData.email || '',
@@ -148,6 +149,7 @@ export default function OnboardingFlow({ initialData }: OnboardingFlowProps) {
 
       // Transform and add the rest of the data
       const transformedData = {
+        displayName: formData.displayName,
         age: parseInt(formData.age),
         gender: formData.gender,
         location: formData.location,

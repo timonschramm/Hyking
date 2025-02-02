@@ -12,6 +12,22 @@ export function BasicInformationStep({ formData, errors, onChange }: BasicInform
   return (
     <div className="space-y-6">
       <div className="space-y-2">
+        <Label htmlFor="displayName">Display Name</Label>
+        <Input
+          id="displayName"
+          type="text"
+          placeholder="Enter your display name"
+          value={formData.displayName || ''}
+          onChange={(e) => onChange('displayName', e.target.value)}
+          className={errors.displayName ? 'border-red-500 focus:ring-red-500' : ''}
+          aria-invalid={errors.displayName ? 'true' : 'false'}
+        />
+        {errors.displayName && (
+          <p className="text-sm text-red-500 mt-1">{errors.displayName}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="age">Age</Label>
         <Input
           id="age"

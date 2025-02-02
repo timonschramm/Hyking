@@ -92,7 +92,7 @@ export default function LikedMe() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <h3 className="text-xl font-semibold text-white mb-1">
-                {profile.displayName || profile.email?.split('@')[0] || 'Anonymous'}
+                {profile.displayName || 'Anonymous'}
               </h3>
               {profile.location && (
                 <div className="flex items-center gap-1.5 text-white/90">

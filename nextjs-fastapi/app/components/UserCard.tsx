@@ -16,6 +16,7 @@ import UserArtistDisplay from './UserArtistDisplay';
 import { toast } from "sonner";
 import { useRouter } from 'next/navigation';
 import Modal from 'react-modal';
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 // Bind modal to your appElement for accessibility
 if (typeof window !== 'undefined') {
@@ -216,7 +217,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
             <div className="flex items-end justify-between">
               <div>
                 <h3 className="text-white text-sm font-medium leading-tight">
-                  {data.email.split('@')[0]}
+                  {data.displayName || "No name provided"}
                 </h3>
                 <p className="text-white/90 text-xs">
                   {data.age} years
@@ -240,7 +241,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
           isOpen={modalIsOpen}
           onRequestClose={closeModal}
           style={customModalStyles}
-          contentLabel={`${data.email.split('@')[0]}'s Profile`}
+          contentLabel={`${data.displayName || "anon"}'s Profile`}
           className="rounded-2xl overflow-hidden bg-background-white shadow-xl"
         >
           <div className="no-scrollbar max-h-[85vh] overflow-y-auto">
@@ -248,7 +249,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
               <Image
                 src={data.imageUrl || `/default-avatar.jpg`}
                 fill
-                alt={`${data.email}'s profile`}
+                alt={`${data.displayName || "anon"}'s profile`}
                 className="object-cover"
                 priority
               />
@@ -262,7 +263,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
 
             <div className="space-y-4 p-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-semibold">{data.email.split('@')[0]}</h2>
+                <h2 className="text-2xl font-semibold">{data.displayName || "Anon"}</h2>
                 <span className="text-lg">{data.age || '?'} years</span>
               </div>
 
@@ -392,7 +393,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
                   <Image
                     src={data.imageUrl || `/default-avatar.jpg`}
                     fill
-                    alt={`${data.email}'s profile`}
+                    alt={`${data.displayName || "anon"}'s profile`}
                     className="object-cover"
                     priority
                   />
@@ -400,9 +401,15 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
 
                 <div className="absolute bottom-0 w-full bg-gradient-to-t from-black/70 to-transparent p-4 text-white">
                   <div className="flex items-center gap-2 mb-2">
-                    <h2 className="text-xl font-semibold">{data.email.split('@')[0]}</h2>
-                    <span className="text-sm">•</span>
-                    <span className="text-sm">{data.age || '?'}</span>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={data.imageUrl || ''} alt={data.displayName || "anon"} />
+                        <AvatarFallback>{data.displayName?.[0] || "User"}</AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm font-medium">
+                        {data.displayName || "Anon"}
+                      </div>
+                    </div>
                   </div>
 
                   {data.location && (
@@ -426,7 +433,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
               isOpen={modalIsOpen}
               onRequestClose={closeModal}
               style={customModalStyles}
-              contentLabel={`${data.email.split('@')[0]}'s Profile`}
+              contentLabel={`${data.displayName || "Anon"}'s Profile`}
               className="rounded-2xl overflow-hidden bg-background-white shadow-xl"
             >
               <div className="no-scrollbar max-h-[85vh] overflow-y-auto">
@@ -434,7 +441,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
                   <Image
                     src={data.imageUrl || `/default-avatar.jpg`}
                     fill
-                    alt={`${data.email}'s profile`}
+                    alt={`${data.displayName || "Anon"}'s profile`}
                     className="object-cover"
                     priority
                   />
@@ -448,7 +455,7 @@ const UserCard = forwardRef<HTMLDivElement, UserCardProps>(function UserCard({
 
                 <div className="space-y-4 p-6">
                   <div className="flex justify-between items-center">
-                    <h2 className="text-2xl font-semibold">{data.email.split('@')[0]}</h2>
+                    <h2 className="text-2xl font-semibold">{data.displayName || "Anon"}</h2>
                     <span className="text-lg">{data.age || '?'} years</span>
                   </div>
 

@@ -32,7 +32,7 @@ model Activity {
   primaryRegion           String
   primaryImageId          String
   publicTransportFriendly Boolean
-  category                Category        @relation(fields: [categoryId], references: [id])
+  category                Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   swipes                  ActivitySwipe[]
   images                  Image[]
   seasons                 Season[]
@@ -50,14 +50,14 @@ model Season {
   activityId Int
   month      String
   isActive   Boolean
-  activity   Activity @relation(fields: [activityId], references: [id])
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 }
 
 model Image {
   id         Int      @id @default(autoincrement())
   activityId Int
   imageId    String
-  activity   Activity @relation(fields: [activityId], references: [id])
+  activity   Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
@@ -112,9 +112,9 @@ model Match {
 }
 
 model UsersOnMatch {
-  match     Match    @relation(fields: [matchId], references: [id])
+  match     Match    @relation(fields: [matchId], references: [id], onDelete: Cascade)
   matchId   String
-  user      Profile  @relation(fields: [userId], references: [id])
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
 
   @@id([matchId, userId])
@@ -151,7 +151,6 @@ model UserArtist {
   @@unique([profileId, artistId])
   @@index([profileId, hidden])
 }
-
 
 model Interest {
   id          String           @id @default(cuid())
@@ -243,7 +242,6 @@ enum InterestCategory {
   STAYING_IN
 }
 
-
 model ChatRoom {
   id           String       @id @default(cuid())
   createdAt    DateTime     @default(now())
@@ -253,7 +251,7 @@ model ChatRoom {
   participants Participant[]
   matchId      String?      @unique
   match        Match?       @relation(fields: [matchId], references: [id], onDelete: Cascade)
-  groupMatch   GroupMatch?  @relation(fields: [groupMatchId], references: [id])
+  groupMatch   GroupMatch?  @relation(fields: [groupMatchId], references: [id], onDelete: Cascade)
   groupMatchId String?      @unique
 }
 
@@ -279,7 +277,6 @@ model Participant {
 
   @@unique([chatRoomId, profileId])
   @@index([profileId])
-
 }
 
 model GroupMatch {
@@ -293,15 +290,13 @@ model GroupMatch {
 }
 
 model ProfileOnGroupSuggestion {
-  profile                Profile                @relation(fields: [profileId], references: [id])
+  profile                Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
   profileId              String
-  groupMatch GroupMatch @relation(fields: [groupMatchId], references: [id])
+  groupMatch GroupMatch @relation(fields: [groupMatchId], references: [id], onDelete: Cascade)
   groupMatchId String
   hasAccepted           Boolean                @default(false)
 
   @@id([profileId, groupMatchId])
 }
-
-
 
 // TODO DOes Indexing Make Sense?

@@ -102,6 +102,7 @@ export interface ChatRoomWithDetails {
       user: {
         email: string;
         imageUrl?: string;
+        displayName?: string;
       };
     }>;
   };

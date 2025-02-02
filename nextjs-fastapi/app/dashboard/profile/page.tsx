@@ -14,6 +14,7 @@ import InterestsOption from '@/app/components/OnboardingStep/StepOptions/Interes
 import SkillsOption from '@/app/components/OnboardingStep/StepOptions/SkillsOption';
 import { UserInterestWithInterest } from '@/types/Interest';
 import { ProfileWithArtistsAndInterestsAndSkills } from '@/types/profiles';
+import { Input } from "@/components/ui/input"
 
 
 
@@ -47,6 +48,12 @@ const ProfileSkeleton = () => {
         {/* Profile Content */}
         <div className="pt-20 px-6 pb-6">
           <div className="grid grid-cols-1 gap-6">
+            {/* Display Name Field */}
+            <div className="space-y-2">
+              <label className="text-sm text-gray-500">Display Name</label>
+              <Skeleton className="h-10 w-full max-w-[200px] bg-gray-200" />
+            </div>
+
             {/* Age Field - Static Label with Skeleton Value */}
             <div className="space-y-2">
               <label className="text-sm text-gray-500">Age</label>
@@ -360,157 +367,178 @@ export default function ProfilePage() {
 
         {/* Profile Content */}
         <div className="pt-20 px-6 pb-6">
-          {profileData ? (
-            <div className="grid grid-cols-1 gap-6">
-              {/* Age Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Age</label>
-                {isEditing ? (
-                  <input
-                    type="number"
-                    value={editedData?.age || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, age: parseInt(e.target.value) })}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                ) : (
-                  <p className="text-lg">{profileData.age}</p>
-                )}
-              </div>
-
-              {/* Gender Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Gender</label>
-                {isEditing ? (
-                  <select
-                    value={editedData?.gender || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, gender: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                ) : (
-                  <p className="text-lg">{profileData.gender}</p>
-                )}
-              </div>
-
-              {/* Location Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Location</label>
-                {isEditing ? (
-                  <input
-                    type="text"
-                    value={editedData?.location || ''}
-                    onChange={(e) => setEditedData({ ...editedData!, location: e.target.value })}
-                    className="w-full p-2 border rounded-lg"
-                  />
-                ) : (
-                  <p className="text-lg">{profileData.location}</p>
-                )}
-              </div>
-
-              {/* Dog Friendly Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Dog Friendly</label>
-                {isEditing ? (
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={editedData?.dogFriendly || false}
-                      onChange={(e) => setEditedData({ ...editedData!, dogFriendly: e.target.checked })}
-                      className="w-4 h-4 mr-2"
+          <div className="grid grid-cols-1 gap-6">
+            {profileData ? (
+              <>
+                {/* Display Name Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Display Name</label>
+                  {isEditing ? (
+                    <Input
+                      type="text"
+                      value={editedData?.displayName || ''}
+                      onChange={(e) => setEditedData(prev => prev ? { ...prev, displayName: e.target.value } : null)}
+                      className="w-full max-w-[300px]"
+                      placeholder="Enter your display name"
                     />
-                    <span>Yes, I&apos;m dog friendly</span>
-                  </div>
-                ) : (
-                  <p className="text-lg">{profileData.dogFriendly ? 'Yes' : 'No'}</p>
-                )}
-              </div>
+                  ) : (
+                    <div className="text-lg font-medium">
+                      {profileData.displayName || 'Anonymous User'}
+                    </div>
+                  )}
+                </div>
 
-              {/* Spotify Connected Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Spotify Connected</label>
-                {isEditing ? (
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={editedData?.spotifyConnected || false}
-                      onChange={(e) => setEditedData({ ...editedData!, spotifyConnected: e.target.checked })}
-                      className="w-4 h-4 mr-2"
+                {/* Age Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Age</label>
+                  {isEditing ? (
+                    <Input
+                      type="number"
+                      value={editedData?.age || ''}
+                      onChange={(e) => setEditedData(prev => prev ? { ...prev, age: parseInt(e.target.value) } : null)}
+                      className="w-full max-w-[300px]"
                     />
-                    <span>Connect to Spotify</span>
-                  </div>
-                ) : (
-                  <p className="text-lg">{profileData.spotifyConnected ? 'Connected' : 'Not Connected'}</p>
-                )}
-              </div>
+                  ) : (
+                    <div className="text-lg font-medium">{profileData.age}</div>
+                  )}
+                </div>
 
-              {/* Interests Field */}
-              <div className="space-y-2">
-                <label className="text-sm text-gray-500">Interests</label>
-                {isEditing ? (
-                  <InterestsOption
-                    availableInterests={availableInterests}
-                    formData={{
-                      interests: userInterestIds || []
-                    }}
-                    onInterestSelect={handleInterestSelect}
-                    maxSelect={5}
-                  />
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {profileData.interests?.map((userInterest) => (
-                      <span
-                        key={userInterest.interest.id}
-                        className="bg-primary-light text-primary px-3 py-1 rounded-full text-sm"
-                      >
-                        {userInterest.interest.displayName? userInterest.interest.displayName : "Name not set"}
-                      </span>
+                {/* Gender Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Gender</label>
+                  {isEditing ? (
+                    <select
+                      value={editedData?.gender || ''}
+                      onChange={(e) => setEditedData(prev => prev ? { ...prev, gender: e.target.value } : null)}
+                      className="flex h-10 w-full max-w-[300px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <option value="">Select Gender</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  ) : (
+                    <div className="text-lg font-medium">{profileData.gender}</div>
+                  )}
+                </div>
+
+                {/* Location Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Location</label>
+                  {isEditing ? (
+                    <Input
+                      type="text"
+                      value={editedData?.location || ''}
+                      onChange={(e) => setEditedData(prev => prev ? { ...prev, location: e.target.value } : null)}
+                      className="w-full max-w-[300px]"
+                    />
+                  ) : (
+                    <div className="text-lg font-medium">{profileData.location}</div>
+                  )}
+                </div>
+
+                {/* Dog Friendly Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Dog Friendly</label>
+                  {isEditing ? (
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={editedData?.dogFriendly || false}
+                        onChange={(e) => setEditedData(prev => prev ? { ...prev, dogFriendly: e.target.checked } : null)}
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <span className="ml-2 text-sm text-gray-700">Yes, I'm dog friendly</span>
+                    </div>
+                  ) : (
+                    <div className="text-lg font-medium">{profileData.dogFriendly ? 'Yes' : 'No'}</div>
+                  )}
+                </div>
+
+                {/* Spotify Connected Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Spotify Connected</label>
+                  {isEditing ? (
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        checked={editedData?.spotifyConnected || false}
+                        onChange={(e) => setEditedData(prev => prev ? { ...prev, spotifyConnected: e.target.checked } : null)}
+                        className="w-4 h-4 mr-2"
+                      />
+                      <span>Connect to Spotify</span>
+                    </div>
+                  ) : (
+                    <p className="text-lg">{profileData.spotifyConnected ? 'Connected' : 'Not Connected'}</p>
+                  )}
+                </div>
+
+                {/* Interests Field */}
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500">Interests</label>
+                  {isEditing ? (
+                    <InterestsOption
+                      availableInterests={availableInterests}
+                      formData={{
+                        interests: userInterestIds || []
+                      }}
+                      onInterestSelect={handleInterestSelect}
+                      maxSelect={5}
+                    />
+                  ) : (
+                    <div className="flex flex-wrap gap-2">
+                      {profileData.interests?.map((userInterest) => (
+                        <span
+                          key={userInterest.interest.id}
+                          className="bg-primary-light text-primary px-3 py-1 rounded-full text-sm"
+                        >
+                          {userInterest.interest.displayName ? userInterest.interest.displayName : "Name not set"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Spotify section */}
+                <SpotifyArtistsDisplay
+                  isConnected={profileData.spotifyConnected || false}
+                  onDisconnect={() => { }}
+                  isEditable={true}
+                  profile={profileData}
+                />
+
+                {/* Skills Section */}
+                <div className="space-y-4 mt-6">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">Skills & Experience</h2>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {availableSkills.map((skill) => (
+                      <div key={skill.id} className="space-y-2">
+                        {isEditing ? (
+                          <SkillsOption
+                            skillName={skill.name.toLowerCase()}
+                            skill={skill}
+                            selectedLevelId={editedData?.skills.find(s => s.skillId === skill.id)?.skillLevelId || null}
+                            onSelect={(skillId, levelId) => handleSkillSelect(skillId, levelId)}
+                          />
+                        ) : (
+                          <div className="flex flex-col">
+                            <span className="text-sm text-gray-500">{skill.displayName}</span>
+                            <span className="text-base">
+                              {profileData.skills.find(s => s.skillId === skill.id)?.skillLevel.displayName || 'Not specified'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
-                )}
-              </div>
-              {/* Spotify section */}
-              <SpotifyArtistsDisplay
-                isConnected={profileData?.spotifyConnected || false}
-                onDisconnect={() => { }}
-                isEditable={true}
-                profile={profileData}
-              />
-
-              {/* Skills Section */}
-              <div className="space-y-4 mt-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold">Skills & Experience</h2>
                 </div>
-                <div className="grid grid-cols-1 gap-4">
-                  {availableSkills.map((skill) => (
-                    <div key={skill.id} className="space-y-2">
-                      {isEditing ? (
-                        <SkillsOption
-                          skillName={skill.name.toLowerCase()}
-                          skill={skill}
-                          selectedLevelId={editedData?.skills.find(s => s.skillId === skill.id)?.skillLevelId || null}
-                          onSelect={(skillId, levelId) => handleSkillSelect(skillId, levelId)}
-                        />
-                      ) : (
-                        <div className="flex flex-col">
-                          <span className="text-sm text-gray-500">{skill.displayName}</span>
-                          <span className="text-base">
-                            {profileData?.skills.find(s => s.skillId === skill.id)?.skillLevel.displayName || 'Not specified'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ) : (
-            <p>No profile data found.</p>
-          )}
+              </>
+            ) : (
+              <p>No profile data found.</p>
+            )}
+          </div>
         </div>
       </div>
 
