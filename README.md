@@ -4,6 +4,7 @@ This project combines a NextJS frontend with a FastAPI backend, using Prisma as 
 
 ## 🚀 Getting Started
 
+
 ### Prerequisites
 
 - Node.js (v16 or higher)
@@ -47,6 +48,8 @@ RESEND_API_KEY=your_resend_api_key (not required yet)
 2. Install dependencies:
 ```bash
 # Install frontend dependencies
+cd nextjs-fastapi
+
 npm install
 
 # Install backend dependencies
