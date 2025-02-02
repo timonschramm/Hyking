@@ -47,9 +47,10 @@ RESEND_API_KEY=your_resend_api_key (not required yet)
 
 2. Install dependencies:
 ```bash
-# Install frontend dependencies
+# switch to the right directory
 cd nextjs-fastapi
 
+# Install frontend dependencies
 npm install
 
 # Install backend dependencies
