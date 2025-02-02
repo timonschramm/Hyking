@@ -255,16 +255,27 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-white">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 border-b p-4 bg-white shrink-0 sticky top-0 z-50">
         <div className="flex items-center gap-2 w-full">
-          <button
-            onClick={onBack}
-            className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center"
-            aria-label="Go back"
-          >
-            <ChevronLeft className="h-6 w-6" />
-          </button>
+          {/* Show back button only on mobile OR in single chat view */}
+          {window.location.pathname.includes('/chats/') ? (
+            <button
+              onClick={onBack}
+              className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center"
+              aria-label="Go back"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          ) : (
+            <button
+              onClick={onBack}
+              className="rounded-full p-2 hover:bg-gray-100 flex items-center justify-center md:hidden"
+              aria-label="Go back"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
           <div className="relative h-10 w-10 overflow-hidden rounded-full">
             <Image
               src={chatImage || '/default-avatar.jpg'}
@@ -297,7 +308,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-neutral-50 p-4">
+      <div className="flex-1 overflow-y-auto bg-white p-4">
         <div className="space-y-4 pb-[120px]">
           {chatRoom.messages.map((msg, index) => {
             const isSender = msg.senderId === currentUserId;
@@ -313,7 +324,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
               <div key={msg.id}>
                 {showDateSeparator && (
                   <div className="flex items-center justify-center my-4">
-                    <div className="bg-neutral-200 text-neutral-600 text-xs px-3 py-1 rounded-full">
+                    <div className="bg-gray-200 text-gray-600 text-xs px-3 py-1 rounded-full">
                       {formatMessageDate(msg.createdAt)}
                     </div>
                   </div>
@@ -415,7 +426,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 rounded-full border bg-white px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="flex-1 rounded-full border !bg-white px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <button
             type="submit"

@@ -224,7 +224,7 @@ setTimeout(() => {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type your message..."
-            className="flex-1 rounded-full border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
+            className="flex-1 bg-white rounded-full border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
             aria-label="Type your message"
           />
           <button

@@ -128,7 +128,9 @@ export default function ChatsPage() {
           <ChatList
             chatRooms={chatRooms}
             selectedChat={selectedChat}
-            onSelectChat={setSelectedChat}
+            onSelectChat={(chat) => {
+              setSelectedChat(chat);
+            }}
             isLoading={isLoading}
           />
         )}

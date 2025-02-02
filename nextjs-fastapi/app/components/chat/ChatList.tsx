@@ -161,7 +161,9 @@ export default function ChatList({ chatRooms, selectedChat, onSelectChat, isLoad
               chat={chat}
               isSelected={selectedChat?.id === chat.id}
               currentUserId={currentUserId}
-              onClick={() => onSelectChat(chat)}
+              onClick={() => {
+                onSelectChat(chat);
+              }}
             />
           ))}
         </div>
