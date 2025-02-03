@@ -39,8 +39,21 @@ export default function HykingAIPage() {
   const [allHikes, setAllHikes] = useState<Hike[]>([]);
   const [selectedHike, setSelectedHike] = useState<Hike | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTyping, setIsTyping] = useState(false); // Typing indicator
+  const [isTyping, setIsTyping] = useState(false);
+  const [showPrompts, setShowPrompts] = useState(true); // Add state for showing prompts
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Add example prompts
+  const examplePrompts = [
+    "How's the weather in Munich?",
+    "Recommend me a hike with waterfalls.",
+    "Give me some tips for my next hike.",
+  ];
+
+  // Add handler for example prompt clicks
+  const handleExamplePromptClick = (prompt: string) => {
+    setMessage("Hey HykingAI " + prompt);
+  };
 
   useEffect(() => {
     const newUserId = getUserId();
@@ -179,7 +192,19 @@ setTimeout(() => {
                 msg.senderId === 'user' ? 'bg-green-600 text-white' : 'bg-white text-gray-800'
               } transition-transform transform hover:scale-105`}
             >
-              {msg.text}
+              <div className="whitespace-pre-wrap break-words">
+                {msg.text.split('\n').map((line, i) => (
+                  <p key={i} className="mb-1 last:mb-0">
+                    {line.split(/(\*\*.*?\*\*)/).map((part, j) => {
+                      if (part.startsWith('**') && part.endsWith('**')) {
+                        // Remove the ** markers and wrap in bold
+                        return <strong key={j} className="font-bold">{part.slice(2, -2)}</strong>;
+                      }
+                      return <span key={j}>{part}</span>;
+                    })}
+                  </p>
+                ))}
+              </div>
               <p className="text-xs text-gray-400 mt-1">
                 {new Date(msg.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
               </p>
@@ -199,7 +224,7 @@ setTimeout(() => {
                   ))}
                 </div>
               )}
-              {msg.weather && <WeatherWidget weather={msg.weather} />} {/* Render weather widget */}
+              {msg.weather && <WeatherWidget weather={msg.weather} />}
             </div>
           </div>
         ))}
@@ -217,26 +242,62 @@ setTimeout(() => {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSendMessage} className="p-4 bg-white border-t">
-        <div className="flex items-center gap-2">
+      {/* Add the chatbot prompt and example bubbles */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 sm:relative p-4 bg-white border-t shadow-lg sm:shadow-none">
+        {showPrompts && (
+          <div className="mb-4 relative">
+            <button 
+              onClick={() => setShowPrompts(false)}
+              className="absolute right-0 top-0 text-gray-500 hover:text-gray-700 p-1"
+              aria-label="Close prompts"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <p className="text-sm text-gray-600 text-center">
+              Ask our chatbot by typing{" "}
+              <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
+            </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-2">
+              {examplePrompts.map((prompt, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleExamplePromptClick(prompt)}
+                  className="px-4 py-2 bg-green-50 text-green-600 text-sm rounded-full hover:bg-green-100 transition-colors"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {!showPrompts && (
+          <button
+            onClick={() => setShowPrompts(true)}
+            className="mb-4 text-sm text-green-600 hover:text-green-700 flex items-center justify-center w-full"
+          >
+            <span>Show example prompts</span>
+          </button>
+        )}
+
+        <form onSubmit={handleSendMessage} className="flex items-center gap-2 bg-white">
           <input
             type="text"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 bg-white rounded-full border border-gray-300 px-4 py-2 text-sm focus:ring-2 focus:ring-green-500 focus:outline-none"
-            aria-label="Type your message"
+            placeholder="Type a message..."
+            className="flex-1 rounded-full border !bg-white px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-green-500"
           />
           <button
             type="submit"
             disabled={!message.trim()}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-            aria-label="Send message"
           >
             <Send className="h-5 w-5" />
           </button>
-        </div>
-      </form>
+        </form>
+      </div>
 
       {/* Modal for hike details */}
       {isModalOpen && selectedHike && (

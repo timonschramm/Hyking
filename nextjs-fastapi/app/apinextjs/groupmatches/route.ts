@@ -14,14 +14,29 @@ export async function GET(req: NextRequest) {
     }
 
     const groupMatches = await prisma.groupMatch.findMany({
-
-      select: groupMatchListView,
+      select: {
+        ...groupMatchListView,
+        profiles: {
+          select: {
+            profileId: true,
+            hasAccepted: true,
+            profile: {
+              select: {
+                id: true,
+                imageUrl: true,
+                displayName: true
+              }
+            }
+          }
+        }
+      },
     });
 
-    // Add currentUserId to each group match
+    // Add currentUserId and isMember to each group match
     const groupMatchesWithCurrentUser = groupMatches.map((match) => ({
       ...match,
       currentUserId: user.id,
+      isMember: match.profiles.some(p => p.profileId === user.id)
     }));
 
     return NextResponse.json(groupMatchesWithCurrentUser);

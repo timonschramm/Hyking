@@ -130,6 +130,7 @@ export type GroupMatchWithAllData = Prisma.GroupMatchGetPayload<{
 // Type alias for the group match data used in the dashboard
 export type GroupMatchWithIncludes = GroupMatchListView & {
   currentUserId: string | null;
+  isMember: boolean;
 };
 
 // Props type for the GroupMatchCard component
