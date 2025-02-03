@@ -83,86 +83,6 @@ def get_user_indirect_interest_embedding(user_id: int):
     interest_embedding = np.where(interest_embedding == 0, 0.1, interest_embedding)
     return interest_embedding
 
-
-def calc_skill_similarity(user_id_a: int, user_id_b: int):
-    """
-    Calculates the skill similarity between two users
-
-    Parameters:
-    - user_id_a: ID of the first user
-    - user_id_b: ID of the second user
-
-    Returns:
-    - float: Skill similarity between the two users
-    """
-
-    user_a_skill_embedding = get_user_skill_embedding(user_id_a).reshape(1, -1)
-    user_b_skill_embedding = get_user_skill_embedding(user_id_b).reshape(1, -1)
-
-    try:
-        return cosine_similarity_numpy(user_a_skill_embedding, user_b_skill_embedding)[0][0]
-    except Exception:
-        return 0
-
-
-def calc_interest_similarity(user_id_a: int, user_id_b: int):
-    """
-    Calculates the interest similarity between two users
-
-    Parameters:
-    - user_id_a: ID of the first user
-    - user_id_b: ID of the second user
-
-    Returns:
-    - float: Interest similarity between the two users
-    """
-    user_a_direct_interest_embedding = get_user_direct_interest_embedding(user_id_a).reshape(1, -1)
-    user_b_direct_interest_embedding = get_user_direct_interest_embedding(user_id_b).reshape(1, -1)
-    direct_interest_sim = \
-    cosine_similarity_numpy(user_a_direct_interest_embedding, user_b_direct_interest_embedding)[0][0]
-
-    user_a_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_a).reshape(1, -1)
-    user_b_indirect_interest_embedding = get_user_indirect_interest_embedding(user_id_b).reshape(1, -1)
-    indirect_interest_sim = \
-    cosine_similarity_numpy(user_a_indirect_interest_embedding, user_b_indirect_interest_embedding)[0][0]
-
-    return 0.33 * direct_interest_sim + 0.67 * indirect_interest_sim
-
-
-def cosine_similarity_numpy(vec1, vec2):
-    # Flatten if 2D (assumes shape (1, N))
-    vec1, vec2 = vec1.flatten(), vec2.flatten()
-
-    # Handle empty vectors (return similarity of 0)
-    if vec1.size == 0 or vec2.size == 0:
-        return np.array([[0.0]])  # Ensure 2D array return
-
-    # Compute dot product and norms
-    dot_product = np.dot(vec1, vec2)
-    norm_vec1 = np.linalg.norm(vec1)
-    norm_vec2 = np.linalg.norm(vec2)
-
-    # Handle division by zero
-    similarity = dot_product / (norm_vec1 * norm_vec2) if norm_vec1 * norm_vec2 != 0 else 0.0
-
-    return np.array([[similarity]])  # Ensure a 2D array return
-
-
-def calc_overall_similarity(user_id_a: int, user_id_b: int):
-    """
-    Calculates the overall similarity between two users.
-
-    Parameters:
-    - user_id_a: ID of the first user
-    - user_id_b: ID of the second user
-
-    Returns:
-    - float: Overall similarity between the two users
-    """
-    return (0.66 * calc_skill_similarity(user_id_a, user_id_b)
-            + 0.34 * calc_interest_similarity(user_id_a, user_id_b))  # TODO: Discuss weights
-
-
 def fast_cosine_sim(reference_vector: np.array, other_vectors: np.array):
     """
     Computes cosine similarity between a reference vector and multiple other vectors using matrix operations.
@@ -178,44 +98,7 @@ def fast_cosine_sim(reference_vector: np.array, other_vectors: np.array):
     dot_products = other_vectors @ reference_vector
     norms = np.linalg.norm(other_vectors, axis=1) * np.linalg.norm(reference_vector) 
     print(norms)
-    return dot_products / norms  # TODO: not check for 0
-
-
-def get_comp_skill_embeddings(comp_ids: list[str]):
-
-    skill_embeddings = np.empty(shape=(0,3))
-
-    for id in comp_ids:
-        user_skill = get_user_skill_embedding(id)
-        user_skill_padded = np.pad(user_skill, (0, max(0, 3 - user_skill.shape[0])), mode='constant', constant_values=-1)
-        skill_embeddings = np.vstack([skill_embeddings, user_skill_padded])
-
-    return np.array(skill_embeddings)
-
-def get_comp_direct_interest_embeddings(comp_ids: list[str]):
-    
-    direct_interest_embeddings = np.empty(shape=(0,25))
-
-    for id in comp_ids:
-        user_interest = get_user_direct_interest_embedding(id)
-        if np.sum(user_interest, axis=0) == 0:
-            user_interest[0] = -1
-        direct_interest_embeddings = np.vstack([direct_interest_embeddings, user_interest])
-
-    return np.array(direct_interest_embeddings)
-
-def get_comp_indirect_interest_embeddings(comp_ids: list[str]):
-
-    indirect_interest_embeddings = np.empty(shape=(0,5))
-
-    for id in comp_ids:
-        user_interest = get_user_indirect_interest_embedding(id)
-        if np.sum(user_interest, axis=0) == 0:
-            user_interest[0] = -1
-        indirect_interest_embeddings = np.vstack([indirect_interest_embeddings, user_interest])
-    
-    return np.array(indirect_interest_embeddings)
-
+    return dot_products / norms  
 
 def get_recommendations(user_id: int):
     """
@@ -263,6 +146,15 @@ def get_recommendations(user_id: int):
     return sorted_user_ids[:10]
 
 def get_multiple_skill_embeddings(ids: list[str]):
+    """
+    Retrieves a matrix of the skill embeddings of the given ids
+
+    Parameters:
+    - ids: List of the requested profile ids
+
+    Returns:
+    - Numpy Array: (User x 5) matrix, where each row represents the skill embedding of the respective user
+    """
     url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
     key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
     supabase: Client = create_client(url, key)
@@ -292,6 +184,15 @@ def get_multiple_skill_embeddings(ids: list[str]):
     return np.vstack(skill_arrays)
 
 def get_multiple_direct_interest_embeddings(ids: list[str]):
+    """
+    Retrieves a matrix of the direct interest embeddings of the given ids
+
+    Parameters:
+    - ids: List of the requested profile ids
+
+    Returns:
+    - Numpy Array: (User x 5) matrix, where each row represents the direct interest embedding of the respective user
+    """
     url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
     key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
     supabase: Client = create_client(url, key)
@@ -323,6 +224,15 @@ def get_multiple_direct_interest_embeddings(ids: list[str]):
     return np.vstack(interest_matrix)  
 
 def get_multiple_indirect_interest_embeddings(ids: list[str]):
+    """
+    Retrieves a matrix of the indirect interest embeddings of the given ids
+
+    Parameters:
+    - ids: List of the requested profile ids
+
+    Returns:
+    - Numpy Array: (User x 5) matrix, where each row represents the indirect interest embedding of the respective user
+    """
     url: str = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
     key: str = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
     supabase: Client = create_client(url, key)
