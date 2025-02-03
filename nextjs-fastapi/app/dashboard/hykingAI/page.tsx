@@ -184,7 +184,7 @@ setTimeout(() => {
         <p className="text-sm text-gray-500">Your personal hiking assistant</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-0">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.senderId === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
@@ -242,61 +242,63 @@ setTimeout(() => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Add the chatbot prompt and example bubbles */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 sm:relative p-4 bg-white border-t shadow-lg sm:shadow-none">
-        {showPrompts && (
-          <div className="mb-4 relative">
-            <button 
-              onClick={() => setShowPrompts(false)}
-              className="absolute right-0 top-0 text-gray-500 hover:text-gray-700 p-1"
-              aria-label="Close prompts"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-              </svg>
-            </button>
-            <p className="text-sm text-gray-600 text-center">
-              Ask our chatbot by typing{" "}
-              <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-2">
-              {examplePrompts.map((prompt, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleExamplePromptClick(prompt)}
-                  className="px-4 py-2 bg-green-50 text-green-600 text-sm rounded-full hover:bg-green-100 transition-colors"
-                >
-                  {prompt}
-                </button>
-              ))}
+      {/* Bottom section with prompts and input */}
+      <div className="flex-shrink-0 bg-white border-t shadow-lg sm:shadow-none">
+        <div className="p-4">
+          {showPrompts && (
+            <div className="mb-4 relative">
+              <button 
+                onClick={() => setShowPrompts(false)}
+                className="absolute right-0 top-0 text-gray-500 hover:text-gray-700 p-1"
+                aria-label="Close prompts"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+              <p className="text-sm text-gray-600 text-center">
+                Ask our chatbot by typing{" "}
+                <span className="font-semibold text-green-600">"Hey HykingAI"</span>.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
+                {examplePrompts.map((prompt, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleExamplePromptClick(prompt)}
+                    className="px-4 py-2 bg-green-50 text-green-600 text-sm rounded-full hover:bg-green-100 transition-colors"
+                  >
+                    {prompt}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-        )}
-        {!showPrompts && (
-          <button
-            onClick={() => setShowPrompts(true)}
-            className="mb-4 text-sm text-green-600 hover:text-green-700 flex items-center justify-center w-full"
-          >
-            <span>Show example prompts</span>
-          </button>
-        )}
+          )}
+          {!showPrompts && (
+            <button
+              onClick={() => setShowPrompts(true)}
+              className="mb-4 text-sm text-green-600 hover:text-green-700 flex items-center justify-center w-full"
+            >
+              <span>Show example prompts</span>
+            </button>
+          )}
 
-        <form onSubmit={handleSendMessage} className="flex items-center gap-2 bg-white">
-          <input
-            type="text"
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-full border !bg-white px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <button
-            type="submit"
-            disabled={!message.trim()}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
-          >
-            <Send className="h-5 w-5" />
-          </button>
-        </form>
+          <form onSubmit={handleSendMessage} className="flex items-center gap-2 pb-3 bg-white">
+            <input
+              type="text"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type a message..."
+              className="flex-1 rounded-full border !bg-white px-4 py-2 text-sm text-black focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <button
+              type="submit"
+              disabled={!message.trim()}
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 transition-colors"
+            >
+              <Send className="h-5 w-5" />
+            </button>
+          </form>
+        </div>
       </div>
 
       {/* Modal for hike details */}
