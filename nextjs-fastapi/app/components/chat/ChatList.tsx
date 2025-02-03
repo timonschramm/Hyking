@@ -96,7 +96,7 @@ function ChatListItem({ chat, isSelected, currentUserId, onClick }: {
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <h3 className="font-medium truncate">{otherUser.email.split('@')[0]}</h3>
+            <h3 className="font-medium truncate">{otherUser.displayName ? otherUser.displayName : "No name defined"}</h3>
             {messageTime && (
               <span className="text-xs text-neutral-500 flex-shrink-0">
                 {messageTime}
