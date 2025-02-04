@@ -133,6 +133,9 @@ def handle_hike_recommendation(user_input, user_id, is_group_chat=False):
             # Convert to dict for frontend
             recommendations = recommendations_df.to_dict(orient="records")
 
+            # Store the last 5 recommended hikes in memory
+            memory["last_recommended_hikes"] = recommendations[-5:]  # Keep only the last 5 hikes
+
             # Check if the chatbot is being used in a group chat context
             if is_group_chat:
                 # Reset filters after recommendation
@@ -167,15 +170,45 @@ def handle_hike_recommendation(user_input, user_id, is_group_chat=False):
 def handle_clarification(user_input, user_id):
     """
     Handles clarification requests dynamically for a specific user.
+    If the user asks about the last 5 hikes recommended, send the hike info and user query to ChatGPT.
+    ChatGPT will determine if the query pertains to one of the hikes and respond accordingly.
     """
-    # Clarify dynamically using the chatbot's conversation memory
-    filters = chatbot.get_session_memory(user_id)["conversation_state"].get("user_filters", {})
-    required_filters = ['region', 'difficulty', 'max_length']
-    missing_filters = [key for key in required_filters if not filters.get(key)]
+    memory = chatbot.get_session_memory(user_id)
 
-    if missing_filters:
-        missing_filter = missing_filters[0]
-        return {"response": f"I need more details about '{missing_filter}'. Can you clarify?"}
+    # Retrieve the last 5 hikes from memory
+    last_hikes = memory.get("last_recommended_hikes", [])
+
+    if not last_hikes:
+        return {"response": "Hi either you have not yet asked for any recommendations or you are in a groupchat. Asking information about already recommended hikes is currently only supported under the HykingAI tab. Sorry for the inconvenience."}
+
+    # Check if the user is asking about the last 5 hikes
+    if True==True:
+        # Prepare the system prompt for ChatGPT
+        system_prompt = f"""
+        You are a helpful hiking assistant. The user has asked a question about one of the last 5 hikes they were recommended.
+        Here is the information about the last 5 hikes:
+        {json.dumps(last_hikes, indent=2)}
+
+        The user's query is: "{user_input}"
+
+        Your task is to:
+        1. Determine if the user's query pertains to one of the hikes.
+        2. If it does, provide a detailed answer about that hike.
+        3. If it doesn't pertain to any specific hike, provide an answer for each of the 5 hikes.
+        4. If the query could apply to multiple hikes, provide an answer for each relevant hike.
+
+        Respond in a friendly and helpful tone.
+        """
+
+        # Call ChatGPT with the system prompt and user input
+        response = chatbot._call_gpt(user_input, system_prompt, user_id)
+
+        return {"response": response}
+
+    # Existing clarification logic for missing filters
+    user_filters = memory["conversation_state"].get("user_filters", {})
+
+
 
     # If no missing filters, treat it as general chat
     general_prompt = chatbot._build_system_prompt("default", user_input)

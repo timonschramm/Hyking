@@ -66,7 +66,7 @@ class Chatbot:
             Categorize the following user message into one of the following categories:
             - 'general_chat': General conversation or casual questions.
             - 'hike_recommendation': If the user is asking for a hike route or adjusting/refining their preferences (e.g., changing difficulty, scenery, etc.).
-            - 'clarification': For refining or clarifying a previous request.
+            - 'clarification': Before this messages hikes may have already been recommended. If the request is asking specifically for information of a hike route that may have been provided earlier in the chat use this.
             - 'adjust_filters': If the user is explicitly updating or changing their filters (e.g., "I don't care about waterfalls, only easy hikes").
             - 'weather': If the user is asking about the weather (e.g., "What's the weather in New York?").
             - 'other': Anything else unrelated or unclear.
