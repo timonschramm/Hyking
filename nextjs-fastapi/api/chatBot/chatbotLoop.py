@@ -3,17 +3,17 @@ from .chatbot import Chatbot
 from . import getHike
 from . import finalRecommender
 from .weather import get_weather
+import re  # Add this import
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
 # Initialize chatbot
 chatbot = Chatbot()
 
-
-def chatbot_loop_api(user_input, user_id):
+def chatbot_loop_api(user_input, user_id, is_group_chat=False):
     """
     Main API wrapper for chatbot interactions with user-specific memory.
-    Updated to handle the new 'weather' intent.
+    Updated to handle the new 'weather' intent and group chat context.
     """
     if not user_input:
         return {"error": "No input provided"}
@@ -27,7 +27,7 @@ def chatbot_loop_api(user_input, user_id):
     if intent == "general_chat":
         return handle_general_chat(user_input, user_id)
     elif intent == "hike_recommendation" or intent == "adjust_filters":
-        return handle_hike_recommendation(user_input, user_id)
+        return handle_hike_recommendation(user_input, user_id, is_group_chat)
     elif intent == "clarification":
         return handle_clarification(user_input, user_id)
     elif intent == "weather":
@@ -35,22 +35,13 @@ def chatbot_loop_api(user_input, user_id):
     else:
         return {"response": "🤖 Sorry, I didn't understand that."}
 
-
 def handle_general_chat(user_input, user_id):
     """
     Handles general conversation with the chatbot for a specific user.
     """
     general_prompt = chatbot._build_system_prompt("default", user_input)
-    response = chatbot._call_gpt(user_input,general_prompt ,user_id)
+    response = chatbot._call_gpt(user_input, general_prompt, user_id)
     return {"response": response}
-
-
-import re  # Import regex for better filtering
-
-import re  # Import regex for better filtering
-
-import re
-
 
 def extract_keywords(user_input):
     """
@@ -68,8 +59,7 @@ def extract_keywords(user_input):
 
     return keywords
 
-
-def handle_hike_recommendation(user_input, user_id):
+def handle_hike_recommendation(user_input, user_id, is_group_chat=False):
     """
     Handles hike recommendations dynamically and prioritizes matches across all text fields for a specific user.
     Supports general filter adjustments (e.g., removing waterfalls, snowy terrain, etc.).
@@ -142,6 +132,13 @@ def handle_hike_recommendation(user_input, user_id):
 
             # Convert to dict for frontend
             recommendations = recommendations_df.to_dict(orient="records")
+
+            # Check if the chatbot is being used in a group chat context
+            if is_group_chat:
+                # Reset filters after recommendation
+                memory["conversation_state"]["user_filters"] = {}
+                chatbot.clear_session_memory(user_id)
+
             return {
                 "response": "Here are some hikes you might like.",
                 "hikes": recommendations,
@@ -166,9 +163,6 @@ def handle_hike_recommendation(user_input, user_id):
             "response": "An error occurred while processing your request. Please try again later.",
             "filters": user_filters  # Include full filter list in error case
         }
-
-
-
 
 def handle_clarification(user_input, user_id):
     """

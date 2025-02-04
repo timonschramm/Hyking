@@ -141,7 +141,7 @@ export default function ChatWindow({ chatRoom: initialChatRoom, onBack }: ChatWi
       if (isAIMessage) {
         setIsTyping(true);
         try {
-          const aiResponse = await fetch(`/api/py/chat`, {
+          const aiResponse = await fetch(`/api/py/groupchat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ user_id: currentUserId, user_input: message.trim() }),

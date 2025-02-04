@@ -14,7 +14,6 @@ from .chatBot.db import fetch_hike_data
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 
-
 # Initialize FastAPI app
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
 
@@ -34,12 +33,14 @@ app.include_router(recs_router, prefix="/api/py", tags=["recommendations"])
 hikes = fetch_hike_data()
 print("Hikes loaded successfully!")
 
-
 # Request models
 class ChatRequest(BaseModel):
     user_id: str
     user_input: str
 
+class GroupChatRequest(BaseModel):
+    user_id: str
+    user_input: str
 
 @app.post("/api/py/chat")
 async def chat(request: ChatRequest):
@@ -74,6 +75,38 @@ async def chat(request: ChatRequest):
         print(f"Error in chatbot endpoint: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+@app.post("/api/py/groupchat")
+async def groupchat(request: GroupChatRequest):
+    """
+    Handle group chat requests via chatbot loop with filter reset after recommendation.
+    """
+    try:
+        user_id = request.user_id
+        user_input = request.user_input.strip()
+        if not user_input:
+            raise HTTPException(status_code=400, detail="No input provided")
+
+        raw_response = chatbot_loop_api(user_input, user_id, is_group_chat=True)
+        # Call chatbot logic with user_id
+
+        if isinstance(raw_response, dict) and raw_response.get("intent") == "hike_recommendation":
+            # Process hike recommendations
+            user_filters = raw_response.get("filters", {})
+            hike_recommendations = getHike(user_filters)
+            return {
+                "response": "Here are some hikes you might like.",
+                "hike_ids": hike_recommendations
+            }
+
+        # Return chatbot's response
+        if isinstance(raw_response, str):
+            return {"response": raw_response}
+        else:
+            return raw_response
+
+    except Exception as e:
+        print(f"Error in groupchat endpoint: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/api/py/signup")
 async def signup(user: UserCreate):
@@ -83,7 +116,6 @@ async def signup(user: UserCreate):
     hashed_password = get_password_hash(user.password)
     users_db[user.email] = {"email": user.email, "password": hashed_password}
     return {"message": "User created successfully"}
-
 
 @app.post("/api/py/login")
 async def login(user: UserCreate):
@@ -99,7 +131,6 @@ async def login(user: UserCreate):
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
-
 
 @app.get("/api/py/helloFastApi")
 def hello_fast_api():
