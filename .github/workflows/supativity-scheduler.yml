@@ -13,4 +13,4 @@ jobs:
 
     steps:
       - name: Send HTTP Request
-        run: curl https://recsysprak-55mz.vercel.app/api/etc/supabase-activity-scheduler
+        run: curl https://recsysprak-55mz.vercel.app/apinextjs/hikes/
