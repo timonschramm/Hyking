@@ -2,7 +2,7 @@
     "functions": {
         "api/**": {
             "excludeFiles": "{.next,*.cache,node_modules,public}/**",
-            "maxDuration": 300
+            "maxDuration": 60
         },
         "app/apinextjs/**/*": {
             "maxDuration": 60
