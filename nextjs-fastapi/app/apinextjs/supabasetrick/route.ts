@@ -13,4 +13,5 @@ export async function GET() {
     const message = (error as Error).message ?? "An error occurred."
     return Response.json({ error: message }, { status: 400 })
   }
+  
 }
