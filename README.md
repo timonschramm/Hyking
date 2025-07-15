@@ -2,6 +2,13 @@
 
 This project combines a NextJS frontend with a FastAPI backend, using Prisma as the ORM and Supabase as the database provider.
 
+
+
+https://github.com/user-attachments/assets/34daad24-bf9d-40bc-b329-2b76515b1608
+
+
+
+
 ## 🚀 Getting Started
 
 
