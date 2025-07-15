@@ -4,7 +4,7 @@ This project combines a NextJS frontend with a FastAPI backend, using Prisma as 
 
 
 
-https://github.com/user-attachments/assets/34daad24-bf9d-40bc-b329-2b76515b1608
+https://github.com/user-attachments/assets/607e865f-1de5-4dff-a908-d42e2a748ec0
 
 
 
